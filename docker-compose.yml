@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with pgvector
+  db:
+    image: ankane/pgvector:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: vibeknowing
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis for Task Queue
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
