@@ -8,103 +8,29 @@ class AIService:
     def generate_summary(text: str, style: str = "article"):
         if style == "article":
             # Use the exact prompt that produced great results in ChatGPT
-            prompt = f"""You are a senior content creator who specializes in turning raw transcripts into deeply engaging, beginner-friendly articles.
-Your job is to take the transcript I provide and transform it into a medium-length (8–10 min) article that absolute beginners can understand and enjoy.
+            prompt = f"""You are an expert AI technical educator.
 
-Follow these instructions carefully:
+Write a highly engaging, well-structured, and richly informative educational article based on the following transcript:
 
-1. Audience & Tone
-- Write for absolute beginners with no prior knowledge of the topic.
-- Use a tone that is friendly, conversational, and clear, like explaining something to a smart 5-year-old.
-- Keep it professional but simple, and lightly motivational.
+Guidelines:
+- Use **Markdown headings** (`##` for main sections, `###` for subsections) to clearly structure content.
+- Ensure headings are meaningful and not empty.
+- Write concise paragraphs (3-5 sentences each) with smooth, storytelling transitions between sections.
+- Use proper list formatting: `-` for unordered lists, `1.` for ordered lists, with consistent indentation.
+- **Visuals**: Include text-based diagrams (ASCII art or box-and-arrow) inside code blocks to visualize processes or relationships.
+- Explain technical concepts clearly using real-world metaphors, analogies, and examples.
+- Include inline code explanations (e.g., `code`) when referencing code.
+- Break down complex topics into approachable, logically flowing paragraphs.
+- Maintain a professional, approachable, and slightly conversational tone, like a great teacher guiding a learner.
+- Avoid motivational filler, excessive metaphors, or redundant whitespace.
+- Ensure the output is ready-to-publish, highly engaging, and clear for intelligent general readers.
+- When including mathematical expressions or formulas, always use LaTeX syntax and wrap them in $...$ for inline math or $$...$$ for block math.
+- If the transcript covers a mathematical or technical concept, include a clear, step-by-step explanation, with formulas and worked examples as a teacher would. Favor a tutorial style over a generic summary when the content is instructional.
+- For each key concept, provide at least one worked example with numbers and formulas, step by step.
+- Ignore repeated or filler phrases from the transcript; focus on unique mathematical explanations and problem-solving steps.
+- Minimize motivational or generic language; focus on clear, logical, and example-driven teaching.
 
-2. Style & Flow
-- Create a hybrid narrative + tutorial article:
-  - Start with a simple story or hook that helps readers instantly relate.
-  - Gradually guide them into the core idea.
-  - Break down concepts step-by-step with plain English.
-  - Use short, clean paragraphs that breathe.
-
-3. Visuals
-- Include diagrams and illustrations in text-friendly form:
-  - Simple block diagrams
-  - Flowcharts with arrows
-  - Analogy-based illustrations (e.g., "like how a librarian organizes books")
-- Use markdown code blocks for diagrams, for example:
-
-```
-[Simple Diagram]
-Topic → Concept → Output
-```
-
-4. Examples
-- Include both:
-  - Everyday analogies
-  - Real technical examples (But written so a beginner will still understand.)
-
-5. Clarity Rules
-- Strictly avoid:
-  - Heavy jargon
-  - Complex math
-  - Long walls of text
-  - Salesy tone
-  - Overly academic or robotic sentences
-- Rewrite complicated ideas into clean, everyday language.
-
-6. Structure
-The article must follow this structure:
-- A warm, simple introduction
-- A story or real-life hook
-- Key concept explained in simple English
-- Diagram or visual illustration
-- Step-by-step explanation
-- Real-world example
-- Everyday analogy
-- Second diagram or flowchart
-- Why this matters
-- Simple recap
-- Closing thoughts that encourage learning
-
-7. Output
-- Produce a full article, 100% rewritten — no transcript wording repeated.
-- Keep it very easy to read.
-- Make the article worth reading to the end.
-
-**CRITICAL FORMATTING RULES:**
-- Use ## for main section headings (e.g., ## The Big Idea)
-- Use ### for subsection headings (e.g., ### Step 1: Understanding the Basics)
-- DO NOT use horizontal lines (---) as section dividers
-- DO NOT use bullet points (•) for headings - use proper ## markdown headings
-- Use **bold** for emphasis within paragraphs
-- Use bullet points (-) only for lists, not for headings
-
-**CONTENT TYPE ADAPTATION:**
-First, analyze the transcript to determine if it's:
-- **Tutorial/How-To**: If the content teaches how to DO something, build something, or solve a problem step-by-step
-- **Informational/Conceptual**: If the content explains WHAT something is, WHY it matters, or explores ideas/concepts
-
-Then adapt your writing style:
-
-FOR TUTORIAL CONTENT:
-- Use numbered steps (1., 2., 3.) for sequential processes
-- Include "Let's build...", "Here's how to...", "Follow these steps..."
-- Provide concrete, actionable instructions
-- Include code examples, commands, or specific actions to take
-- Use second-person ("you will", "you can", "try this")
-- End with "What you've learned" or "Next steps"
-
-FOR INFORMATIONAL CONTENT:
-- Use conceptual headings (## The Big Idea, ## How It Works, ## Why This Matters)
-- Focus on understanding and mental models
-- Use analogies and metaphors to explain abstract concepts
-- Include "Imagine...", "Think of it like...", "This is similar to..."
-- Use third-person or general statements
-- End with "Key Takeaways" or "The Bigger Picture"
-
-IMPORTANT: Remember, the reader chose to READ this instead of watching the video. Make it worth their time with rich, descriptive explanations that teach the concept thoroughly.
-
-Here is the transcript:
-
+Transcript:
 {text[:12000]}"""
             model = "o1"  # Match ChatGPT's reasoning model
             max_tokens = 16000  # o1 supports longer outputs
@@ -144,21 +70,194 @@ Here is the transcript:
             return f"Failed to generate summary: {str(e)}"
 
     @staticmethod
-    def generate_flashcards(text: str):
-        prompt = "Create 5 spaced-repetition flashcards from this content. Return as JSON array with 'front' and 'back' fields."
+    def generate_quiz(text: str):
+        prompt = """You are an expert AI tutor creating a quiz for a student.
+Based on the provided content, generate 5 multiple-choice questions.
+
+Output must be a JSON object with a "questions" key, containing an array of objects.
+Each object must have:
+- "question": The question text.
+- "options": An array of 4 possible answers (strings).
+- "correctAnswer": The index (0-3) of the correct option.
+- "explanation": A brief explanation of why the answer is correct.
+
+Focus on key concepts and understanding, not just trivia."""
+        
         try:
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are an educational AI."},
+                    {"role": "system", "content": "You are a helpful educational AI."},
+                    {"role": "user", "content": f"{prompt}\n\nContent:\n{text[:15000]}"}
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"AI Error (Quiz): {e}")
+            return '{"questions": []}'
+
+    @staticmethod
+    def generate_flashcards(text: str):
+        prompt = """You are an expert in spaced repetition learning.
+Create 10 high-quality flashcards from the provided content.
+
+Output must be a JSON object with a "flashcards" key, containing an array of objects.
+Each object must have:
+- "front": The concept, question, or term.
+- "back": The definition, answer, or explanation.
+
+Guidelines:
+- Keep the "front" concise.
+- Ensure the "back" is clear and comprehensive but not overwhelming.
+- Focus on the most important information for long-term retention."""
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a helpful educational AI."},
+                    {"role": "user", "content": f"{prompt}\n\nContent:\n{text[:15000]}"}
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"AI Error (Flashcards): {e}")
+            return '{"flashcards": []}'
+
+    @staticmethod
+    def generate_social_media(text: str, platform: str = "twitter"):
+        """Generate social media posts from content."""
+        platform_guides = {
+            "twitter": "280 characters max, engaging hook, use 1-2 hashtags",
+            "linkedin": "Professional tone, 1-3 paragraphs, focus on insights and takeaways",
+            "facebook": "Conversational, 1-2 paragraphs, encourage engagement"
+        }
+        
+        guide = platform_guides.get(platform.lower(), platform_guides["twitter"])
+        
+        prompt = f"""You are a social media content creator.
+Create an engaging {platform} post based on the provided content.
+
+Guidelines for {platform}:
+{guide}
+
+Output must be a JSON object with:
+- "post": The social media post text
+- "hashtags": Array of relevant hashtags (3-5)
+- "hook": A compelling opening line
+
+Make it engaging, valuable, and shareable."""
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a social media expert."},
                     {"role": "user", "content": f"{prompt}\n\nContent:\n{text[:10000]}"}
                 ],
                 response_format={ "type": "json_object" }
             )
             return response.choices[0].message.content
         except Exception as e:
-            print(f"AI Error: {e}")
-            return "[]"
+            print(f"AI Error (Social Media): {e}")
+            return '{"post": "", "hashtags": [], "hook": ""}'
+
+    @staticmethod
+    def generate_diagram(text: str, concept: str = ""):
+        """Generate text-based diagrams/visualizations."""
+        concept_hint = f" Focus on visualizing: {concept}." if concept else ""
+        
+        prompt = f"""You are an expert at creating clear, educational ASCII diagrams.
+Create a text-based diagram to visualize the key concepts from this content.{concept_hint}
+
+Output must be a JSON object with:
+- "diagram": The ASCII diagram (use box-drawing characters: ─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ or simple +, -, |)
+- "type": "ascii"
+- "title": A descriptive title for the diagram
+- "description": Brief explanation of what the diagram shows
+
+Guidelines for ASCII diagrams:
+- Use simple boxes and arrows to show relationships
+- Keep it clean and readable
+- Use spacing for clarity
+- Show flow from top to bottom or left to right
+- Label each box clearly
+
+Example format:
+```
+┌─────────────┐
+│   Input     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Process    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Output    │
+└─────────────┘
+```
+
+Make it educational and visually clear."""
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a visualization expert who creates clear ASCII diagrams."},
+                    {"role": "user", "content": f"{prompt}\n\nContent:\n{text[:10000]}"}
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"AI Error (Diagram): {e}")
+            return '{"diagram": "", "type": "ascii", "title": "", "description": ""}'
+
+    @staticmethod
+    def generate_article(text: str, style: str = "blog"):
+        """Generate articles from content."""
+        style_guides = {
+            "blog": "Conversational, engaging, 800-1200 words, use headings and examples",
+            "technical": "Detailed, precise, 1000-1500 words, include code examples if relevant",
+            "tutorial": "Step-by-step, actionable, 1000-1500 words, numbered steps with explanations"
+        }
+        
+        guide = style_guides.get(style.lower(), style_guides["blog"])
+        
+        prompt = f"""You are a professional content writer.
+Transform the provided content into a well-structured {style} article.
+
+Guidelines for {style} style:
+{guide}
+
+Output must be a JSON object with:
+- "title": Compelling article title
+- "content": Full article in Markdown format
+- "excerpt": 2-3 sentence summary
+- "readTime": Estimated read time in minutes
+
+Use proper Markdown formatting with headings, lists, and emphasis.
+Make it valuable, well-structured, and ready to publish."""
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a professional writer."},
+                    {"role": "user", "content": f"{prompt}\n\nContent:\n{text[:15000]}"}
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"AI Error (Article): {e}")
+            return '{"title": "", "content": "", "excerpt": "", "readTime": 0}'
+
 
     @staticmethod
     def chat_with_context(query: str, context: str):

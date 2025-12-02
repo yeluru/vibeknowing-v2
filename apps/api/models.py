@@ -66,12 +66,14 @@ class Artifact(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     project_id = Column(String, ForeignKey("projects.id"))
+    source_id = Column(String, ForeignKey("sources.id"), nullable=True) # Link to specific source if applicable
     type = Column(String) # summary, quiz, flashcard, article, linkedin_post, diagram
     title = Column(String, nullable=True)
     content = Column(JSON) # Structured content (e.g. Q&A list, or markdown text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     project = relationship("Project", back_populates="artifacts")
+    source = relationship("Source", backref="artifacts")
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"

@@ -117,10 +117,13 @@ async def list_projects(
         "first_source_id": p.sources[0].id if p.sources else None
     } for p in projects]
 
+class CategoryUpdate(BaseModel):
+    category_id: str | None = None
+
 @router.put("/projects/{project_id}/category")
 async def update_project_category(
     project_id: str,
-    category_id: str = None,
+    update: CategoryUpdate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -134,15 +137,36 @@ async def update_project_category(
         raise HTTPException(status_code=404, detail="Project not found")
     
     # Verify category exists if provided
-    if category_id:
+    if update.category_id:
         category = db.query(models.Category).filter(
-            models.Category.id == category_id,
+            models.Category.id == update.category_id,
             models.Category.owner_id == current_user.id
         ).first()
         if not category:
             raise HTTPException(status_code=404, detail="Category not found")
     
-    project.category_id = category_id
+    project.category_id = update.category_id
     db.commit()
     
-    return {"status": "updated", "project_id": project_id, "category_id": category_id}
+    return {"status": "updated", "project_id": project_id, "category_id": update.category_id}
+
+@router.delete("/projects/{project_id}")
+async def delete_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Delete a project and all its contents."""
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.owner_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    db.delete(project)
+    db.commit()
+    
+    return {"status": "deleted", "project_id": project_id}
+

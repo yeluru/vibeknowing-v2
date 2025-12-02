@@ -100,83 +100,54 @@ class WebScraperService:
     
     @staticmethod
     def scrape_ted(url: str) -> dict:
-        """Extract transcript from TED talk"""
+        """Extract transcript from TED talk using yt-dlp"""
+        try:
+            print(f"Attempting to scrape TED talk using yt-dlp: {url}")
+            from .ytdlp import YtDlpService
+            
+            # Use YtDlpService to process the video
+            result = YtDlpService.process_video(url)
+            
+            if result['success']:
+                print(f"Successfully processed TED talk via {result['method']}")
+                return {
+                    'title': result['title'],
+                    'content': result['content'],
+                    'success': True
+                }
+            else:
+                print(f"yt-dlp failed: {result.get('error')}")
+                # Fallback to basic scraping
+                return WebScraperService._scrape_ted_fallback(url)
+                    
+        except Exception as e:
+            print(f"TED extraction error: {e}")
+            return WebScraperService._scrape_ted_fallback(url)
+    
+    @staticmethod
+    def _scrape_ted_fallback(url: str) -> dict:
+        """Fallback TED scraper without Playwright"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
             }
             
-            # Ensure we are looking at the transcript page
-            transcript_url = url
-            if '/transcript' not in url:
-                transcript_url = url.rstrip('/') + '/transcript'
+            response = requests.get(url, headers=headers, timeout=10)
+            soup = BeautifulSoup(response.content, 'html.parser')
             
-            print(f"Fetching TED transcript from: {transcript_url}")
-            response = requests.get(transcript_url, headers=headers, timeout=10)
-            
-            # If transcript page doesn't exist, fall back to main page
-            if response.status_code != 200:
-                print(f"Transcript page not found ({response.status_code}), falling back to main page")
-                response = requests.get(url, headers=headers, timeout=10)
-            # If content is very short, try rendering with Playwright (JS-heavy pages)
-            if len(response.content) < 200:
-                try:
-                    rendered_html = WebScraperService._render_page(url)
-                    soup = BeautifulSoup(rendered_html, 'html.parser')
-                except Exception:
-                    # Fallback to raw content if rendering fails
-                    soup = BeautifulSoup(response.content, 'html.parser')
-            else:
-                soup = BeautifulSoup(response.content, 'html.parser')
             # Extract title
             title_tag = soup.find('meta', property='og:title')
             title = title_tag.get('content', 'TED Talk') if title_tag else 'TED Talk'
             title = title.replace(' | TED Talk', '')
             
-            transcript = ""
-            
-            # Method 1: Look for Next.js data (most reliable)
-            import json
-            next_data = soup.find('script', id='__NEXT_DATA__')
-            if next_data:
-                try:
-                    data = json.loads(next_data.string)
-                    # Traverse JSON to find transcript
-                    # Path varies, but usually props -> pageProps -> transcriptData
-                    props = data.get('props', {}).get('pageProps', {})
-                    # Try 'transcriptData' first, then 'transcript'
-                    transcript_data_obj = props.get('transcriptData') or props.get('transcript', {})
-                    transcript_paragraphs = transcript_data_obj.get('translation', {}).get('paragraphs', [])
-                    
-                    if transcript_paragraphs:
-                        full_text = []
-                        for paragraph in transcript_paragraphs:
-                            cues = paragraph.get('cues', [])
-                            para_text = " ".join([cue.get('text', '') for cue in cues])
-                            full_text.append(para_text)
-                        transcript = "\n\n".join(full_text)
-                        print(f"Extracted transcript from JSON ({len(transcript)} chars)")
-                except Exception as e:
-                    print(f"Failed to parse Next.js data: {e}")
-
-            # Method 2: Look for transcript container in HTML (fallback)
-            if not transcript:
-                # TED often uses grid layouts for transcripts
-                # Look for elements with class containing 'Grid' or 'p' tags inside a container
-                # This is brittle, so we rely heavily on Method 1
-                pass
-
-            # Method 3: Fallback to description if still empty
-            if not transcript:
-                print("Falling back to description")
-                meta_description = soup.find('meta', property='og:description')
-                if meta_description:
-                    transcript = meta_description.get('content', '')
+            # Try to get description as fallback
+            meta_description = soup.find('meta', property='og:description')
+            content = meta_description.get('content', '') if meta_description else ''
             
             return {
                 'title': title,
-                'content': transcript or "TED talk content (transcript may not be available)",
-                'success': bool(transcript) and len(transcript) > 200 # Ensure we got more than just a description
+                'content': content or "TED talk content (transcript requires JavaScript rendering - install Playwright: pip install playwright && playwright install chromium)",
+                'success': bool(content)
             }
         except Exception as e:
             return {

@@ -10,30 +10,32 @@ router = APIRouter(
     tags=["ingestion"]
 )
 
-class YouTubeRequest(BaseModel):
+class UrlRequest(BaseModel):
     url: str
     project_id: str
 
 @router.post("/youtube")
-async def ingest_youtube(request: YouTubeRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+async def ingest_youtube(request: UrlRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return await ingest_url(request, db, current_user)
+
+@router.post("/web")
+async def ingest_web(request: UrlRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return await ingest_url(request, db, current_user)
+
+async def ingest_url(request: UrlRequest, db: Session, current_user: models.User):
     """Universal URL ingestion - handles YouTube, Instagram, LinkedIn, TED, and any webpage"""
     # Handle default project
+    # Handle default project
     if request.project_id == "default":
-        # Find or create default project
-        project = db.query(models.Project).filter(
-            models.Project.owner_id == current_user.id,
-            models.Project.title == "My Library"
-        ).first()
-        
-        if not project:
-            project = models.Project(
-                title="My Library",
-                description="Default project for all content",
-                owner_id=current_user.id
-            )
-            db.add(project)
-            db.commit()
-            db.refresh(project)
+        # Create a NEW project for this source
+        project = models.Project(
+            title="New Project", # Will be updated to source title later
+            description="Created from URL",
+            owner_id=current_user.id
+        )
+        db.add(project)
+        db.commit()
+        db.refresh(project)
         
         project_id = project.id
     else:
@@ -94,12 +96,40 @@ async def ingest_youtube(request: YouTubeRequest, db: Session = Depends(get_db),
                 
                 if transcript_text:
                     source.content_text = transcript_text
-                    source.title = f"YouTube: {video_id}"
+                    
+                    # Try to fetch video title
+                    try:
+                        import subprocess
+                        # Use yt-dlp to get just the title (fast)
+                        title_cmd = ["yt-dlp", "--get-title", "--no-warnings", request.url]
+                        title_res = subprocess.run(title_cmd, capture_output=True, text=True, timeout=10)
+                        if title_res.returncode == 0 and title_res.stdout.strip():
+                            source.title = title_res.stdout.strip()
+                        else:
+                            source.title = f"YouTube: {video_id}"
+                    except Exception as e:
+                        print(f"Failed to fetch title: {e}")
+                        source.title = f"YouTube: {video_id}"
+                        
                     content_fetched = True
                     print(f"Successfully fetched transcript ({len(transcript_text)} chars)")
                 else:
-                    error_message = "Transcript returned empty"
-                    print(f"Transcript fetch returned None for {video_id}")
+                    print(f"Standard transcript fetch failed for {video_id}, trying yt-dlp fallback...")
+                    try:
+                        from ..services.ytdlp import YtDlpService
+                        result = YtDlpService.process_video(request.url)
+                        
+                        if result['success']:
+                            source.content_text = result['content']
+                            source.title = result.get('title', f"YouTube: {video_id}")
+                            content_fetched = True
+                            print(f"Successfully fetched transcript via yt-dlp ({len(source.content_text)} chars)")
+                        else:
+                            error_message = f"Transcript returned empty and fallback failed: {result.get('error')}"
+                            print(f"Transcript fetch returned None for {video_id} and fallback failed")
+                    except Exception as e:
+                        error_message = f"Transcript returned empty and fallback error: {str(e)}"
+                        print(f"Fallback error: {e}")
             else:
                 error_message = "Could not extract video ID from URL"
                 print(f"Failed to extract video ID from: {request.url}")
@@ -140,6 +170,10 @@ For testing purposes, you can still:
 URL Type: {url_type}
 Original URL: {request.url}"""
         source.title = f"{url_type.capitalize()} Content (Extraction unavailable)"
+    
+    # Update project title with source title if this is a new project
+    if request.project_id == "default" and source.title:
+        project.title = source.title
     
     db.commit()
     return {"status": "ready", "source_id": source.id, "has_content": content_fetched, "url_type": url_type}
@@ -465,22 +499,17 @@ async def ingest_file(
     """Upload and process files: audio/video (transcribe), PDF (extract text), or text files"""
     
     # Handle default project (same logic as URL ingestion)
+    # Handle default project (same logic as URL ingestion)
     if project_id == "default":
-        # Find or create default project
-        project = db.query(models.Project).filter(
-            models.Project.owner_id == current_user.id,
-            models.Project.title == "My Library"
-        ).first()
-        
-        if not project:
-            project = models.Project(
-                title="My Library",
-                description="Default project for all content",
-                owner_id=current_user.id
-            )
-            db.add(project)
-            db.commit()
-            db.refresh(project)
+        # Create NEW project
+        project = models.Project(
+            title=file.filename or "New Project",
+            description="Created from file upload",
+            owner_id=current_user.id
+        )
+        db.add(project)
+        db.commit()
+        db.refresh(project)
         
         project_id = project.id
     else:

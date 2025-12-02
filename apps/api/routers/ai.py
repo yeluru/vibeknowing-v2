@@ -95,6 +95,7 @@ async def summarize(source_id: str, style: str = "article", force: bool = False,
     # Also save as artifact for history
     artifact = models.Artifact(
         project_id=source.project_id,
+        source_id=source.id,
         type="summary",
         title=f"{style.capitalize()} Summary",
         content={"text": summary}
@@ -103,3 +104,298 @@ async def summarize(source_id: str, style: str = "article", force: bool = False,
     db.commit()
     
     return {"summary": summary, "artifact_id": artifact.id, "cached": False}
+
+
+@router.post("/quiz/{source_id}")
+async def generate_quiz(source_id: str, force: bool = False, db: Session = Depends(get_db)):
+    """Generate or retrieve quiz."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source or not source.content_text:
+        raise HTTPException(status_code=404, detail="Source content not found")
+
+    # Check for existing quiz artifact
+    # In a real app, we might want to support multiple quizzes. For now, we'll just check for the latest one.
+    # Check for existing quiz artifact
+    existing_quiz = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "quiz"
+    ).order_by(models.Artifact.created_at.desc()).first()
+
+    # If we wanted caching, we'd check here. But quizzes are often dynamic. Let's allow regeneration.
+    
+    print(f"Generating quiz for source {source_id}")
+    quiz_json_str = AIService.generate_quiz(source.content_text)
+    
+    import json
+    try:
+        quiz_data = json.loads(quiz_json_str)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+
+    # Save as artifact
+    artifact = models.Artifact(
+        project_id=source.project_id,
+        source_id=source.id,
+        type="quiz",
+        title=f"Quiz for {source.title}",
+        content=quiz_data
+    )
+    db.add(artifact)
+    db.commit()
+    
+    return quiz_data
+
+
+@router.get("/quiz/{source_id}")
+async def get_quiz(source_id: str, db: Session = Depends(get_db)):
+    """Retrieve existing quiz for a source."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    # Find the latest quiz artifact for this project
+    artifact = db.query(models.Artifact).filter(
+        models.Artifact.project_id == source.project_id,
+        models.Artifact.type == "quiz"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    if not artifact:
+        return {"questions": []}
+    
+    return artifact.content
+
+
+@router.post("/flashcards/{source_id}")
+async def generate_flashcards(source_id: str, force: bool = False, db: Session = Depends(get_db)):
+    """Generate or retrieve flashcards."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source or not source.content_text:
+        raise HTTPException(status_code=404, detail="Source content not found")
+
+    print(f"Generating flashcards for source {source_id}")
+    flashcards_json_str = AIService.generate_flashcards(source.content_text)
+    
+    import json
+    try:
+        flashcards_data = json.loads(flashcards_json_str)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+
+    # Save as artifact
+    artifact = models.Artifact(
+        project_id=source.project_id,
+        type="flashcards",
+        title=f"Flashcards for {source.title}",
+        content=flashcards_data
+    )
+    db.add(artifact)
+    db.commit()
+    
+    return flashcards_data
+
+
+@router.get("/flashcards/{source_id}")
+async def get_flashcards(source_id: str, db: Session = Depends(get_db)):
+    """Retrieve existing flashcards for a source."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    artifact = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "flashcards"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    if not artifact:
+        return {"flashcards": []}
+    
+    return artifact.content
+
+
+@router.post("/social-media/{source_id}")
+async def generate_social_media(source_id: str, platform: str = "twitter", db: Session = Depends(get_db)):
+    """Generate social media post from source content."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source or not source.content_text:
+        raise HTTPException(status_code=404, detail="Source content not found")
+
+    print(f"Generating {platform} post for source {source_id}")
+    social_json_str = AIService.generate_social_media(source.content_text, platform)
+    
+    import json
+    try:
+        social_data = json.loads(social_json_str)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+
+    # Save as artifact
+    artifact = models.Artifact(
+        project_id=source.project_id,
+        source_id=source.id,
+        type="social_media",
+        title=f"{platform.capitalize()} Post for {source.title}",
+        content=social_data
+    )
+    db.add(artifact)
+    db.commit()
+    
+    return social_data
+
+
+@router.get("/social-media/{source_id}")
+async def get_social_media(source_id: str, platform: str = "twitter", db: Session = Depends(get_db)):
+    """Retrieve existing social media post for a source."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    # Find latest social media artifact for this platform
+    artifact = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "social_media",
+        models.Artifact.title.like(f"{platform.capitalize()}%")
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    if not artifact:
+        return {"post": "", "hashtags": [], "hook": ""}
+    
+    return artifact.content
+
+
+@router.post("/diagram/{source_id}")
+async def generate_diagram(source_id: str, concept: str = "", db: Session = Depends(get_db)):
+    """Generate diagram from source content."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source or not source.content_text:
+        raise HTTPException(status_code=404, detail="Source content not found")
+
+    print(f"Generating diagram for source {source_id}")
+    diagram_json_str = AIService.generate_diagram(source.content_text, concept)
+    
+    import json
+    try:
+        diagram_data = json.loads(diagram_json_str)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+
+    # Save as artifact
+    artifact = models.Artifact(
+        project_id=source.project_id,
+        source_id=source.id,
+        type="diagram",
+        title=f"Diagram for {source.title}",
+        content=diagram_data
+    )
+    db.add(artifact)
+    db.commit()
+    
+    return diagram_data
+
+
+@router.get("/diagram/{source_id}")
+async def get_diagram(source_id: str, db: Session = Depends(get_db)):
+    """Retrieve existing diagram for a source."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    artifact = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "diagram"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    if not artifact:
+        return {"diagram": "", "type": "ascii", "title": "", "description": ""}
+    
+    return artifact.content
+
+
+@router.post("/article/{source_id}")
+async def generate_article(source_id: str, style: str = "blog", db: Session = Depends(get_db)):
+    """Generate article from source content."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source or not source.content_text:
+        raise HTTPException(status_code=404, detail="Source content not found")
+
+    print(f"Generating {style} article for source {source_id}")
+    article_json_str = AIService.generate_article(source.content_text, style)
+    
+    import json
+    try:
+        article_data = json.loads(article_json_str)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+
+    # Save as artifact
+    artifact = models.Artifact(
+        project_id=source.project_id,
+        source_id=source.id,
+        type="article",
+        title=f"{style.capitalize()} Article: {article_data.get('title', source.title)}",
+        content=article_data
+    )
+    db.add(artifact)
+    db.commit()
+    
+    return article_data
+
+
+@router.get("/article/{source_id}")
+async def get_article(source_id: str, db: Session = Depends(get_db)):
+    """Retrieve existing article for a source."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    artifact = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "article"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    if not artifact:
+        return {"title": "", "content": "", "excerpt": "", "readTime": 0}
+    
+    return artifact.content
+
+
+class ArticleUpdate(BaseModel):
+    content: str
+
+
+@router.put("/article/{source_id}")
+async def update_article(source_id: str, update: ArticleUpdate, db: Session = Depends(get_db)):
+    """Update (save) article content."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    
+    # Try to find latest artifact to preserve metadata
+    latest_artifact = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "article"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    article_data = {
+        "title": f"Article for {source.title}",
+        "content": update.content,
+        "excerpt": "",
+        "readTime": 0
+    }
+    
+    if latest_artifact and isinstance(latest_artifact.content, dict):
+        article_data = latest_artifact.content.copy()
+        article_data["content"] = update.content
+        
+    # Save as new artifact
+    artifact = models.Artifact(
+        project_id=source.project_id,
+        source_id=source.id,
+        type="article",
+        title=article_data.get("title", f"Article for {source.title}"),
+        content=article_data
+    )
+    db.add(artifact)
+    db.commit()
+    
+    return article_data
+
