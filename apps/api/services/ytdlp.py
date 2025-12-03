@@ -6,7 +6,7 @@ import math
 import time
 from typing import List, Dict, Optional
 from openai import OpenAI
-from ..config import settings
+from config import settings
 
 class YtDlpService:
     @staticmethod

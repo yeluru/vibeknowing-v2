@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..database import get_db
-from .. import models
-from ..services.ai import AIService
+from database import get_db
+import models
+from services.ai import AIService
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 
@@ -47,7 +47,7 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)):
         
         # Save assistant message after streaming completes
         # Create a new session for this operation
-        from ..database import SessionLocal
+        from database import SessionLocal
         new_db = SessionLocal()
         try:
             assistant_message = models.ChatMessage(

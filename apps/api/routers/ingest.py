@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Form, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..dependencies import get_current_user
-from .. import models
+from database import get_db
+from dependencies import get_current_user
+import models
 from pydantic import BaseModel
 
 router = APIRouter(
@@ -65,7 +65,7 @@ async def ingest_url(request: UrlRequest, db: Session, current_user: models.User
         }
 
     # Detect URL type
-    from ..services.scraper import WebScraperService
+    from services.scraper import WebScraperService
     url_type = WebScraperService.detect_url_type(request.url)
     
     # Create source entry
@@ -87,7 +87,7 @@ async def ingest_url(request: UrlRequest, db: Session, current_user: models.User
     try:
         if url_type == 'youtube':
             # Use existing YouTube transcript service
-            from ..services.transcript import TranscriptService
+            from services.transcript import TranscriptService
             video_id = TranscriptService.extract_video_id(request.url)
             
             if video_id:
@@ -116,7 +116,7 @@ async def ingest_url(request: UrlRequest, db: Session, current_user: models.User
                 else:
                     print(f"Standard transcript fetch failed for {video_id}, trying yt-dlp fallback...")
                     try:
-                        from ..services.ytdlp import YtDlpService
+                        from services.ytdlp import YtDlpService
                         result = YtDlpService.process_video(request.url)
                         
                         if result['success']:
@@ -179,8 +179,8 @@ Original URL: {request.url}"""
     return {"status": "ready", "source_id": source.id, "has_content": content_fetched, "url_type": url_type}
 
 def process_file_background(source_id: str, content_bytes: bytes, filename: str, file_ext: str, content_type: str, force_ocr: bool):
-    from ..database import SessionLocal
-    from .. import models
+    from database import SessionLocal
+    import models
     import traceback
     
     print(f"Background processing started for {filename} (Source ID: {source_id})")
@@ -620,7 +620,7 @@ async def refresh_source(source_id: str, db: Session = Depends(get_db), current_
     
     try:
         if url_type == 'youtube':
-            from ..services.transcript import TranscriptService
+            from services.transcript import TranscriptService
             video_id = TranscriptService.extract_video_id(url)
             
             if video_id:
@@ -638,7 +638,7 @@ async def refresh_source(source_id: str, db: Session = Depends(get_db), current_
                 error_message = "Could not extract video ID from URL"
         else:
             # Use web scraper for all other URLs
-            from ..services.scraper import WebScraperService
+            from services.scraper import WebScraperService
             print(f"Re-scraping {url_type} URL: {url}")
             result = WebScraperService.scrape_url(url)
             

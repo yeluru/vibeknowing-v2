@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { Loader2, FileText, Sparkles, MessageCircle, Upload, Copy, Check, RefreshCw, ChevronLeft, ChevronRight, Trophy, Layers, Palette, Eye, Trash2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
@@ -157,13 +157,42 @@ export default function SourcePage() {
         }
     };
 
+    // loadChatHistory removed (handled by ChatInterface)
+
+    const handleGenerateSummary = useCallback(async () => {
+        setGenerating(true);
+        try {
+            // If summary already exists, we are regenerating, so force=true
+            const force = !!summary;
+            const response = await fetch(`http://localhost:8001/ai/summarize/${params.id}?force=${force}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSummary(data.summary);
+                // Update local source object
+                if (source) {
+                    setSource({ ...source, summary: data.summary });
+                }
+            } else {
+                console.error("Failed to generate summary");
+            }
+        } catch (error) {
+            console.error("Error generating summary:", error);
+        } finally {
+            setGenerating(false);
+        }
+    }, [params.id, summary, source]);
+
     // Auto-generate summary when switching to Summary tab if no summary exists
     useEffect(() => {
         if (activeTab === 'summary' && source && !summary && !generating && !isProcessing) {
             console.log('Summary tab opened with no summary - auto-generating');
-            generateSummary();
+            handleGenerateSummary();
         }
-    }, [activeTab, source, isProcessing]);
+    }, [activeTab, source, summary, generating, isProcessing, handleGenerateSummary]);
 
     const loadSource = async () => {
         // Only set loading on initial load, not during polling
@@ -209,34 +238,7 @@ export default function SourcePage() {
     };
 
     // loadChatHistory removed (handled by ChatInterface)
-
-    const handleGenerateSummary = async () => {
-        setGenerating(true);
-        try {
-            // If summary already exists, we are regenerating, so force=true
-            const force = !!summary;
-            const response = await fetch(`http://localhost:8001/ai/summarize/${params.id}?force=${force}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setSummary(data.summary);
-                // Update local source object
-                if (source) {
-                    setSource({ ...source, summary: data.summary });
-                }
-            } else {
-                console.error("Failed to generate summary");
-            }
-        } catch (error) {
-            console.error("Error generating summary:", error);
-        } finally {
-            setGenerating(false);
-        }
-    };
-
+    // handleGenerateSummary moved above to be available for useEffect
     // handleSendMessage removed (handled by ChatInterface)
 
     const handleManualTranscriptUpload = async () => {

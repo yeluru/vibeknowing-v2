@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..database import get_db
-from .. import models
-from ..services.social import SocialMediaService
+from database import get_db
+import models
+from services.social import SocialMediaService
 from pydantic import BaseModel
 
 router = APIRouter(

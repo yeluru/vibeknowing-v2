@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
-from .database import engine
-from . import models
-from .routers import ingest, ai, create, sources, categories
+
+# Add current directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+from database import engine
+import models
+from routers import ingest, ai, create, sources, categories
 
 load_dotenv()
 
