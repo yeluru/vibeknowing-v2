@@ -74,7 +74,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                         {message.role === "user" ? (
                             <p className="whitespace-pre-wrap">{message.content}</p>
                         ) : (
-                            <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200">
+                            <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:text-slate-200 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-code:text-slate-200">
                                 <ReactMarkdown>{message.content}</ReactMarkdown>
                             </div>
                         )}

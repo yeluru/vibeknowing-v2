@@ -297,9 +297,9 @@ export default function SourcePage() {
     }
 
     return (
-        <div className="h-full flex flex-col overflow-hidden space-y-6">
-            {/* Header */}
-            <div className="flex-none bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="h-full flex flex-col overflow-hidden space-y-4 sm:space-y-6">
+            {/* Header - Enhanced */}
+            <div className="flex-none bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 p-5 sm:p-6 shadow-lg hover-lift transition-colors duration-300">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 min-w-0">
                         <div className="flex-none flex items-center bg-gray-100 rounded-lg p-1">
@@ -327,8 +327,8 @@ export default function SourcePage() {
                             </a>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <h1 className="text-2xl font-bold text-gray-900 mb-1 break-words">{source.title}</h1>
-                            <p className="text-sm text-gray-500 truncate">{source.url}</p>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 break-words leading-tight">{source.title}</h1>
+                            <p className="text-sm text-slate-500 truncate font-medium">{source.url}</p>
                         </div>
                     </div>
 
@@ -340,77 +340,77 @@ export default function SourcePage() {
                         <Trash2 className="h-5 w-5" />
                     </button>
                 </div>
-                {/* Action Buttons */}
-                <div className="mt-6 flex flex-wrap gap-3">
+                {/* Action Buttons - Enhanced */}
+                <div className="mt-6 flex flex-wrap gap-2 sm:gap-3">
                     <button
                         onClick={() => handleTabChange('transcript')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'transcript'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'transcript'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-indigo-600'
                             }`}
                     >
                         <FileText className="h-4 w-4" />
-                        Transcript
+                        <span className="hidden sm:inline">Transcript</span>
                     </button>
                     <button
                         onClick={() => handleTabChange('summary')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'summary'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'summary'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-indigo-600'
                             }`}
                     >
                         <Sparkles className="h-4 w-4" />
-                        Summary
+                        <span className="hidden sm:inline">Summary</span>
                     </button>
                     <button
                         onClick={() => handleTabChange('chat')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'chat'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'chat'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-indigo-600'
                             }`}
                     >
                         <MessageCircle className="h-4 w-4" />
-                        Chat
+                        <span className="hidden sm:inline">Chat</span>
                     </button>
                     <button
                         onClick={() => handleTabChange('quiz')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'quiz'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'quiz'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-indigo-600'
                             }`}
                     >
                         <Trophy className="h-4 w-4" />
-                        Quiz
+                        <span className="hidden sm:inline">Quiz</span>
                     </button>
                     <button
                         onClick={() => handleTabChange('flashcards')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'flashcards'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'flashcards'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-indigo-600'
                             }`}
                     >
                         <Layers className="h-4 w-4" />
-                        Flashcards
+                        <span className="hidden sm:inline">Flashcards</span>
                     </button>
                     <button
                         onClick={() => handleTabChange('studio')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'studio'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'studio'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-indigo-600'
                             }`}
                     >
                         <Palette className="h-4 w-4" />
-                        Studio
+                        <span className="hidden sm:inline">Studio</span>
                     </button>
                     <button
                         onClick={() => handleTabChange('view')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'view'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'view'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-indigo-600'
                             }`}
                     >
                         <Eye className="h-4 w-4" />
-                        View
+                        <span className="hidden sm:inline">View</span>
                     </button>
                 </div>
             </div>
@@ -419,16 +419,16 @@ export default function SourcePage() {
             <div className="flex-1 overflow-y-auto mt-6">
                 {/* Transcript Tab */}
                 {activeTab === 'transcript' && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-900">Transcript</h2>
+                    <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 p-6 sm:p-8 shadow-xl transition-colors duration-300">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                            <h2 className="text-2xl font-extrabold text-gray-900">Transcript</h2>
                             <button
                                 onClick={() => {
                                     navigator.clipboard.writeText(source.content_text);
                                     setCopiedTranscript(true);
                                     setTimeout(() => setCopiedTranscript(false), 2000);
                                 }}
-                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 hover:text-indigo-600 transition-all duration-300 hover-lift"
                             >
                                 {copiedTranscript ? (
                                     <>
@@ -444,7 +444,7 @@ export default function SourcePage() {
                             </button>
                         </div>
                         <div className="prose prose-sm max-w-none">
-                            <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                            <p className="whitespace-pre-wrap text-slate-700 leading-relaxed text-base">
                                 {source.content_text}
                             </p>
                         </div>
@@ -453,9 +453,9 @@ export default function SourcePage() {
 
                 {/* Summary Tab */}
                 {activeTab === 'summary' && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-900">AI Summary</h2>
+                    <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 p-6 sm:p-8 shadow-xl transition-colors duration-300">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                            <h2 className="text-2xl font-extrabold text-gray-900">AI Summary</h2>
                             <div className="flex items-center gap-2">
                                 {source.summary && (
                                     <button
@@ -464,7 +464,7 @@ export default function SourcePage() {
                                             setCopiedSummary(true);
                                             setTimeout(() => setCopiedSummary(false), 2000);
                                         }}
-                                        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 hover:text-indigo-600 transition-all duration-300 hover-lift"
                                     >
                                         {copiedSummary ? (
                                             <>
@@ -504,26 +504,29 @@ export default function SourcePage() {
                                     remarkPlugins={[remarkGfm, remarkMath]}
                                     rehypePlugins={[rehypeKatex]}
                                     components={{
-                                        h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mt-6 mb-4 text-gray-900" {...props} />,
-                                        h2: ({ node, ...props }) => <h2 className="text-xl font-bold mt-5 mb-3 text-gray-900" {...props} />,
-                                        h3: ({ node, ...props }) => <h3 className="text-lg font-semibold mt-4 mb-2 text-gray-900" {...props} />,
-                                        p: ({ node, ...props }) => <p className="mb-4 text-gray-700 leading-relaxed" {...props} />,
-                                        ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4 space-y-2 text-gray-700" {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4 space-y-2 text-gray-700" {...props} />,
-                                        li: ({ node, ...props }) => <li className="ml-4" {...props} />,
-                                        strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900" {...props} />,
-                                        em: ({ node, ...props }) => <em className="italic text-gray-800" {...props} />,
+                                        h1: ({ node, ...props }) => <h1 className="!text-2xl !font-bold !mt-6 !mb-4 !text-gray-900" {...props} />,
+                                        h2: ({ node, ...props }) => <h2 className="!text-xl !font-bold !mt-5 !mb-3 !text-gray-900" {...props} />,
+                                        h3: ({ node, ...props }) => <h3 className="!text-lg !font-semibold !mt-4 !mb-2 !text-gray-900" {...props} />,
+                                        h4: ({ node, ...props }) => <h4 className="!text-base !font-semibold !mt-3 !mb-2 !text-gray-900" {...props} />,
+                                        h5: ({ node, ...props }) => <h5 className="!text-sm !font-semibold !mt-2 !mb-1 !text-gray-900" {...props} />,
+                                        h6: ({ node, ...props }) => <h6 className="!text-xs !font-semibold !mt-2 !mb-1 !text-gray-900" {...props} />,
+                                        p: ({ node, ...props }) => <p className="!mb-4 !text-gray-700 !leading-relaxed" {...props} />,
+                                        ul: ({ node, ...props }) => <ul className="!list-disc !list-inside !mb-4 !space-y-2 !text-gray-700" {...props} />,
+                                        ol: ({ node, ...props }) => <ol className="!list-decimal !list-inside !mb-4 !space-y-2 !text-gray-700" {...props} />,
+                                        li: ({ node, ...props }) => <li className="!ml-4 !text-gray-700" {...props} />,
+                                        strong: ({ node, ...props }) => <strong className="!font-semibold !text-gray-900" {...props} />,
+                                        em: ({ node, ...props }) => <em className="!italic !text-gray-800" {...props} />,
                                         pre: ({ node, ...props }) => (
-                                            <pre className="not-prose bg-gray-50 rounded-lg overflow-x-auto border border-gray-200 my-4" {...props} />
+                                            <pre className="not-prose !bg-gray-50 rounded-lg overflow-x-auto border border-gray-200 my-4" {...props} />
                                         ),
                                         code: ({ node, inline, className, children, ...props }: any) => {
                                             const match = /language-(\w+)/.exec(className || '');
                                             return !inline ? (
-                                                <code className={cn("block p-4 text-sm font-mono text-gray-800 whitespace-pre", className)} {...props}>
+                                                <code className={cn("!block !p-4 !text-sm !font-mono !text-gray-800 whitespace-pre", className)} {...props}>
                                                     {children}
                                                 </code>
                                             ) : (
-                                                <code className={cn("px-1.5 py-0.5 bg-gray-100 text-purple-600 rounded text-sm font-mono", className)} {...props}>
+                                                <code className={cn("!px-1.5 !py-0.5 !bg-gray-100 !text-purple-600 rounded !text-sm !font-mono", className)} {...props}>
                                                     {children}
                                                 </code>
                                             );
@@ -532,7 +535,7 @@ export default function SourcePage() {
                                             <img className="rounded-lg border border-gray-200 my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />
                                         ),
                                         blockquote: ({ node, ...props }) => (
-                                            <blockquote className="border-l-4 border-purple-500 pl-4 italic text-gray-700 my-4" {...props} />
+                                            <blockquote className="!border-l-4 !border-purple-500 !pl-4 !italic !text-gray-700 !my-4" {...props} />
                                         ),
                                     }}
                                 >

@@ -122,7 +122,7 @@ export function SocialMediaGenerator({ sourceId }: SocialMediaGeneratorProps) {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[300px]">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[300px] transition-colors duration-300">
                 {loading ? (
                     <div className="h-full flex flex-col items-center justify-center py-12">
                         <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
@@ -133,7 +133,7 @@ export function SocialMediaGenerator({ sourceId }: SocialMediaGeneratorProps) {
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                            className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white text-gray-900"
                         />
                         <div className="flex justify-end gap-2">
                             <button
@@ -161,7 +161,7 @@ export function SocialMediaGenerator({ sourceId }: SocialMediaGeneratorProps) {
                         </p>
                         <button
                             onClick={generateContent}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                         >
                             Generate Draft
                         </button>

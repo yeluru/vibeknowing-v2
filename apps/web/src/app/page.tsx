@@ -46,22 +46,27 @@ export default function Home() {
   }).length;
 
   return (
-    <div className="space-y-12">
-      {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center space-y-6 rounded-2xl bg-gradient-to-br from-purple-50 to-white py-16 text-center shadow-sm border border-purple-100">
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-purple-100 px-4 py-2">
-            <Sparkles className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-700">AI-Powered Learning Platform</span>
+    <div className="space-y-8 sm:space-y-12">
+      {/* Hero Section - Enhanced */}
+      <section className="flex flex-col items-center justify-center space-y-6 rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 sm:py-16 md:py-20 text-center shadow-xl border border-indigo-100/50 hover-lift relative overflow-hidden transition-colors duration-300">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-1/4 w-72 h-72 bg-purple-400 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-400 rounded-full blur-3xl"></div>
+        </div>
+        <div className="space-y-6 relative z-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 px-5 py-2.5 shadow-md border border-indigo-200/50 transition-colors duration-300">
+            <Sparkles className="h-4 w-4 text-indigo-600 animate-pulse" />
+            <span className="text-sm font-semibold text-indigo-700">AI-Powered Learning Platform</span>
           </div>
 
-          <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-            Turn Any Content Into
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
+            <span className="text-slate-900">Turn Any Content Into</span>
             <br />
-            <span className="text-purple-600">Knowledge</span>
+            <span className="gradient-text">Knowledge</span>
           </h1>
 
-          <p className="mx-auto max-w-2xl text-xl text-gray-600">
+          <p className="mx-auto max-w-2xl text-lg sm:text-xl text-slate-600 leading-relaxed">
             Transform videos, articles, and PDFs into AI summaries, interactive quizzes, flashcards, and social content in seconds.
           </p>
 
@@ -71,57 +76,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Dashboard */}
+      {/* Stats Dashboard - Enhanced */}
       {!loading && totalProjects > 0 && (
-        <section className="grid gap-6 sm:grid-cols-3">
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-sm transition-all hover:shadow-lg">
-            <div className="absolute right-4 top-4 opacity-10 transition-opacity group-hover:opacity-20">
-              <FolderOpen className="h-16 w-16 text-blue-600" />
+        <section className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3">
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-50 via-indigo-100/50 to-blue-50 p-6 sm:p-8 shadow-lg border border-indigo-200/50 hover-lift transition-all duration-300">
+            <div className="absolute right-4 top-4 opacity-10 transition-all group-hover:opacity-20 group-hover:scale-110">
+              <FolderOpen className="h-16 w-16 sm:h-20 sm:w-20 text-indigo-600" />
             </div>
             <div className="relative">
-              <p className="text-sm font-medium text-blue-600">Total Projects</p>
-              <p className="mt-2 text-4xl font-bold text-blue-900">{totalProjects}</p>
-              <p className="mt-1 text-xs text-blue-600">All time</p>
+              <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Total Projects</p>
+              <p className="mt-3 text-4xl sm:text-5xl font-extrabold text-indigo-900">{totalProjects}</p>
+              <p className="mt-2 text-xs font-medium text-indigo-500">All time</p>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 p-6 shadow-sm transition-all hover:shadow-lg">
-            <div className="absolute right-4 top-4 opacity-10 transition-opacity group-hover:opacity-20">
-              <TrendingUp className="h-16 w-16 text-purple-600" />
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 via-purple-100/50 to-pink-50 p-6 sm:p-8 shadow-lg border border-purple-200/50 hover-lift transition-all duration-300">
+            <div className="absolute right-4 top-4 opacity-10 transition-all group-hover:opacity-20 group-hover:scale-110">
+              <TrendingUp className="h-16 w-16 sm:h-20 sm:w-20 text-purple-600" />
             </div>
             <div className="relative">
-              <p className="text-sm font-medium text-purple-600">This Week</p>
-              <p className="mt-2 text-4xl font-bold text-purple-900">{thisWeek}</p>
-              <p className="mt-1 text-xs text-purple-600">New projects</p>
+              <p className="text-sm font-semibold text-purple-600 uppercase tracking-wide">This Week</p>
+              <p className="mt-3 text-4xl sm:text-5xl font-extrabold text-purple-900">{thisWeek}</p>
+              <p className="mt-2 text-xs font-medium text-purple-500">New projects</p>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 shadow-sm transition-all hover:shadow-lg">
-            <div className="absolute right-4 top-4 opacity-10 transition-opacity group-hover:opacity-20">
-              <Zap className="h-16 w-16 text-emerald-600" />
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-teal-50 p-6 sm:p-8 shadow-lg border border-emerald-200/50 hover-lift transition-all duration-300">
+            <div className="absolute right-4 top-4 opacity-10 transition-all group-hover:opacity-20 group-hover:scale-110">
+              <Zap className="h-16 w-16 sm:h-20 sm:w-20 text-emerald-600" />
             </div>
             <div className="relative">
-              <p className="text-sm font-medium text-emerald-600">Ready to Use</p>
-              <p className="mt-2 text-4xl font-bold text-emerald-900">
+              <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide">Ready to Use</p>
+              <p className="mt-3 text-4xl sm:text-5xl font-extrabold text-emerald-900">
                 {projects.filter(p => p.status === 'Ready').length}
               </p>
-              <p className="mt-1 text-xs text-emerald-600">Available now</p>
+              <p className="mt-2 text-xs font-medium text-emerald-500">Available now</p>
             </div>
           </div>
         </section>
       )}
 
-      {/* Recent Activity */}
+      {/* Recent Activity - Enhanced */}
       {!loading && recentProjects.length > 0 && (
         <section className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Recent Projects</h2>
-              <p className="text-gray-600">Pick up where you left off</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Recent Projects</h2>
+              <p className="text-slate-600 mt-1">Pick up where you left off</p>
             </div>
             <Link
               href="/studio"
-              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-purple-700 hover:shadow-lg"
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:from-indigo-600 hover:to-purple-600 hover:shadow-xl hover:shadow-indigo-500/40 hover-lift"
             >
               <Palette className="h-4 w-4" />
               Content Studio
@@ -133,7 +138,7 @@ export default function Home() {
               <Link
                 key={project.id}
                 href={project.first_source_id ? `/source/${project.first_source_id}` : '#'}
-                className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-300 hover:shadow-lg"
+                className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-md hover-lift transition-all duration-300 hover:border-indigo-300 hover:shadow-xl hover:bg-white"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={cn(
@@ -168,65 +173,65 @@ export default function Home() {
         </section>
       )}
 
-      {/* Features Showcase */}
-      <section className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Powerful AI Features</h2>
-          <p className="mt-2 text-gray-600">Everything you need to learn smarter, not harder</p>
+      {/* Features Showcase - Enhanced */}
+      <section className="space-y-8">
+          <div className="text-center space-y-2">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">Powerful AI Features</h2>
+          <p className="text-lg text-slate-600">Everything you need to learn smarter, not harder</p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-purple-300 hover:shadow-lg">
-            <div className="mb-4 inline-flex rounded-xl bg-purple-100 p-3 text-purple-600 transition-all group-hover:bg-purple-600 group-hover:text-white">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="group rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-md hover-lift transition-all duration-300 hover:border-purple-300 hover:shadow-xl hover:bg-white">
+            <div className="mb-4 inline-flex rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 p-3.5 text-purple-600 transition-all duration-300 group-hover:from-purple-600 group-hover:to-purple-700 group-hover:text-white group-hover:scale-110 group-hover:rotate-3">
               <Brain className="h-6 w-6" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">AI Summaries</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">AI Summaries</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
               Get concise, structured summaries of any content in seconds
             </p>
           </div>
 
-          <div className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-blue-300 hover:shadow-lg">
-            <div className="mb-4 inline-flex rounded-xl bg-blue-100 p-3 text-blue-600 transition-all group-hover:bg-blue-600 group-hover:text-white">
+          <div className="group rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-md hover-lift transition-all duration-300 hover:border-indigo-300 hover:shadow-xl hover:bg-white">
+            <div className="mb-4 inline-flex rounded-2xl bg-gradient-to-br from-indigo-100 to-indigo-200 p-3.5 text-indigo-600 transition-all duration-300 group-hover:from-indigo-600 group-hover:to-indigo-700 group-hover:text-white group-hover:scale-110 group-hover:rotate-3">
               <Sparkles className="h-6 w-6" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Smart Quizzes</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Smart Quizzes</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
               Test your knowledge with AI-generated interactive quizzes
             </p>
           </div>
 
-          <div className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-orange-300 hover:shadow-lg">
-            <div className="mb-4 inline-flex rounded-xl bg-orange-100 p-3 text-orange-600 transition-all group-hover:bg-orange-600 group-hover:text-white">
+          <div className="group rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-md hover-lift transition-all duration-300 hover:border-orange-300 hover:shadow-xl hover:bg-white">
+            <div className="mb-4 inline-flex rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200 p-3.5 text-orange-600 transition-all duration-300 group-hover:from-orange-600 group-hover:to-orange-700 group-hover:text-white group-hover:scale-110 group-hover:rotate-3">
               <Zap className="h-6 w-6" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Flashcards</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Flashcards</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
               Master concepts with spaced repetition flashcards
             </p>
           </div>
 
-          <div className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-emerald-300 hover:shadow-lg">
-            <div className="mb-4 inline-flex rounded-xl bg-emerald-100 p-3 text-emerald-600 transition-all group-hover:bg-emerald-600 group-hover:text-white">
+          <div className="group rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm p-6 shadow-md hover-lift transition-all duration-300 hover:border-emerald-300 hover:shadow-xl hover:bg-white">
+            <div className="mb-4 inline-flex rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 p-3.5 text-emerald-600 transition-all duration-300 group-hover:from-emerald-600 group-hover:to-emerald-700 group-hover:text-white group-hover:scale-110 group-hover:rotate-3">
               <Palette className="h-6 w-6" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Content Studio</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Content Studio</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
               Create social posts, diagrams, and articles from your content
             </p>
           </div>
         </div>
       </section>
 
-      {/* Empty State CTA */}
+      {/* Empty State CTA - Enhanced */}
       {!loading && totalProjects === 0 && (
-        <section className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 px-8 py-16 text-center">
-          <div className="mx-auto max-w-md space-y-4">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
-              <Sparkles className="h-8 w-8 text-purple-600" />
+        <section className="rounded-3xl border-2 border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 px-6 sm:px-8 py-12 sm:py-16 text-center shadow-lg transition-colors duration-300">
+          <div className="mx-auto max-w-md space-y-5">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 shadow-lg">
+              <Sparkles className="h-10 w-10 text-indigo-600 animate-pulse" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">Ready to Start Learning?</h3>
-            <p className="text-gray-600">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Ready to Start Learning?</h3>
+            <p className="text-slate-600 leading-relaxed text-base">
               Upload your first piece of content above and watch the magic happen. Transform any video, article, or PDF into powerful learning materials.
             </p>
           </div>

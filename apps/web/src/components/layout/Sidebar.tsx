@@ -160,8 +160,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 href={project.first_source_id ? `/source/${project.first_source_id}` : '#'}
                 onClick={onNavigate}
                 className={cn(
-                    "flex-1 block px-2 py-1.5 text-sm text-gray-600 rounded-md hover:bg-gray-50 hover:text-purple-600 truncate transition-colors pr-8",
-                    project.first_source_id && pathname === `/source/${project.first_source_id}` && "bg-purple-50 text-purple-700 font-medium"
+                    "flex-1 block px-3 py-2 text-sm text-slate-600 rounded-xl hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 truncate transition-all duration-300 pr-8 font-medium",
+                    project.first_source_id && pathname === `/source/${project.first_source_id}` && "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 font-semibold shadow-sm"
                 )}
             >
                 {project.title}
@@ -173,14 +173,14 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     console.log('Three dots clicked for project:', project.id);
                     setActiveDropdown(activeDropdown === project.id ? null : project.id);
                 }}
-                className="absolute right-1 p-1 text-gray-400 hover:text-purple-600 opacity-0 group-hover/project:opacity-100 transition-opacity"
+                className="absolute right-1 p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg opacity-0 group-hover/project:opacity-100 transition-all duration-300"
             >
                 <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
 
             {activeDropdown === project.id && (
                 <div
-                    className="absolute left-0 top-full mt-1 z-50 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1"
+                    className="absolute left-0 top-full mt-2 z-50 w-56 bg-white/95 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60 py-2 transition-colors duration-300"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 mb-1">
@@ -193,7 +193,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                             handleMoveProject(project.id, null);
                         }}
                         className={cn(
-                            "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2",
+                            "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors",
                             !project.category_id ? "text-purple-600 font-medium bg-purple-50" : "text-gray-700"
                         )}
                     >
@@ -209,7 +209,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                                 handleMoveProject(project.id, cat.id);
                             }}
                             className={cn(
-                                "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2",
+                                "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors",
                                 project.category_id === cat.id ? "text-purple-600 font-medium bg-purple-50" : "text-gray-700"
                             )}
                         >
@@ -223,7 +223,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                                 e.stopPropagation();
                                 handleDeleteProject(project.id);
                             }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
                         >
                             <Trash2 className="h-3.5 w-3.5" />
                             Delete Project
@@ -237,23 +237,23 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     const uncategorizedProjects = getCategoryProjects(null);
 
     return (
-        <aside className="w-64 bg-white/95 backdrop-blur-xl border-r border-slate-200 flex flex-col h-full shadow-xl">
-            <div className="p-4 border-b border-slate-200 space-y-1">
-                <Link href="/" onClick={onNavigate} className="flex items-center gap-3 text-slate-900 hover:text-blue-600 transition-all duration-200 mb-4 group">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg group-hover:shadow-blue-500/50 group-hover:scale-105 transition-all duration-200">
+        <aside className="w-64 md:w-72 bg-white/80 backdrop-blur-2xl border-r border-slate-200/60 flex flex-col h-full shadow-2xl transition-colors duration-300">
+            <div className="p-5 border-b border-slate-200/60 space-y-2 bg-gradient-to-br from-white to-slate-50/50 transition-colors duration-300">
+                <Link href="/" onClick={onNavigate} className="flex items-center gap-3 text-slate-900 hover:text-indigo-600 transition-all duration-300 mb-5 group">
+                    <div className="p-2.5 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl shadow-lg group-hover:shadow-indigo-500/50 group-hover:scale-110 transition-all duration-300 hover-lift">
                         <Home className="h-5 w-5 text-white" />
                     </div>
-                    <span className="font-bold text-xl bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 bg-clip-text text-transparent">VibeKnowing</span>
+                    <span className="font-bold text-2xl gradient-text tracking-tight">VibeKnowing</span>
                 </Link>
 
                 <Link
                     href="/studio"
                     onClick={onNavigate}
                     className={cn(
-                        "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                        "flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift",
                         pathname === '/studio'
-                            ? "bg-purple-50 text-purple-600 shadow-sm"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-purple-600"
+                            ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg shadow-purple-500/30"
+                            : "text-slate-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:text-purple-600"
                     )}
                 >
                     <Palette className="h-4 w-4" />
@@ -261,22 +261,22 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 </Link>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-1" key={refreshKey}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar" key={refreshKey}>
                 {/* Uncategorized Section */}
                 {uncategorizedProjects.length > 0 && (
                     <div className="mb-2">
                         <button
                             onClick={() => toggleExpand("uncategorized")}
-                            className="w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors group"
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-indigo-50/30 rounded-xl transition-all duration-300 group hover-lift"
                         >
                             {expanded.has("uncategorized") ? (
-                                <ChevronDown className="h-4 w-4 text-gray-400" />
+                                <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                             ) : (
-                                <ChevronRight className="h-4 w-4 text-gray-400" />
+                                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                             )}
-                            <Folder className="h-4 w-4 text-gray-400 group-hover:text-purple-500" />
-                            <span>Uncategorized</span>
-                            <span className="ml-auto text-xs text-gray-400">{uncategorizedProjects.length}</span>
+                            <Folder className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                            <span className="flex-1 text-left">Uncategorized</span>
+                            <span className="ml-auto text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">{uncategorizedProjects.length}</span>
                         </button>
 
                         {expanded.has("uncategorized") && (
@@ -295,16 +295,16 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                             <div className="flex items-center group/item">
                                 <button
                                     onClick={() => toggleExpand(category.id)}
-                                    className="flex-1 flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md transition-colors group"
+                                    className="flex-1 flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-gradient-to-r hover:from-slate-50 hover:to-indigo-50/30 rounded-xl transition-all duration-300 group hover-lift"
                                 >
                                     {expanded.has(category.id) ? (
-                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                        <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                     ) : (
-                                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                                        <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                     )}
-                                    <Folder className="h-4 w-4 text-purple-500" />
-                                    <span className="truncate">{category.name}</span>
-                                    <span className="ml-auto text-xs text-gray-400">{catProjects.length}</span>
+                                    <Folder className="h-4 w-4 text-indigo-500 group-hover:text-indigo-600 transition-colors" />
+                                    <span className="truncate flex-1 text-left">{category.name}</span>
+                                    <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">{catProjects.length}</span>
                                 </button>
                                 <button
                                     onClick={(e) => handleDeleteCategory(category.id, e)}
@@ -338,7 +338,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                             onChange={(e) => setNewCategoryName(e.target.value)}
                             onBlur={() => !newCategoryName && setIsCreating(false)}
                             placeholder="Category name..."
-                            className="w-full px-2 py-1 text-sm border border-purple-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-2 py-1 text-sm border border-purple-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-slate-900"
                         />
                     </form>
                 ) : (

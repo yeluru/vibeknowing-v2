@@ -33,7 +33,7 @@ export function QuestionCard({
                     const isSelected = selectedAnswer === index;
                     const isCorrect = question.correctAnswer === index;
 
-                    let buttonStyle = "border-gray-200 hover:bg-gray-50 hover:border-purple-200";
+                    let buttonStyle = "border-gray-200 hover:bg-gray-50 hover:border-purple-200 text-gray-900";
                     let icon = null;
 
                     if (showFeedback) {
@@ -44,7 +44,7 @@ export function QuestionCard({
                             buttonStyle = "bg-red-50 border-red-200 text-red-800";
                             icon = <XCircle className="h-5 w-5 text-red-600" />;
                         } else {
-                            buttonStyle = "opacity-50 border-gray-200";
+                            buttonStyle = "opacity-50 border-gray-200 text-gray-900";
                         }
                     } else if (isSelected) {
                         buttonStyle = "bg-purple-50 border-purple-500 text-purple-900 ring-1 ring-purple-500";
@@ -68,7 +68,7 @@ export function QuestionCard({
             </div>
 
             {showFeedback && question.explanation && (
-                <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
+                <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800 border border-blue-200">
                     <p className="font-semibold mb-1">Explanation:</p>
                     {question.explanation}
                 </div>

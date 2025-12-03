@@ -20,28 +20,31 @@ export default function AppShell({ children, title }: { children: React.ReactNod
     };
 
     return (
-        <div className="flex h-screen bg-slate-100">
-            {/* Mobile Overlay */}
+        <div className="flex h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-purple-50/20">
+
+            {/* Mobile Overlay with enhanced blur */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-sm md:hidden"
+                    className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-md md:hidden transition-opacity duration-300"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
-            {/* Sidebar Container */}
+            {/* Sidebar Container with smooth animation */}
             <div className={`
-                fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-in-out
-                md:relative md:translate-x-0
-                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-out
+                md:relative md:translate-x-0 md:shadow-none
+                ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
             `}>
                 <Sidebar onNavigate={() => setSidebarOpen(false)} />
             </div>
 
             <div className="flex flex-1 flex-col overflow-hidden w-full">
                 {/* <Header onMenuClick={() => setSidebarOpen(true)} title={getPageTitle()} /> */}
-                <main className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
-                    {children}
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-transparent">
+                    <div className="max-w-7xl mx-auto">
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

@@ -119,13 +119,13 @@ export function QuizInterface({ sourceId }: QuizInterfaceProps) {
 
     if (questions.length === 0) {
         return (
-            <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200 transition-colors duration-300">
                 <Trophy className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to test your knowledge?</h3>
                 <p className="text-gray-500 mb-6">Generate a quiz based on this content to reinforce your learning.</p>
                 <button
                     onClick={generateQuiz}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                 >
                     Generate Quiz
                 </button>
@@ -145,7 +145,7 @@ export function QuizInterface({ sourceId }: QuizInterfaceProps) {
                 </p>
                 <button
                     onClick={generateQuiz}
-                    className="flex items-center mx-auto px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                    className="flex items-center mx-auto px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors duration-300"
                 >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Try Another Quiz
@@ -161,7 +161,7 @@ export function QuizInterface({ sourceId }: QuizInterfaceProps) {
                 <span>Score: {score}</span>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-6 transition-colors duration-300">
                 <QuestionCard
                     question={questions[currentQuestionIndex]}
                     selectedAnswer={selectedAnswer}
@@ -174,7 +174,7 @@ export function QuizInterface({ sourceId }: QuizInterfaceProps) {
                 <div className="flex justify-end">
                     <button
                         onClick={handleNextQuestion}
-                        className="flex items-center px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                        className="flex items-center px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                     >
                         {currentQuestionIndex === questions.length - 1 ? "Finish Quiz" : "Next Question"}
                         <ArrowRight className="h-4 w-4 ml-2" />

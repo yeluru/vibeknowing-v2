@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, title = "Dashboard" }: HeaderProps) {
     return (
-        <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-6 shadow-sm">
+        <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-6 shadow-sm transition-colors duration-300">
             <div className="flex items-center gap-4">
                 <button
                     className="md:hidden p-2 -ml-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"

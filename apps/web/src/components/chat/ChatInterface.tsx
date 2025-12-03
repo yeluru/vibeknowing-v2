@@ -115,7 +115,7 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
     };
 
     return (
-        <div className="flex h-full flex-col bg-gray-50">
+        <div className="flex h-full flex-col bg-gray-50 transition-colors duration-300">
             <MessageList messages={messages} isLoading={isLoading} />
             <ChatInput onSend={handleSend} disabled={isLoading} suggestions={messages.length === 0 ? suggestions : []} />
         </div>

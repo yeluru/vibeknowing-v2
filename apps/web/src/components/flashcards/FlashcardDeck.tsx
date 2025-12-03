@@ -38,7 +38,7 @@ export function FlashcardDeck({ card, onNext }: FlashcardDeckProps) {
                     style={{ transformStyle: "preserve-3d" }}
                 >
                     {/* Front */}
-                    <div className="absolute inset-0 h-full w-full backface-hidden rounded-2xl bg-white border-2 border-purple-100 shadow-lg flex flex-col items-center justify-center p-8 text-center">
+                    <div className="absolute inset-0 h-full w-full backface-hidden rounded-2xl bg-white border-2 border-purple-100 shadow-lg flex flex-col items-center justify-center p-8 text-center transition-colors duration-300">
                         <span className="absolute top-4 left-4 text-xs font-semibold text-purple-500 uppercase tracking-wider">Question</span>
                         <p className="text-3xl font-medium text-gray-900 leading-relaxed">{card.front}</p>
                         <div className="absolute bottom-4 text-gray-400 flex items-center gap-2 text-sm">

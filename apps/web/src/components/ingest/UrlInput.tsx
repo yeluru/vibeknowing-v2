@@ -176,7 +176,7 @@ export function UrlInput() {
                                 type="checkbox"
                                 checked={forceOcr}
                                 onChange={(e) => setForceOcr(e.target.checked)}
-                                className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 bg-white"
                             />
                             <span className="text-xs text-gray-600 group-hover:text-purple-700 transition-colors">
                                 Force OCR (Use for scanned/complex PDFs)

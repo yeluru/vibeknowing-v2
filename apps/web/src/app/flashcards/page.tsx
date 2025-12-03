@@ -36,7 +36,7 @@ export default function FlashcardsPage() {
                     <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                 </div>
             ) : projects.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm">
+                <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm transition-colors duration-300">
                     <Layers className="h-12 w-12 mx-auto mb-3 text-slate-300" />
                     <h3 className="text-lg font-medium text-slate-900 mb-2">No flashcards yet</h3>
                     <p className="text-slate-500">Create a project and generate flashcards to get started.</p>

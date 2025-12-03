@@ -159,7 +159,7 @@ export function ArticleEditor({ sourceId }: ArticleEditorProps) {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[500px]">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[500px] transition-colors duration-300">
                 {loading ? (
                     <div className="h-full flex flex-col items-center justify-center py-24">
                         <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
@@ -207,7 +207,7 @@ export function ArticleEditor({ sourceId }: ArticleEditorProps) {
                             <textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                className="w-full h-[500px] p-4 font-mono text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                                className="w-full h-[500px] p-4 font-mono text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white text-gray-900"
                             />
                         ) : (
                             <div className="prose prose-purple max-w-none h-[500px] overflow-y-auto p-6 border border-gray-200 rounded-lg bg-white">
@@ -224,7 +224,7 @@ export function ArticleEditor({ sourceId }: ArticleEditorProps) {
                         </p>
                         <button
                             onClick={generateArticle}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                         >
                             Generate Article
                         </button>

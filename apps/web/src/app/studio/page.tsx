@@ -96,7 +96,7 @@ export default function StudioPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search projects in this category..."
-                        className="w-full px-4 py-2.5 pl-10 text-gray-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                        className="w-full px-4 py-2.5 pl-10 text-gray-900 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors duration-300"
                     />
                     <svg
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400"
@@ -109,7 +109,7 @@ export default function StudioPage() {
                 </div>
 
                 {categoryProjects.length === 0 ? (
-                    <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm">
+                    <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm transition-colors duration-300">
                         <Palette className="h-12 w-12 mx-auto mb-3 text-slate-300" />
                         <h3 className="text-lg font-medium text-slate-900 mb-2">No projects in this category</h3>
                         <p className="text-slate-500">Create a project to get started.</p>
@@ -246,7 +246,7 @@ export default function StudioPage() {
 
                     {/* Empty state */}
                     {categories.length === 0 && uncategorizedCount === 0 && (
-                        <div className="col-span-full text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm">
+                        <div className="col-span-full text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm transition-colors duration-300">
                             <Palette className="h-12 w-12 mx-auto mb-3 text-slate-300" />
                             <h3 className="text-lg font-medium text-slate-900 mb-2">No projects yet</h3>
                             <p className="text-slate-500">Create a project to start using the Content Studio.</p>

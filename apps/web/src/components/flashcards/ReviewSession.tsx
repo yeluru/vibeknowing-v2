@@ -96,13 +96,13 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
 
     if (cards.length === 0) {
         return (
-            <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200 transition-colors duration-300">
                 <Layers className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Master this topic</h3>
                 <p className="text-gray-500 mb-6">Generate flashcards to memorize key concepts.</p>
                 <button
                     onClick={generateCards}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                 >
                     Create Flashcards
                 </button>
@@ -122,7 +122,7 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
                 </p>
                 <button
                     onClick={() => { setCards([]); setCompleted(false); }}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                 >
                     Back to Source
                 </button>

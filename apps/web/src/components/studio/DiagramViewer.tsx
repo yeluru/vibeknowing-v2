@@ -52,7 +52,7 @@ export function DiagramViewer({ sourceId }: DiagramViewerProps) {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[400px]">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[400px] transition-colors duration-300">
                 {loading ? (
                     <div className="h-full flex flex-col items-center justify-center py-20">
                         <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
@@ -65,7 +65,7 @@ export function DiagramViewer({ sourceId }: DiagramViewerProps) {
                             <p className="text-sm text-gray-600 mb-4">{diagram.description}</p>
                         </div>
                         <div className="relative border border-gray-100 rounded-lg overflow-hidden bg-gray-50 p-4">
-                            <pre className="text-sm font-mono whitespace-pre overflow-x-auto">
+                            <pre className="text-sm font-mono whitespace-pre overflow-x-auto text-gray-900">
                                 {diagram.diagram}
                             </pre>
                         </div>
@@ -88,7 +88,7 @@ export function DiagramViewer({ sourceId }: DiagramViewerProps) {
                         </p>
                         <button
                             onClick={generateDiagram}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                         >
                             Generate Diagram
                         </button>

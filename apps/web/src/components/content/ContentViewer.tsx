@@ -98,7 +98,7 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
                     >
                         Open in new tab
                     </a>
