@@ -106,13 +106,13 @@ export function UrlInput() {
             <form onSubmit={handleSubmit} className="relative">
                 {/* File Preview Badge */}
                 {file && (
-                    <div className="mb-2 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg text-sm">
-                        <Paperclip className="h-4 w-4 text-purple-600" />
-                        <span className="text-purple-900 font-medium">{file.name}</span>
+                    <div className="mb-2 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg text-sm">
+                        <Paperclip className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        <span className="text-purple-900 dark:text-purple-200 font-medium">{file.name}</span>
                         <button
                             type="button"
                             onClick={removeFile}
-                            className="text-purple-600 hover:text-purple-800 transition-colors"
+                            className="text-purple-600 dark:text-purple-400 hover:text-purple-800 transition-colors"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -120,12 +120,12 @@ export function UrlInput() {
                 )}
 
                 {/* Main Input Container */}
-                <div className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus-within:ring-2 focus-within:ring-purple-500 transition-all">
+                <div className="flex items-center space-x-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-2 shadow-sm focus-within:ring-2 focus-within:ring-purple-500 transition-all">
                     {/* File Upload Button */}
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 dark:bg-purple-900/30 rounded-lg transition-colors"
                         title="Upload file (audio, video, PDF, text)"
                     >
                         <Paperclip className="h-5 w-5" />
@@ -139,13 +139,13 @@ export function UrlInput() {
                     />
 
                     {/* URL Icon */}
-                    <Link2 className="h-5 w-5 text-gray-400" />
+                    <Link2 className="h-5 w-5 text-gray-400 dark:text-slate-500" />
 
                     {/* Text Input */}
                     <input
                         type="text"
                         placeholder="Paste URL or upload file (YouTube, TED, Web, Audio, Video, PDF, Word, Text)..."
-                        className="flex-1 border-none bg-transparent px-2 py-1 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0"
+                        className="flex-1 border-none bg-transparent px-2 py-1 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-0"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         disabled={!!file}
@@ -166,7 +166,7 @@ export function UrlInput() {
 
                 {/* Helper Text and Options */}
                 <div className="mt-2 flex flex-col items-center gap-2">
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-xs text-gray-500 dark:text-slate-400 text-center">
                         Supports: YouTube, TED Talks, Websites, Audio/Video files (MP3, MP4, WAV), PDFs, Word (.docx), and Text files
                     </p>
 
@@ -176,9 +176,9 @@ export function UrlInput() {
                                 type="checkbox"
                                 checked={forceOcr}
                                 onChange={(e) => setForceOcr(e.target.checked)}
-                                className="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 bg-white"
+                                className="w-4 h-4 text-purple-600 dark:text-purple-400 rounded border-gray-300 dark:border-slate-600 focus:ring-purple-500 bg-white dark:bg-slate-800"
                             />
-                            <span className="text-xs text-gray-600 group-hover:text-purple-700 transition-colors">
+                            <span className="text-xs text-gray-600 dark:text-slate-300 group-hover:text-purple-700 dark:text-purple-300 transition-colors">
                                 Force OCR (Use for scanned/complex PDFs)
                             </span>
                         </label>

@@ -78,14 +78,14 @@ export default function StudioPage() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setSelectedCategory(null)}
-                        className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900/30 rounded-lg transition-colors"
                         title="Back to categories"
                     >
                         <ChevronLeft className="h-5 w-5" />
                     </button>
                     <div className="flex-1 flex flex-col space-y-2">
-                        <h1 className="text-3xl font-bold text-slate-900">{categoryName}</h1>
-                        <p className="text-slate-500">{categoryProjects.length} project{categoryProjects.length !== 1 ? 's' : ''}</p>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{categoryName}</h1>
+                        <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">{categoryProjects.length} project{categoryProjects.length !== 1 ? 's' : ''}</p>
                     </div>
                 </div>
 
@@ -96,10 +96,10 @@ export default function StudioPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search projects in this category..."
-                        className="w-full px-4 py-2.5 pl-10 text-gray-900 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors duration-300"
+                        className="w-full px-4 py-2.5 pl-10 text-gray-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors duration-300"
                     />
                     <svg
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400"
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -109,19 +109,19 @@ export default function StudioPage() {
                 </div>
 
                 {categoryProjects.length === 0 ? (
-                    <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm transition-colors duration-300">
+                    <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
                         <Palette className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-                        <h3 className="text-lg font-medium text-slate-900 mb-2">No projects in this category</h3>
-                        <p className="text-slate-500">Create a project to get started.</p>
+                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No projects in this category</h3>
+                        <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">Create a project to get started.</p>
                     </div>
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {categoryProjects.map((project) => (
-                            <div key={project.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 group flex flex-col relative">
+                            <div key={project.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 group flex flex-col relative">
                                 <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={(e) => handleDelete(e, project.id)}
-                                        className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 shadow-sm border border-slate-200 transition-all duration-200"
+                                        className="p-2 bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900/30 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-200"
                                         title="Delete Project"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -129,20 +129,20 @@ export default function StudioPage() {
                                 </div>
 
                                 <div className="flex-1">
-                                    <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 transition-colors">
                                         {project.title}
                                     </h3>
-                                    <p className="text-sm text-slate-500 mb-6 line-clamp-2">
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-6 line-clamp-2">
                                         {project.description || "No description available"}
                                     </p>
                                 </div>
 
                                 <div className="pt-4 border-t border-slate-100">
-                                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Quick Actions</div>
+                                    <div className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Quick Actions</div>
                                     <div className="grid grid-cols-4 gap-2">
                                         <Link
                                             href={project.first_source_id ? `/source/${project.first_source_id}?tab=flashcards` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 hover:bg-orange-50 text-slate-600 hover:text-orange-600 transition-colors group/btn"
+                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-orange-50 dark:bg-orange-900/30 text-slate-600 dark:text-slate-300 hover:text-orange-600 transition-colors group/btn"
                                             title="Flashcards"
                                         >
                                             <Layers className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
@@ -150,7 +150,7 @@ export default function StudioPage() {
                                         </Link>
                                         <Link
                                             href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=social` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-colors group/btn"
+                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900/30 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 transition-colors group/btn"
                                             title="Social Media"
                                         >
                                             <Share2 className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
@@ -158,7 +158,7 @@ export default function StudioPage() {
                                         </Link>
                                         <Link
                                             href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=diagram` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 hover:bg-purple-50 text-slate-600 hover:text-purple-600 transition-colors group/btn"
+                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 dark:bg-purple-900/30 text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 dark:text-purple-400 transition-colors group/btn"
                                             title="Diagrams"
                                         >
                                             <GitGraph className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
@@ -166,7 +166,7 @@ export default function StudioPage() {
                                         </Link>
                                         <Link
                                             href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=article` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 transition-colors group/btn"
+                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:bg-emerald-900/30 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:text-emerald-400 transition-colors group/btn"
                                             title="Article Writer"
                                         >
                                             <FilePenLine className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
@@ -186,13 +186,13 @@ export default function StudioPage() {
     return (
         <div className="space-y-8">
             <div className="flex flex-col space-y-2">
-                <h1 className="text-3xl font-bold text-slate-900">Content Studio</h1>
-                <p className="text-slate-500">Select a category to view your projects.</p>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Content Studio</h1>
+                <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">Select a category to view your projects.</p>
             </div>
 
             {loading ? (
                 <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
                 </div>
             ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -200,17 +200,17 @@ export default function StudioPage() {
                     {/* Uncategorized Category */}
                     <button
                         onClick={() => setSelectedCategory("uncategorized")}
-                        className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 group text-left"
+                        className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-lg hover:border-slate-300 dark:border-slate-600 transition-all duration-200 group text-left"
                     >
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-slate-50 rounded-xl text-slate-400 group-hover:bg-slate-100 transition-colors">
+                            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 dark:text-slate-500 group-hover:bg-slate-100 dark:hover:bg-slate-700 dark:bg-slate-700 transition-colors">
                                 <Folder className="h-8 w-8" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-lg font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-slate-700 dark:text-slate-300 transition-colors">
                                     Uncategorized
                                 </h3>
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                                     {uncategorizedCount} project{uncategorizedCount !== 1 ? 's' : ''}
                                 </p>
                             </div>
@@ -225,17 +225,17 @@ export default function StudioPage() {
                             <button
                                 key={category.id}
                                 onClick={() => setSelectedCategory(category.id)}
-                                className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 group text-left"
+                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 group text-left"
                             >
                                 <div className="flex items-center gap-4 mb-4">
-                                    <div className="p-3 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-100 transition-colors">
+                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 transition-colors">
                                         <Folder className="h-8 w-8" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 transition-colors">
                                             {category.name}
                                         </h3>
-                                        <p className="text-sm text-slate-500">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                                             {count} project{count !== 1 ? 's' : ''}
                                         </p>
                                     </div>
@@ -246,10 +246,10 @@ export default function StudioPage() {
 
                     {/* Empty state */}
                     {categories.length === 0 && uncategorizedCount === 0 && (
-                        <div className="col-span-full text-center py-16 bg-white rounded-xl border border-dashed border-slate-200 shadow-sm transition-colors duration-300">
+                        <div className="col-span-full text-center py-16 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
                             <Palette className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-                            <h3 className="text-lg font-medium text-slate-900 mb-2">No projects yet</h3>
-                            <p className="text-slate-500">Create a project to start using the Content Studio.</p>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No projects yet</h3>
+                            <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">Create a project to start using the Content Studio.</p>
                         </div>
                     )}
                 </div>

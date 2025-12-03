@@ -53,12 +53,12 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Original Content</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Original Content</h3>
                 <a
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 rounded-lg transition-colors"
                 >
                     <ExternalLink className="h-4 w-4" />
                     Open in new tab
@@ -66,7 +66,7 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
             </div>
 
             {embedUrl ? (
-                <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                <div className="relative w-full bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700">
                     {contentType === 'youtube' || contentType === 'ted' ? (
                         // Video embed (16:9 aspect ratio)
                         <div className="relative pb-[56.25%]">
@@ -91,9 +91,9 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
                     )}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex flex-col items-center justify-center py-20 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-700">
                     <ExternalLink className="h-12 w-12 text-gray-300 mb-4" />
-                    <p className="text-gray-600 mb-4">Unable to preview this content</p>
+                    <p className="text-gray-600 dark:text-slate-300 mb-4">Unable to preview this content</p>
                     <a
                         href={url}
                         target="_blank"

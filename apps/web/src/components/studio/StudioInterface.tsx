@@ -54,12 +54,12 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
     return (
         <div className="space-y-6">
             {/* Tool Navigation */}
-            <div className="flex gap-2 border-b border-gray-200 pb-4">
+            <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700 pb-4">
                 <button
                     onClick={() => handleToolChange('social')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTool === 'social'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-purple-100 text-purple-700 dark:text-purple-300'
+                        : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
                         }`}
                 >
                     <Share2 className="h-4 w-4" />
@@ -68,8 +68,8 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
                 <button
                     onClick={() => handleToolChange('diagram')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTool === 'diagram'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-purple-100 text-purple-700 dark:text-purple-300'
+                        : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
                         }`}
                 >
                     <Network className="h-4 w-4" />
@@ -78,8 +78,8 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
                 <button
                     onClick={() => handleToolChange('article')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTool === 'article'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-purple-100 text-purple-700 dark:text-purple-300'
+                        : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
                         }`}
                 >
                     <FileText className="h-4 w-4" />

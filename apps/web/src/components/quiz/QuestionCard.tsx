@@ -26,7 +26,7 @@ export function QuestionCard({
 }: QuestionCardProps) {
     return (
         <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-gray-900 leading-tight">{question.question}</h3>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{question.question}</h3>
 
             <div className="space-y-4">
                 {question.options.map((option, index) => {
@@ -39,10 +39,10 @@ export function QuestionCard({
                     if (showFeedback) {
                         if (isCorrect) {
                             buttonStyle = "bg-green-50 border-green-200 text-green-800";
-                            icon = <CheckCircle className="h-5 w-5 text-green-600" />;
+                            icon = <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
                         } else if (isSelected && !isCorrect) {
                             buttonStyle = "bg-red-50 border-red-200 text-red-800";
-                            icon = <XCircle className="h-5 w-5 text-red-600" />;
+                            icon = <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />;
                         } else {
                             buttonStyle = "opacity-50 border-gray-200 text-gray-900";
                         }
@@ -68,7 +68,7 @@ export function QuestionCard({
             </div>
 
             {showFeedback && question.explanation && (
-                <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800 border border-blue-200">
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-4 text-sm text-blue-800 border border-blue-200">
                     <p className="font-semibold mb-1">Explanation:</p>
                     {question.explanation}
                 </div>

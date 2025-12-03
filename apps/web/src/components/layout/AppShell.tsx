@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { ThemeToggle } from "./ThemeToggle";
 
 export default function AppShell({ children, title }: { children: React.ReactNode; title?: string }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,12 +21,14 @@ export default function AppShell({ children, title }: { children: React.ReactNod
     };
 
     return (
-        <div className="flex h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-purple-50/20">
+        <div className="flex h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-purple-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900 transition-colors duration-300">
+            {/* Theme Toggle - Fixed Top Right */}
+            <ThemeToggle />
 
             {/* Mobile Overlay with enhanced blur */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-md md:hidden transition-opacity duration-300"
+                    className="fixed inset-0 z-40 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-md md:hidden transition-opacity duration-300"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}

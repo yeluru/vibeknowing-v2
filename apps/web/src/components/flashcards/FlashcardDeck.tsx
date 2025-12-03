@@ -38,10 +38,10 @@ export function FlashcardDeck({ card, onNext }: FlashcardDeckProps) {
                     style={{ transformStyle: "preserve-3d" }}
                 >
                     {/* Front */}
-                    <div className="absolute inset-0 h-full w-full backface-hidden rounded-2xl bg-white border-2 border-purple-100 shadow-lg flex flex-col items-center justify-center p-8 text-center transition-colors duration-300">
+                    <div className="absolute inset-0 h-full w-full backface-hidden rounded-2xl bg-white dark:bg-slate-800 border-2 border-purple-100 shadow-lg flex flex-col items-center justify-center p-8 text-center transition-colors duration-300">
                         <span className="absolute top-4 left-4 text-xs font-semibold text-purple-500 uppercase tracking-wider">Question</span>
-                        <p className="text-3xl font-medium text-gray-900 leading-relaxed">{card.front}</p>
-                        <div className="absolute bottom-4 text-gray-400 flex items-center gap-2 text-sm">
+                        <p className="text-3xl font-medium text-gray-900 dark:text-white leading-relaxed">{card.front}</p>
+                        <div className="absolute bottom-4 text-gray-400 dark:text-slate-500 flex items-center gap-2 text-sm">
                             <RotateCw className="h-4 w-4" />
                             Click to flip
                         </div>
@@ -62,19 +62,19 @@ export function FlashcardDeck({ card, onNext }: FlashcardDeckProps) {
                 <div className="flex justify-center gap-4">
                     <button
                         onClick={(e) => { e.stopPropagation(); handleRate('hard'); }}
-                        className="px-6 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors"
+                        className="px-6 py-3 bg-red-100 text-red-700 dark:text-red-300 rounded-xl font-medium hover:bg-red-200 transition-colors"
                     >
                         Hard
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); handleRate('medium'); }}
-                        className="px-6 py-3 bg-yellow-100 text-yellow-700 rounded-xl font-medium hover:bg-yellow-200 transition-colors"
+                        className="px-6 py-3 bg-yellow-100 text-yellow-700 dark:text-yellow-300 rounded-xl font-medium hover:bg-yellow-200 transition-colors"
                     >
                         Medium
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); handleRate('easy'); }}
-                        className="px-6 py-3 bg-green-100 text-green-700 rounded-xl font-medium hover:bg-green-200 transition-colors"
+                        className="px-6 py-3 bg-green-100 text-green-700 dark:text-green-300 rounded-xl font-medium hover:bg-green-200 transition-colors"
                     >
                         Easy
                     </button>

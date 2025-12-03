@@ -80,6 +80,64 @@
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+:root.dark {
+  /* Dark Theme - Premium Design System */
+  --background: #0f172a;
+  --background-light: #1e293b;
+  --background-elevated: #334155;
+  --foreground: #f1f5f9;
+  --foreground-muted: #94a3b8;
+  --card: #1e293b;
+  --card-hover: #334155;
+  --card-border: #334155;
+  
+  /* Primary Colors - Dark Mode */
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-light: #312e81;
+  --primary-dark: #4f46e5;
+  
+  /* Secondary Colors - Dark Mode */
+  --secondary: #8b5cf6;
+  --secondary-hover: #a78bfa;
+  --secondary-light: #6d28d9;
+  
+  /* Accent Colors - Dark Mode */
+  --accent: #22d3ee;
+  --accent-hover: #06b6d4;
+  --accent-light: #164e63;
+  
+  /* Status Colors - Dark Mode */
+  --success: #34d399;
+  --success-light: #064e3b;
+  --warning: #fbbf24;
+  --warning-light: #78350f;
+  --danger: #f87171;
+  --danger-light: #7f1d1d;
+  --info: #60a5fa;
+  --info-light: #1e3a8a;
+  
+  /* Neutral Colors - Dark Mode */
+  --muted: #475569;
+  --muted-foreground: #94a3b8;
+  --border: #334155;
+  --border-light: #1e293b;
+  --ring: #6366f1;
+  --ring-offset: #1e293b;
+  
+  /* Shadows - Dark Mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  
+  /* Glassmorphism - Dark Mode */
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
@@ -147,6 +205,14 @@ html {
   background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
 }
 
+:root.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #475569 0%, #334155 100%);
+}
+
+:root.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+}
+
 
 /* Glassmorphism Utility */
 .glass {
@@ -200,6 +266,11 @@ html {
 ::selection {
   background-color: var(--primary-light);
   color: var(--primary-dark);
+}
+
+:root.dark ::selection {
+  background-color: var(--primary);
+  color: var(--foreground);
 }
 
 

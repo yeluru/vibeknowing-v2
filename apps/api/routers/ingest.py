@@ -202,7 +202,7 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
             import tempfile
             import os
             from openai import OpenAI
-            from ..config import settings
+            from config import settings
             from pydub import AudioSegment
             
             # Create a temp file for the original upload

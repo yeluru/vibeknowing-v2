@@ -52,20 +52,20 @@ export function DiagramViewer({ sourceId }: DiagramViewerProps) {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm min-h-[400px] transition-colors duration-300">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm min-h-[400px] transition-colors duration-300">
                 {loading ? (
                     <div className="h-full flex flex-col items-center justify-center py-20">
-                        <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
-                        <p className="text-gray-500">Visualizing concepts...</p>
+                        <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                        <p className="text-gray-500 dark:text-slate-400">Visualizing concepts...</p>
                     </div>
                 ) : diagram ? (
                     <div className="space-y-4">
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{diagram.title}</h3>
-                            <p className="text-sm text-gray-600 mb-4">{diagram.description}</p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{diagram.title}</h3>
+                            <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">{diagram.description}</p>
                         </div>
-                        <div className="relative border border-gray-100 rounded-lg overflow-hidden bg-gray-50 p-4">
-                            <pre className="text-sm font-mono whitespace-pre overflow-x-auto text-gray-900">
+                        <div className="relative border border-gray-100 dark:border-slate-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-slate-700 p-4">
+                            <pre className="text-sm font-mono whitespace-pre overflow-x-auto text-gray-900 dark:text-white">
                                 {diagram.diagram}
                             </pre>
                         </div>
@@ -82,8 +82,8 @@ export function DiagramViewer({ sourceId }: DiagramViewerProps) {
                 ) : (
                     <div className="h-full flex flex-col items-center justify-center py-20 text-center">
                         <GitGraph className="h-12 w-12 text-gray-300 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Visualize Concepts</h3>
-                        <p className="text-gray-500 mb-6 max-w-sm">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Visualize Concepts</h3>
+                        <p className="text-gray-500 dark:text-slate-400 mb-6 max-w-sm">
                             Generate flowcharts and diagrams to understand complex relationships.
                         </p>
                         <button

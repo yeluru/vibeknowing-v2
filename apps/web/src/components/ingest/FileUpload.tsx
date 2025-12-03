@@ -88,10 +88,10 @@ export function FileUpload() {
                     </div>
 
                     <div className="space-y-1">
-                        <p className="text-lg font-medium text-gray-900">
+                        <p className="text-lg font-medium text-gray-900 dark:text-white">
                             {isDragActive ? "Drop the file here" : "Click to upload or drag and drop"}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-slate-400">
                             PDF or DOCX (max 10MB)
                         </p>
                     </div>
@@ -99,14 +99,14 @@ export function FileUpload() {
             </div>
 
             {error && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 rounded-lg flex items-center gap-3 text-red-700 dark:text-red-300">
                     <AlertCircle className="w-5 h-5 shrink-0" />
                     <p className="text-sm font-medium">{error}</p>
                 </div>
             )}
 
             {success && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3 text-green-700">
+                <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 rounded-lg flex items-center gap-3 text-green-700 dark:text-green-300">
                     <CheckCircle className="w-5 h-5 shrink-0" />
                     <p className="text-sm font-medium">{success}</p>
                 </div>

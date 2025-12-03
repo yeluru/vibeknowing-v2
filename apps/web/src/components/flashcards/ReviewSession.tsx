@@ -88,18 +88,18 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
-                <p className="text-gray-500">Creating flashcards...</p>
+                <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                <p className="text-gray-500 dark:text-slate-400">Creating flashcards...</p>
             </div>
         );
     }
 
     if (cards.length === 0) {
         return (
-            <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200 transition-colors duration-300">
+            <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 transition-colors duration-300">
                 <Layers className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Master this topic</h3>
-                <p className="text-gray-500 mb-6">Generate flashcards to memorize key concepts.</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Master this topic</h3>
+                <p className="text-gray-500 dark:text-slate-400 mb-6">Generate flashcards to memorize key concepts.</p>
                 <button
                     onClick={generateCards}
                     className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
@@ -114,10 +114,10 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
         return (
             <div className="text-center py-12">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                    <CheckCircle className="h-10 w-10 text-green-600" />
+                    <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Session Complete!</h2>
-                <p className="text-gray-600 mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Session Complete!</h2>
+                <p className="text-gray-600 dark:text-slate-300 mb-8">
                     You've reviewed all {cards.length} cards. Come back later for your next spaced repetition session.
                 </p>
                 <button
@@ -132,7 +132,7 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
 
     return (
         <div className="py-8">
-            <div className="mb-8 text-center text-sm text-gray-500">
+            <div className="mb-8 text-center text-sm text-gray-500 dark:text-slate-400">
                 Card {currentIndex + 1} of {cards.length}
             </div>
             <FlashcardDeck
