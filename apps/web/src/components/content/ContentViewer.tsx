@@ -10,7 +10,7 @@ interface ContentViewerProps {
 
 export function ContentViewer({ url, title }: ContentViewerProps) {
     const [embedUrl, setEmbedUrl] = useState<string>("");
-    const [contentType, setContentType] = useState<'youtube' | 'ted' | 'website'>('website');
+    const [contentType, setContentType] = useState<'youtube' | 'ted' | 'instagram' | 'website'>('website');
 
     useEffect(() => {
         if (!url) return;
@@ -27,6 +27,16 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
             if (url.includes('/talks/')) {
                 const talkId = url.split('/talks/')[1].split('?')[0];
                 setEmbedUrl(`https://embed.ted.com/talks/${talkId}`);
+            }
+        } else if (url.includes('instagram.com')) {
+            setContentType('instagram');
+            // Extract shortcode from Instagram URL (works for both /reel/ and /p/ URLs)
+            const shortCodeMatch = url.match(/\/reel\/([A-Za-z0-9_-]+)/) || url.match(/\/p\/([A-Za-z0-9_-]+)/);
+            const shortCode = shortCodeMatch ? shortCodeMatch[1] : null;
+            if (shortCode) {
+                setEmbedUrl(`https://www.instagram.com/reel/${shortCode}/embed`);
+            } else {
+                setEmbedUrl("");
             }
         } else {
             setContentType('website');
@@ -47,6 +57,10 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
         const match3 = url.match(/youtube\.com\/embed\/([^?]+)/);
         if (match3) return match3[1];
 
+        // Handle youtube.com/shorts/...
+        const match4 = url.match(/youtube\.com\/shorts\/([^?]+)/);
+        if (match4) return match4[1];
+
         return null;
     };
 
@@ -58,7 +72,7 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 >
                     <ExternalLink className="h-4 w-4" />
                     Open in new tab
@@ -67,7 +81,7 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
 
             {embedUrl ? (
                 <div className="relative w-full bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700">
-                    {contentType === 'youtube' || contentType === 'ted' ? (
+                    {contentType === 'youtube' || contentType === 'ted' || contentType === 'instagram' ? (
                         // Video embed (16:9 aspect ratio)
                         <div className="relative pb-[56.25%]">
                             <iframe
@@ -93,7 +107,16 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-700">
                     <ExternalLink className="h-12 w-12 text-gray-300 mb-4" />
-                    <p className="text-gray-600 dark:text-slate-300 mb-4">Unable to preview this content</p>
+                    <p className="text-gray-600 dark:text-slate-300 mb-2">
+                        {contentType === 'instagram'
+                            ? 'Instagram content cannot be embedded'
+                            : 'Unable to preview this content'}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
+                        {contentType === 'instagram'
+                            ? 'Instagram blocks embedding for security reasons'
+                            : 'This website may not allow embedding'}
+                    </p>
                     <a
                         href={url}
                         target="_blank"

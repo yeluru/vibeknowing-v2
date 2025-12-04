@@ -7,9 +7,10 @@ import remarkGfm from 'remark-gfm';
 
 interface ArticleEditorProps {
     sourceId: string;
+    title?: string;
 }
 
-export function ArticleEditor({ sourceId }: ArticleEditorProps) {
+export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEditorProps) {
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(false);
     const [mode, setMode] = useState<'edit' | 'preview'>('preview'); // Default to preview
@@ -19,7 +20,7 @@ export function ArticleEditor({ sourceId }: ArticleEditorProps) {
     useEffect(() => {
         const loadExistingArticle = async () => {
             try {
-                const response = await fetch(`http://localhost:8001/ai/article/${sourceId}`);
+                const response = await fetch(`http://localhost:8000/ai/article/${sourceId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.content) {
@@ -38,7 +39,7 @@ export function ArticleEditor({ sourceId }: ArticleEditorProps) {
     const generateArticle = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8001/ai/article/${sourceId}?style=blog`, {
+            const response = await fetch(`http://localhost:8000/ai/article/${sourceId}?style=blog`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -60,7 +61,7 @@ export function ArticleEditor({ sourceId }: ArticleEditorProps) {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const response = await fetch(`http://localhost:8001/ai/article/${sourceId}`, {
+            const response = await fetch(`http://localhost:8000/ai/article/${sourceId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content })
@@ -159,77 +160,82 @@ export function ArticleEditor({ sourceId }: ArticleEditorProps) {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm min-h-[500px] transition-colors duration-300">
-                {loading ? (
-                    <div className="h-full flex flex-col items-center justify-center py-24">
-                        <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
-                        <p className="text-gray-500 dark:text-slate-400">Writing article...</p>
-                    </div>
-                ) : content ? (
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center border-b border-gray-100 dark:border-slate-700 pb-4">
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setMode('edit')}
-                                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'edit' ? 'bg-purple-100 text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
-                                        }`}
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => setMode('preview')}
-                                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'preview' ? 'bg-purple-100 text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
-                                        }`}
-                                >
-                                    Preview
-                                </button>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleSave}
-                                    disabled={saving}
-                                    className="flex items-center px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                                    {saving ? "Saving..." : "Save"}
-                                </button>
-                                <button
-                                    onClick={handleExport}
-                                    className="flex items-center px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700 rounded-lg transition-colors"
-                                >
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Export
-                                </button>
-                            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm min-h-[500px] transition-colors duration-300">
+                <div className="border-b border-gray-200 dark:border-slate-700 px-6 py-4">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+                </div>
+                <div className="p-6">
+                    {loading ? (
+                        <div className="h-full flex flex-col items-center justify-center py-24">
+                            <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                            <p className="text-gray-900 dark:text-white">Writing article...</p>
                         </div>
-
-                        {mode === 'edit' ? (
-                            <textarea
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                className="w-full h-[500px] p-4 font-mono text-sm border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                            />
-                        ) : (
-                            <div className="prose prose-purple max-w-none h-[500px] overflow-y-auto p-6 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                    ) : content ? (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center border-b border-gray-100 dark:border-slate-700 pb-4">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setMode('edit')}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'edit' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700'
+                                            }`}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => setMode('preview')}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'preview' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700'
+                                            }`}
+                                    >
+                                        Preview
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                        {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                                        {saving ? "Saving..." : "Save"}
+                                    </button>
+                                    <button
+                                        onClick={handleExport}
+                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg transition-colors"
+                                    >
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Export
+                                    </button>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="h-full flex flex-col items-center justify-center py-24 text-center">
-                        <FilePenLine className="h-12 w-12 text-gray-300 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Draft an Article</h3>
-                        <p className="text-gray-500 dark:text-slate-400 mb-6 max-w-sm">
-                            Transform this content into a well-structured blog post or article.
-                        </p>
-                        <button
-                            onClick={generateArticle}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
-                        >
-                            Generate Article
-                        </button>
-                    </div>
-                )}
+
+                            {mode === 'edit' ? (
+                                <textarea
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
+                                    className="w-full h-[500px] p-4 font-mono text-sm border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                />
+                            ) : (
+                                <div className="prose prose-purple dark:prose-invert max-w-none h-[500px] overflow-y-auto p-6 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center py-24 text-center">
+                            <FilePenLine className="h-12 w-12 text-gray-300 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Draft an Article</h3>
+                            <p className="text-gray-900 dark:text-white mb-6 max-w-sm">
+                                Transform this content into a well-structured blog post or article.
+                            </p>
+                            <button
+                                onClick={generateArticle}
+                                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                            >
+                                Generate Article
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -35,7 +35,7 @@ export default function AppShell({ children, title }: { children: React.ReactNod
 
             {/* Sidebar Container with smooth animation */}
             <div className={`
-                fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-out
+                fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-out
                 md:relative md:translate-x-0 md:shadow-none
                 ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
             `}>

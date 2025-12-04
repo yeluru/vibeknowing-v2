@@ -68,13 +68,13 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                             "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
                             message.role === "user"
                                 ? "bg-purple-600 text-white"
-                                : "bg-white border border-gray-200 text-gray-800 shadow-sm"
+                                : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white shadow-sm"
                         )}
                     >
                         {message.role === "user" ? (
                             <p className="whitespace-pre-wrap">{message.content}</p>
                         ) : (
-                            <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-slate-700 dark:prose-p:text-slate-200 prose-pre:bg-gray-50 dark:prose-pre:bg-slate-700 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-slate-700 prose-code:text-slate-700 dark:prose-code:text-slate-200">
+                            <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-gray-900 dark:prose-p:text-white prose-pre:bg-gray-50 dark:prose-pre:bg-slate-700 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-slate-700 prose-code:text-gray-900 dark:prose-code:text-white">
                                 <ReactMarkdown>{message.content}</ReactMarkdown>
                             </div>
                         )}

@@ -12,9 +12,10 @@ interface Flashcard {
 
 interface ReviewSessionProps {
     sourceId: string;
+    title?: string;
 }
 
-export function ReviewSession({ sourceId }: ReviewSessionProps) {
+export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionProps) {
     const [cards, setCards] = useState<Flashcard[]>([]);
     const [loading, setLoading] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -24,7 +25,7 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
     useEffect(() => {
         const loadExistingCards = async () => {
             try {
-                const response = await fetch(`http://localhost:8001/ai/flashcards/${sourceId}`);
+                const response = await fetch(`http://localhost:8000/ai/flashcards/${sourceId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.flashcards && data.flashcards.length > 0) {
@@ -46,7 +47,7 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
     const generateCards = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8001/ai/flashcards/${sourceId}`, {
+            const response = await fetch(`http://localhost:8000/ai/flashcards/${sourceId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -85,60 +86,59 @@ export function ReviewSession({ sourceId }: ReviewSessionProps) {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
-                <p className="text-gray-500 dark:text-slate-400">Creating flashcards...</p>
-            </div>
-        );
-    }
-
-    if (cards.length === 0) {
-        return (
-            <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 transition-colors duration-300">
-                <Layers className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Master this topic</h3>
-                <p className="text-gray-500 dark:text-slate-400 mb-6">Generate flashcards to memorize key concepts.</p>
-                <button
-                    onClick={generateCards}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
-                >
-                    Create Flashcards
-                </button>
-            </div>
-        );
-    }
-
-    if (completed) {
-        return (
-            <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                    <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Session Complete!</h2>
-                <p className="text-gray-600 dark:text-slate-300 mb-8">
-                    You've reviewed all {cards.length} cards. Come back later for your next spaced repetition session.
-                </p>
-                <button
-                    onClick={() => { setCards([]); setCompleted(false); }}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
-                >
-                    Back to Source
-                </button>
-            </div>
-        );
-    }
 
     return (
-        <div className="py-8">
-            <div className="mb-8 text-center text-sm text-gray-500 dark:text-slate-400">
-                Card {currentIndex + 1} of {cards.length}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
+            <div className="border-b border-gray-200 dark:border-slate-700 px-6 py-4">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
             </div>
-            <FlashcardDeck
-                card={cards[currentIndex]}
-                onNext={handleNext}
-            />
+            <div className="p-6">
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-16">
+                        <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                        <p className="text-gray-900 dark:text-white">Creating flashcards...</p>
+                    </div>
+                ) : cards.length === 0 ? (
+                    <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 transition-colors duration-300">
+                        <Layers className="h-12 w-12 mx-auto mb-3 text-gray-400 dark:text-slate-500" />
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Master this topic</h3>
+                        <p className="text-gray-900 dark:text-white mb-6">Generate flashcards to memorize key concepts.</p>
+                        <button
+                            onClick={generateCards}
+                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                        >
+                            Create Flashcards
+                        </button>
+                    </div>
+                ) : completed ? (
+                    <div className="text-center py-12">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                            <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Session Complete!</h2>
+                        <p className="text-gray-900 dark:text-white mb-8">
+                            You've reviewed all {cards.length} cards. Come back later for your next spaced repetition session.
+                        </p>
+                        <button
+                            onClick={() => { setCards([]); setCompleted(false); }}
+                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                        >
+                            Back to Source
+                        </button>
+                    </div>
+                ) : (
+                    <div className="py-8">
+                        <div className="mb-8 text-center text-sm text-gray-900 dark:text-white">
+                            Card {currentIndex + 1} of {cards.length}
+                        </div>
+                        <FlashcardDeck
+                            card={cards[currentIndex]}
+                            onNext={handleNext}
+                        />
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
+

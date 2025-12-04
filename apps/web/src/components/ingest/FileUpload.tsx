@@ -22,7 +22,7 @@ export function FileUpload() {
         formData.append("file", file);
 
         try {
-            const response = await fetch("http://localhost:8001/ingest/file", {
+            const response = await fetch("http://localhost:8000/ingest/file", {
                 method: "POST",
                 body: formData,
             });

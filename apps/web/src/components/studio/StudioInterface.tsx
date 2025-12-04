@@ -1,17 +1,16 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Share2, Network, FileText } from "lucide-react";
 import { SocialMediaGenerator } from "./SocialMediaGenerator";
 import { DiagramViewer } from "./DiagramViewer";
 import { ArticleEditor } from "./ArticleEditor";
+import { QuizInterface } from "@/components/quiz/QuizInterface";
+import { ReviewSession } from "@/components/flashcards/ReviewSession";
 
 interface StudioInterfaceProps {
     sourceId: string;
 }
 
-type StudioTool = 'social' | 'diagram' | 'article';
+type StudioTool = 'social' | 'diagram' | 'article' | 'quiz' | 'flashcards';
 
 export function StudioInterface({ sourceId }: StudioInterfaceProps) {
     const searchParams = useSearchParams();
@@ -19,13 +18,13 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
     // Initialize from URL or localStorage
     const getInitialTool = (): StudioTool => {
         const urlTool = searchParams.get('tool');
-        if (urlTool && ['social', 'diagram', 'article'].includes(urlTool)) {
+        if (urlTool && ['social', 'diagram', 'article', 'quiz', 'flashcards'].includes(urlTool)) {
             return urlTool as StudioTool;
         }
 
         if (typeof window !== 'undefined') {
             const savedTool = localStorage.getItem(`source-${sourceId}-studio-tool`);
-            if (savedTool && ['social', 'diagram', 'article'].includes(savedTool)) {
+            if (savedTool && ['social', 'diagram', 'article', 'quiz', 'flashcards'].includes(savedTool)) {
                 return savedTool as StudioTool;
             }
         }
@@ -37,62 +36,42 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
     // Update active tool when URL changes
     useEffect(() => {
         const urlTool = searchParams.get('tool');
-        if (urlTool && ['social', 'diagram', 'article'].includes(urlTool)) {
+        if (urlTool && ['social', 'diagram', 'article', 'quiz', 'flashcards'].includes(urlTool)) {
             setActiveTool(urlTool as StudioTool);
         }
     }, [searchParams]);
 
-    const handleToolChange = (tool: StudioTool) => {
-        setActiveTool(tool);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(`source-${sourceId}-studio-tool`, tool);
-            // Optional: Update URL to reflect tool change, but might conflict with parent tab state
-            // For now, we just use URL for initial deep linking
-        }
+    // Listen for custom event from SourcePage
+    useEffect(() => {
+        const handleToolChange = (e: CustomEvent<StudioTool>) => {
+            setActiveTool(e.detail);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(`source-${sourceId}-studio-tool`, e.detail);
+            }
+        };
+
+        window.addEventListener('studio-tool-change', handleToolChange as EventListener);
+        return () => {
+            window.removeEventListener('studio-tool-change', handleToolChange as EventListener);
+        };
+    }, [sourceId]);
+
+    const toolLabels: Record<StudioTool, string> = {
+        social: 'Social Media Generator',
+        diagram: 'Diagram Viewer',
+        article: 'Article Editor',
+        quiz: 'Quiz',
+        flashcards: 'Flashcards'
     };
 
     return (
-        <div className="space-y-6">
-            {/* Tool Navigation */}
-            <div className="flex gap-2 border-b border-gray-200 dark:border-slate-700 pb-4">
-                <button
-                    onClick={() => handleToolChange('social')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTool === 'social'
-                        ? 'bg-purple-100 text-purple-700 dark:text-purple-300'
-                        : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
-                        }`}
-                >
-                    <Share2 className="h-4 w-4" />
-                    Social Media
-                </button>
-                <button
-                    onClick={() => handleToolChange('diagram')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTool === 'diagram'
-                        ? 'bg-purple-100 text-purple-700 dark:text-purple-300'
-                        : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
-                        }`}
-                >
-                    <Network className="h-4 w-4" />
-                    Diagrams
-                </button>
-                <button
-                    onClick={() => handleToolChange('article')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTool === 'article'
-                        ? 'bg-purple-100 text-purple-700 dark:text-purple-300'
-                        : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 dark:bg-slate-700'
-                        }`}
-                >
-                    <FileText className="h-4 w-4" />
-                    Articles
-                </button>
-            </div>
-
-            {/* Active Tool */}
-            <div>
-                {activeTool === 'social' && <SocialMediaGenerator sourceId={sourceId} />}
-                {activeTool === 'diagram' && <DiagramViewer sourceId={sourceId} />}
-                {activeTool === 'article' && <ArticleEditor sourceId={sourceId} />}
-            </div>
+        <div>
+            {/* Active Tool Content */}
+            {activeTool === 'social' && <SocialMediaGenerator sourceId={sourceId} title={toolLabels.social} />}
+            {activeTool === 'diagram' && <DiagramViewer sourceId={sourceId} title={toolLabels.diagram} />}
+            {activeTool === 'article' && <ArticleEditor sourceId={sourceId} title={toolLabels.article} />}
+            {activeTool === 'quiz' && <QuizInterface sourceId={sourceId} title={toolLabels.quiz} />}
+            {activeTool === 'flashcards' && <ReviewSession sourceId={sourceId} title={toolLabels.flashcards} />}
         </div>
     );
 }

@@ -29,7 +29,7 @@ export function UrlInput() {
                     formData.append("force_ocr", "true");
                 }
 
-                const response = await fetch("http://localhost:8001/ingest/file", {
+                const response = await fetch("http://localhost:8000/ingest/file", {
                     method: "POST",
                     body: formData,
                 });
@@ -45,7 +45,7 @@ export function UrlInput() {
             }
             // Handle URL ingestion
             else if (input.includes("youtube.com") || input.includes("youtu.be")) {
-                const response = await fetch("http://localhost:8001/ingest/youtube", {
+                const response = await fetch("http://localhost:8000/ingest/youtube", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url: input, project_id: "default" }),
@@ -61,7 +61,7 @@ export function UrlInput() {
                 }
             } else {
                 // Default to web scraper for other URLs
-                const response = await fetch("http://localhost:8001/ingest/web", {
+                const response = await fetch("http://localhost:8000/ingest/web", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url: input, project_id: "default" }),

@@ -62,7 +62,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a question about this content..."
                     disabled={disabled}
-                    className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700 px-4 py-3 pr-12 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:border-purple-500 focus:bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50"
+                    className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700 px-4 py-3 pr-12 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:border-purple-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50"
                     rows={1}
                 />
                 <button

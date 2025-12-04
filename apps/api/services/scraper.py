@@ -31,7 +31,33 @@ class WebScraperService:
     
     @staticmethod
     def scrape_instagram(url: str) -> dict:
-        """Extract content from Instagram post"""
+        """Extract content from Instagram post or Reel using yt-dlp"""
+        try:
+            print(f"Attempting to scrape Instagram content using yt-dlp: {url}")
+            from .ytdlp import YtDlpService
+            
+            # Use YtDlpService to process the video (works for Reels)
+            result = YtDlpService.process_video(url)
+            
+            if result['success']:
+                print(f"Successfully processed Instagram content via {result['method']}")
+                return {
+                    'title': result['title'],
+                    'content': result['content'],
+                    'success': True
+                }
+            else:
+                print(f"yt-dlp failed: {result.get('error')}")
+                # Fallback to basic scraping for non-video posts
+                return WebScraperService._scrape_instagram_fallback(url)
+                    
+        except Exception as e:
+            print(f"Instagram extraction error: {e}")
+            return WebScraperService._scrape_instagram_fallback(url)
+    
+    @staticmethod
+    def _scrape_instagram_fallback(url: str) -> dict:
+        """Fallback Instagram scraper for non-video posts"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
@@ -40,7 +66,6 @@ class WebScraperService:
             soup = BeautifulSoup(response.content, 'html.parser')
             
             # Try to extract post caption/description
-            # Instagram's structure changes frequently, so this is a best-effort approach
             meta_description = soup.find('meta', property='og:description')
             title = soup.find('meta', property='og:title')
             

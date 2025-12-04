@@ -7,9 +7,18 @@ import { cn } from "@/lib/utils";
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Theme toggle clicked, current theme:', theme);
+    const newTheme = theme === "light" ? "dark" : "light";
+    console.log('Switching to theme:', newTheme);
+    toggleTheme();
+  };
+
   return (
     <button
-      onClick={toggleTheme}
+      onClick={handleToggle}
       className={cn(
         "fixed top-4 right-4 z-50 p-3 rounded-full shadow-lg transition-all duration-300 hover-lift",
         "bg-white/90 backdrop-blur-xl border border-slate-200",

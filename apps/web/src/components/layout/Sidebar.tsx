@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -36,6 +36,38 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
+    const [sidebarWidth, setSidebarWidth] = useState(288);
+    const [isResizing, setIsResizing] = useState(false);
+    const sidebarRef = useRef<HTMLElement>(null);
+    const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
+    const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
+
+    const startResizing = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizing(true);
+    }, []);
+
+    const stopResizing = useCallback(() => {
+        setIsResizing(false);
+    }, []);
+
+    const resize = useCallback((mouseMoveEvent: MouseEvent) => {
+        if (isResizing) {
+            const newWidth = mouseMoveEvent.clientX;
+            if (newWidth >= 200 && newWidth <= 480) {
+                setSidebarWidth(newWidth);
+            }
+        }
+    }, [isResizing]);
+
+    useEffect(() => {
+        window.addEventListener("mousemove", resize);
+        window.addEventListener("mouseup", stopResizing);
+        return () => {
+            window.removeEventListener("mousemove", resize);
+            window.removeEventListener("mouseup", stopResizing);
+        };
+    }, [resize, stopResizing]);
 
     useEffect(() => {
         loadData();
@@ -157,40 +189,58 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     const getCategoryProjects = (categoryId: string | null) => {
         let filtered = projects.filter(p => p.category_id === categoryId);
         if (searchQuery.trim()) {
-            filtered = filtered.filter(p => 
+            filtered = filtered.filter(p =>
                 p.title.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
         return filtered;
     };
 
-    const filteredCategories = searchQuery.trim() 
-        ? categories.filter(cat => 
+    const filteredCategories = searchQuery.trim()
+        ? categories.filter(cat =>
             cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             getCategoryProjects(cat.id).length > 0
-          )
+        )
         : categories;
 
     const uncategorizedProjects = getCategoryProjects(null);
     const filteredUncategorized = searchQuery.trim()
-        ? uncategorizedProjects.filter(p => 
+        ? uncategorizedProjects.filter(p =>
             p.title.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+        )
         : uncategorizedProjects;
 
     const renderProjectItem = (project: Project) => (
-        <div key={project.id} className="group/project relative flex items-center" data-project-id={project.id}>
+        <div
+            key={project.id}
+            className={cn(
+                "group/project relative flex items-center transition-opacity duration-200",
+                draggedProjectId === project.id ? "opacity-50" : "opacity-100"
+            )}
+            data-project-id={project.id}
+            draggable
+            onDragStart={(e) => {
+                setDraggedProjectId(project.id);
+                e.dataTransfer.effectAllowed = "move";
+                // Set a custom drag image if needed, or let browser handle it
+            }}
+            onDragEnd={() => {
+                setDraggedProjectId(null);
+            }}
+        >
             <Link
                 href={project.first_source_id ? `/source/${project.first_source_id}` : '#'}
                 onClick={onNavigate}
                 className={cn(
-                    "flex-1 block px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 rounded-xl hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-slate-700 hover:to-purple-50/30 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 truncate transition-all duration-300 pr-8 font-medium relative overflow-hidden group/link",
+                    "flex-1 block px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 rounded-xl hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-slate-700 hover:to-purple-50/30 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 truncate transition-all duration-300 pr-10 font-medium relative overflow-hidden group/link",
                     project.first_source_id && pathname === `/source/${project.first_source_id}` && "bg-gradient-to-r from-indigo-50 dark:from-indigo-900/30 to-purple-50/30 dark:to-purple-900/30 text-indigo-700 dark:text-indigo-300 font-semibold shadow-md border border-indigo-200 dark:border-indigo-800/50"
                 )}
             >
                 <span className="relative z-10 flex items-center gap-2">
-                    <FileText className="h-3.5 w-3.5 opacity-60 group-hover/link:opacity-100 transition-opacity" />
-                    <span>{project.title}</span>
+                    <FileText className="h-3.5 w-3.5 opacity-60 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
+                    <span className="truncate" title={project.title}>
+                        {project.title.length > 30 ? `${project.title.substring(0, 30)}...` : project.title}
+                    </span>
                 </span>
                 {project.first_source_id && pathname === `/source/${project.first_source_id}` && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-r-full"></div>
@@ -203,7 +253,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     console.log('Three dots clicked for project:', project.id);
                     setActiveDropdown(activeDropdown === project.id ? null : project.id);
                 }}
-                className="absolute right-1 p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg opacity-0 group-hover/project:opacity-100 transition-all duration-300"
+                className="absolute right-1 z-20 p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-700/80 rounded-lg opacity-0 group-hover/project:opacity-100 transition-all duration-200 backdrop-blur-sm shadow-sm"
             >
                 <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
@@ -222,10 +272,10 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                             console.log('Clicking Uncategorized');
                             handleMoveProject(project.id, null);
                         }}
-                            className={cn(
-                                "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors",
-                                !project.category_id ? "text-purple-600 dark:text-purple-400 font-medium bg-purple-50 dark:bg-purple-900/30" : "text-gray-700 dark:text-slate-300"
-                            )}
+                        className={cn(
+                            "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors",
+                            !project.category_id ? "text-purple-600 dark:text-purple-400 font-medium bg-purple-50 dark:bg-purple-900/30" : "text-gray-700 dark:text-slate-300"
+                        )}
                     >
                         <Folder className="h-3.5 w-3.5" />
                         Uncategorized
@@ -266,7 +316,11 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
 
     return (
-        <aside className="w-64 md:w-72 bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shadow-2xl transition-colors duration-300 relative overflow-hidden">
+        <aside
+            ref={sidebarRef}
+            style={{ width: `${sidebarWidth}px` }}
+            className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shadow-2xl transition-colors duration-300 relative overflow-hidden group/sidebar"
+        >
             {/* Decorative background elements */}
             <div className="absolute inset-0 opacity-5 pointer-events-none">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-400 rounded-full blur-3xl"></div>
@@ -339,7 +393,22 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     <div className="mb-2">
                         <button
                             onClick={() => toggleExpand("uncategorized")}
-                            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 dark:hover:from-slate-700 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-xl transition-all duration-300 group hover-lift relative overflow-hidden"
+                            onDragOver={(e) => {
+                                e.preventDefault();
+                                setDragOverCategoryId("uncategorized");
+                            }}
+                            onDragLeave={() => setDragOverCategoryId(null)}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                if (draggedProjectId) {
+                                    handleMoveProject(draggedProjectId, null);
+                                    setDragOverCategoryId(null);
+                                }
+                            }}
+                            className={cn(
+                                "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 dark:hover:from-slate-700 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-xl transition-all duration-300 group hover-lift relative overflow-hidden",
+                                dragOverCategoryId === "uncategorized" && "bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-500/50"
+                            )}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             <div className="relative z-10 flex items-center gap-2.5 w-full">
@@ -370,7 +439,22 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                             <div className="flex items-center group/item">
                                 <button
                                     onClick={() => toggleExpand(category.id)}
-                                    className="flex-1 flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 dark:hover:from-slate-700 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-xl transition-all duration-300 group hover-lift relative overflow-hidden"
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        setDragOverCategoryId(category.id);
+                                    }}
+                                    onDragLeave={() => setDragOverCategoryId(null)}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        if (draggedProjectId) {
+                                            handleMoveProject(draggedProjectId, category.id);
+                                            setDragOverCategoryId(null);
+                                        }
+                                    }}
+                                    className={cn(
+                                        "flex-1 flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 dark:hover:from-slate-700 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-xl transition-all duration-300 group hover-lift relative overflow-hidden",
+                                        dragOverCategoryId === category.id && "bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-500/50"
+                                    )}
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                     <div className="relative z-10 flex items-center gap-2.5 w-full">
@@ -422,18 +506,25 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                         />
                     </form>
                 ) : (
-                <button
-                    onClick={() => setIsCreating(true)}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 mt-3 text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gradient-to-r hover:from-purple-50 dark:hover:from-purple-900/30 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-lg transition-all duration-300 border border-dashed border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md group relative overflow-hidden"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10 flex items-center gap-2">
-                        <Plus className="h-4 w-4 transform group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="font-medium">New Category</span>
-                    </div>
-                </button>
+                    <button
+                        onClick={() => setIsCreating(true)}
+                        className="w-full flex items-center gap-2 px-3 py-2.5 mt-3 text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gradient-to-r hover:from-purple-50 dark:hover:from-purple-900/30 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-lg transition-all duration-300 border border-dashed border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md group relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative z-10 flex items-center gap-2">
+                            <Plus className="h-4 w-4 transform group-hover:rotate-90 transition-transform duration-300" />
+                            <span className="font-medium">New Category</span>
+                        </div>
+                    </button>
                 )}
             </div>
-        </aside>
+
+
+            {/* Resize Handle */}
+            <div
+                className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-indigo-500/50 active:bg-indigo-500 transition-colors z-50"
+                onMouseDown={startResizing}
+            />
+        </aside >
     );
 }

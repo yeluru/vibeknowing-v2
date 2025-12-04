@@ -11,7 +11,8 @@ class TranscriptService:
         patterns = [
             r'(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)',
             r'youtube\.com\/embed\/([^&\n?#]+)',
-            r'youtube\.com\/v\/([^&\n?#]+)'
+            r'youtube\.com\/v\/([^&\n?#]+)',
+            r'youtube\.com\/shorts\/([^&\n?#]+)'  # YouTube Shorts support
         ]
         
         for pattern in patterns:

@@ -57,7 +57,17 @@ VibeKnowing V2 is an **agentic AI content platform** that autonomously ingests, 
   - Interactive quizzes
   - Flashcard review sessions
   - Content organization (projects & categories)
+  - Drag-and-drop project organization
   - Search and discovery
+
+- **🎨 Modern UI/UX**
+  - Resizable sidebar (200-480px adjustable width)
+  - Drag-and-drop project management
+  - Dark mode support with system preference detection
+  - Responsive design for all screen sizes
+  - Automatic title truncation (30 characters) for clean UI
+  - Real-time content preview
+  - Smooth animations and transitions
 
 ### Agentic Features (Coming Soon)
 
@@ -179,7 +189,7 @@ VibeKnowing V2 is an **agentic AI content platform** that autonomously ingests, 
 ```bash
 cd apps/api
 source venv/bin/activate
-uvicorn main:app --reload --port 8001
+uvicorn main:app --reload --port 8000
 ```
 
 **Terminal 2 - Frontend:**
@@ -195,8 +205,8 @@ redis-server
 
 The application will be available at:
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:8001
-- API Docs: http://localhost:8001/docs
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
 ---
 
@@ -280,13 +290,32 @@ npm test
 
 ---
 
+## 🆕 Recent Updates (December 2024)
+
+### UI/UX Improvements
+- ✅ **Resizable Sidebar**: Drag the sidebar edge to adjust width (200-480px)
+- ✅ **Drag-and-Drop Organization**: Drag projects between categories for easy organization
+- ✅ **Title Truncation**: Automatic 30-character limit for cleaner UI
+- ✅ **Redesigned Home Page**: Streamlined layout with integrated feature blocks
+- ✅ **Optimized Transitions**: Smooth animations without lag during interactions
+
+### Bug Fixes & Enhancements
+- ✅ **Instagram Embed Support**: Fixed Instagram Reels embedding
+- ✅ **YouTube Shorts**: Added support for YouTube Shorts URLs
+- ✅ **API Port Standardization**: Unified backend port to 8000
+- ✅ **Database Migrations**: Added migration scripts for data updates
+- ✅ **Frontend Performance**: Optimized component rendering and state management
+
+---
+
 ## 🗺️ Roadmap
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation (Completed ✅)
 - ✅ Multi-source content ingestion
 - ✅ AI-powered content generation
 - ✅ Learning tools (quizzes, flashcards)
-- ✅ Content organization
+- ✅ Content organization with drag-and-drop
+- ✅ Modern, responsive UI with dark mode
 
 ### Phase 2: Agentic Core (Q1 2024)
 - 🔄 Agent framework and orchestration

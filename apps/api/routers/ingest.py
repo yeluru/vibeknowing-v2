@@ -14,6 +14,14 @@ class UrlRequest(BaseModel):
     url: str
     project_id: str
 
+def truncate_title(title: str, max_length: int = 30) -> str:
+    """Truncate title to max_length characters, adding '...' if truncated"""
+    if not title:
+        return title
+    if len(title) > max_length:
+        return f"{title[:max_length-3]}..."
+    return title
+
 @router.post("/youtube")
 async def ingest_youtube(request: UrlRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return await ingest_url(request, db, current_user)
@@ -104,12 +112,12 @@ async def ingest_url(request: UrlRequest, db: Session, current_user: models.User
                         title_cmd = ["yt-dlp", "--get-title", "--no-warnings", request.url]
                         title_res = subprocess.run(title_cmd, capture_output=True, text=True, timeout=10)
                         if title_res.returncode == 0 and title_res.stdout.strip():
-                            source.title = title_res.stdout.strip()
+                            source.title = truncate_title(title_res.stdout.strip())
                         else:
-                            source.title = f"YouTube: {video_id}"
+                            source.title = truncate_title(f"YouTube: {video_id}")
                     except Exception as e:
                         print(f"Failed to fetch title: {e}")
-                        source.title = f"YouTube: {video_id}"
+                        source.title = truncate_title(f"YouTube: {video_id}")
                         
                     content_fetched = True
                     print(f"Successfully fetched transcript ({len(transcript_text)} chars)")
@@ -121,7 +129,7 @@ async def ingest_url(request: UrlRequest, db: Session, current_user: models.User
                         
                         if result['success']:
                             source.content_text = result['content']
-                            source.title = result.get('title', f"YouTube: {video_id}")
+                            source.title = truncate_title(result.get('title', f"YouTube: {video_id}"))
                             content_fetched = True
                             print(f"Successfully fetched transcript via yt-dlp ({len(source.content_text)} chars)")
                         else:
@@ -140,7 +148,7 @@ async def ingest_url(request: UrlRequest, db: Session, current_user: models.User
             
             if result['success'] and result['content']:
                 source.content_text = result['content']
-                source.title = result['title']
+                source.title = truncate_title(result['title'])
                 content_fetched = True
                 print(f"Successfully scraped content ({len(result['content'])} chars)")
             else:
@@ -169,11 +177,11 @@ For testing purposes, you can still:
 
 URL Type: {url_type}
 Original URL: {request.url}"""
-        source.title = f"{url_type.capitalize()} Content (Extraction unavailable)"
+        source.title = truncate_title(f"{url_type.capitalize()} Content (Extraction unavailable)")
     
     # Update project title with source title if this is a new project
     if request.project_id == "default" and source.title:
-        project.title = source.title
+        project.title = truncate_title(source.title)
     
     db.commit()
     return {"status": "ready", "source_id": source.id, "has_content": content_fetched, "url_type": url_type}
@@ -629,7 +637,7 @@ async def refresh_source(source_id: str, db: Session = Depends(get_db), current_
                 
                 if transcript_text:
                     source.content_text = transcript_text
-                    source.title = f"YouTube: {video_id}"
+                    source.title = truncate_title(f"YouTube: {video_id}")
                     content_fetched = True
                     print(f"Successfully re-fetched transcript ({len(transcript_text)} chars)")
                 else:
@@ -644,7 +652,7 @@ async def refresh_source(source_id: str, db: Session = Depends(get_db), current_
             
             if result['success'] and result['content']:
                 source.content_text = result['content']
-                source.title = result['title']
+                source.title = truncate_title(result['title'])
                 content_fetched = True
                 print(f"Successfully re-scraped content ({len(result['content'])} chars)")
             else:
@@ -668,7 +676,7 @@ This URL could not be processed automatically. This may be due to:
 
 URL Type: {url_type}
 Original URL: {url}"""
-        source.title = f"{url_type.capitalize()} Content (Extraction unavailable)"
+        source.title = truncate_title(f"{url_type.capitalize()} Content (Extraction unavailable)")
     
     # Clear the summary so it can be regenerated with new content
     source.summary = None
