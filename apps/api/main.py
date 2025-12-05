@@ -27,7 +27,7 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",
     "http://localhost:3001",
-    # Add production URLs here
+    "*",  # Allow all origins for production (Render)
 ]
 
 app.add_middleware(
