@@ -1,0 +1,44 @@
+services:
+  # Backend API Service
+  - type: web
+    name: vibeknowing-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: cd apps/api && pip install -r requirements.txt
+    startCommand: cd apps/api && uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vibeknowing-db
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+    autoDeploy: false
+
+  # Frontend Web Service
+  - type: web
+    name: vibeknowing-web
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd apps/web && npm install && npm run build
+    startCommand: cd apps/web && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: vibeknowing-api
+          property: url
+    autoDeploy: false
+
+databases:
+  - name: vibeknowing-db
+    databaseName: vibeknowing
+    user: vibeknowing
+    region: oregon
+    plan: free
