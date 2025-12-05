@@ -47,6 +47,7 @@ dist/
 # Environment
 .env
 apps/api/.env
+apps/.env
 .env.local
 .env.*.local
 *.env
