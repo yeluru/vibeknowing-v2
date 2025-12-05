@@ -33,7 +33,7 @@ services:
         fromService:
           type: web
           name: vibeknowing-api
-          property: url
+          property: host
     autoDeploy: false
 
 databases:
