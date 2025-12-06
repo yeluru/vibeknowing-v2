@@ -136,26 +136,26 @@ class YtDlpService:
                         # Use cookies if available
                         transcript_list = YouTubeTranscriptApi.get_transcript(video_id, cookies=cookies_path)
                         print(f"Successfully fetched transcript with youtube-transcript-api. Items: {len(transcript_list)}")
-                formatter = ""
-                for item in transcript_list:
-                    formatter += item['text'] + " "
-                
-                # Get title using yt-dlp (lightweight)
-                title = "YouTube Video"
-                try:
-                    title_cmd = ["yt-dlp", "--get-title", "--no-warnings", url]
-                    title_res = subprocess.run(title_cmd, capture_output=True, text=True, timeout=10)
-                    if title_res.returncode == 0:
-                        title = title_res.stdout.strip()
-                except:
-                    pass
+                        formatter = ""
+                        for item in transcript_list:
+                            formatter += item['text'] + " "
+                        
+                        # Get title using yt-dlp (lightweight)
+                        title = "YouTube Video"
+                        try:
+                            title_cmd = ["yt-dlp", "--get-title", "--no-warnings", url]
+                            title_res = subprocess.run(title_cmd, capture_output=True, text=True, timeout=10)
+                            if title_res.returncode == 0:
+                                title = title_res.stdout.strip()
+                        except:
+                            pass
 
-                return {
-                    "success": True,
-                    "method": "youtube_transcript_api",
-                    "content": formatter.strip(),
-                    "title": title
-                }
+                        return {
+                            "success": True,
+                            "method": "youtube_transcript_api",
+                            "content": formatter.strip(),
+                            "title": title
+                        }
             except Exception as e:
                 print(f"youtube-transcript-api failed: {str(e)}")
                 print("Falling back to yt-dlp...")
