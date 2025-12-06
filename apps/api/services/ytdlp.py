@@ -124,10 +124,13 @@ class YtDlpService:
         
         # 0. Try youtube-transcript-api first (most reliable for transcripts)
         video_id = YtDlpService.extract_video_id(url)
+        print(f"Extracted video ID: {video_id}")
+        
         if video_id:
             print(f"Attempting youtube-transcript-api for ID: {video_id}")
             try:
                 transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+                print(f"Successfully fetched transcript with youtube-transcript-api. Items: {len(transcript_list)}")
                 formatter = ""
                 for item in transcript_list:
                     formatter += item['text'] + " "
@@ -150,6 +153,7 @@ class YtDlpService:
                 }
             except Exception as e:
                 print(f"youtube-transcript-api failed: {str(e)}")
+                print("Falling back to yt-dlp...")
                 # Continue to yt-dlp fallback
 
         try:
