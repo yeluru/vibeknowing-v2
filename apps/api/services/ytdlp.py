@@ -125,6 +125,7 @@ class YtDlpService:
                     "--skip-download",
                     "--no-warnings",
                     "-o", f"{temp_dir}/%(title)s.%(ext)s",
+                    "--extractor-args", "youtube:player_client=android",
                     url
                 ]
                 
@@ -185,6 +186,7 @@ class YtDlpService:
                     "--audio-quality", "192K",
                     "--no-warnings",
                     "-o", f"{temp_dir}/%(title)s.%(ext)s",
+                    "--extractor-args", "youtube:player_client=android",
                     url
                 ]
                 
