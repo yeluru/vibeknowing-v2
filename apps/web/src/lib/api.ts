@@ -1,4 +1,10 @@
 let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+// Handle Render's internal hostname (e.g., "vibeknowing-api-wk0z") by appending the domain
+if (apiUrl && !apiUrl.includes(".") && !apiUrl.includes("localhost")) {
+    apiUrl = `${apiUrl}.onrender.com`;
+}
+
 if (apiUrl && !apiUrl.startsWith("http")) {
     apiUrl = `https://${apiUrl}`;
 }
