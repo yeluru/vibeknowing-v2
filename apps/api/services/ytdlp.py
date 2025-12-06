@@ -156,10 +156,10 @@ class YtDlpService:
                             "content": formatter.strip(),
                             "title": title
                         }
-            except Exception as e:
-                print(f"youtube-transcript-api failed: {str(e)}")
-                print("Falling back to yt-dlp...")
-                # Continue to yt-dlp fallback
+                    except Exception as e:
+                        print(f"youtube-transcript-api failed: {str(e)}")
+                        print("Falling back to yt-dlp...")
+                        # Continue to yt-dlp fallback
 
         try:
             # 1. Try to get subtitles first (cheaper and faster)
