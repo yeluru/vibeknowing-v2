@@ -120,11 +120,20 @@ class YtDlpService:
             with tempfile.TemporaryDirectory() as temp_dir:
                 # Write cookies to file if env var exists
                 cookies_path = None
-                if os.environ.get("YOUTUBE_COOKIES"):
+                cookies_content = os.environ.get("YOUTUBE_COOKIES")
+                if cookies_content:
+                    print(f"Found YOUTUBE_COOKIES env var (length: {len(cookies_content)})")
                     cookies_path = f"{temp_dir}/cookies.txt"
                     with open(cookies_path, "w") as f:
-                        f.write(os.environ.get("YOUTUBE_COOKIES"))
-                    print("Created temporary cookies file from environment variable")
+                        f.write(cookies_content)
+                    print(f"Created temporary cookies file at: {cookies_path}")
+                    # Verify file exists and has content
+                    if os.path.exists(cookies_path):
+                        print(f"Verified cookies file exists, size: {os.path.getsize(cookies_path)} bytes")
+                    else:
+                        print("ERROR: Cookies file was not created!")
+                else:
+                    print("YOUTUBE_COOKIES env var not found or empty")
 
                 # 0. Try youtube-transcript-api first (most reliable for transcripts)
                 video_id = YtDlpService.extract_video_id(url)
@@ -134,6 +143,7 @@ class YtDlpService:
                     print(f"Attempting youtube-transcript-api for ID: {video_id}")
                     try:
                         # Use cookies if available
+                        print(f"Calling get_transcript with cookies_path: {cookies_path}")
                         transcript_list = YouTubeTranscriptApi.get_transcript(video_id, cookies=cookies_path)
                         print(f"Successfully fetched transcript with youtube-transcript-api. Items: {len(transcript_list)}")
                         formatter = ""
