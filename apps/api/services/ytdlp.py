@@ -117,20 +117,25 @@ class YtDlpService:
         
         # Check if yt-dlp is available
         try:
-            subprocess.run(['yt-dlp', '--version'], capture_output=True, check=True)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            print("yt-dlp not available")
-            return {"success": False, "error": "yt-dlp not available"}
-        
-        # 0. Try youtube-transcript-api first (most reliable for transcripts)
-        video_id = YtDlpService.extract_video_id(url)
-        print(f"Extracted video ID: {video_id}")
-        
-        if video_id:
-            print(f"Attempting youtube-transcript-api for ID: {video_id}")
-            try:
-                transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-                print(f"Successfully fetched transcript with youtube-transcript-api. Items: {len(transcript_list)}")
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Write cookies to file if env var exists
+                cookies_path = None
+                if os.environ.get("YOUTUBE_COOKIES"):
+                    cookies_path = f"{temp_dir}/cookies.txt"
+                    with open(cookies_path, "w") as f:
+                        f.write(os.environ.get("YOUTUBE_COOKIES"))
+                    print("Created temporary cookies file from environment variable")
+
+                # 0. Try youtube-transcript-api first (most reliable for transcripts)
+                video_id = YtDlpService.extract_video_id(url)
+                print(f"Extracted video ID: {video_id}")
+                
+                if video_id:
+                    print(f"Attempting youtube-transcript-api for ID: {video_id}")
+                    try:
+                        # Use cookies if available
+                        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, cookies=cookies_path)
+                        print(f"Successfully fetched transcript with youtube-transcript-api. Items: {len(transcript_list)}")
                 formatter = ""
                 for item in transcript_list:
                     formatter += item['text'] + " "
@@ -157,137 +162,128 @@ class YtDlpService:
                 # Continue to yt-dlp fallback
 
         try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Write cookies to file if env var exists
-                cookies_path = None
-                if os.environ.get("YOUTUBE_COOKIES"):
-                    cookies_path = f"{temp_dir}/cookies.txt"
-                    with open(cookies_path, "w") as f:
-                        f.write(os.environ.get("YOUTUBE_COOKIES"))
-                    print("Created temporary cookies file from environment variable")
+            # 1. Try to get subtitles first (cheaper and faster)
+            cmd = [
+                "yt-dlp",
+                "--write-sub",
+                "--write-auto-sub",
+                "--sub-langs", "en,en-US,en-GB",
+                "--sub-format", "vtt",
+                "--skip-download",
+                "--no-warnings",
+                "-o", f"{temp_dir}/%(title)s.%(ext)s",
+                "--extractor-args", "youtube:player_client=android",
+                url
+            ]
+            
+            if cookies_path:
+                cmd.extend(["--cookies", cookies_path])
+            print(f"Running subtitle command: {' '.join(cmd)}")
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                
+            vtt_files = glob.glob(f"{temp_dir}/*.vtt")
+            print(f"Found VTT files: {vtt_files}")
+            
+            if vtt_files:
+                with open(vtt_files[0], "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                # Clean VTT content (simple cleaning)
+                lines = content.splitlines()
+                cleaned_lines = []
+                seen_lines = set()
+                for line in lines:
+                    line = line.strip()
+                    # Skip timestamps, headers, and empty lines
+                    if (not line or 
+                        line.startswith('WEBVTT') or 
+                        '-->' in line or 
+                        line.isdigit() or
+                        line in seen_lines):
+                        continue
+                    cleaned_lines.append(line)
+                    seen_lines.add(line)
+                
+                cleaned_content = " ".join(cleaned_lines)
+                
+                # Get title using yt-dlp --get-title
+                title_cmd = ["yt-dlp", "--get-title", url]
+                title_res = subprocess.run(title_cmd, capture_output=True, text=True)
+                title = title_res.stdout.strip() or "Video Transcript"
+                
+                return {
+                    "success": True, 
+                    "method": "subtitles", 
+                    "content": cleaned_content,
+                    "title": title
+                }
 
-                # 1. Try to get subtitles first (cheaper and faster)
-                cmd = [
-                    "yt-dlp",
-                    "--write-sub",
-                    "--write-auto-sub",
-                    "--sub-langs", "en,en-US,en-GB",
-                    "--sub-format", "vtt",
-                    "--skip-download",
-                    "--no-warnings",
-                    "-o", f"{temp_dir}/%(title)s.%(ext)s",
-                    "--extractor-args", "youtube:player_client=android",
-                    url
-                ]
+            # 2. Fallback: download audio and transcribe with OpenAI Whisper
+            print("No subtitles found, falling back to audio transcription...")
+            
+            if not settings.OPENAI_API_KEY:
+                return {"success": False, "error": "OpenAI API key required for audio transcription"}
+            
+            client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            
+            cmd = [
+                "yt-dlp",
+                "--extract-audio",
+                "--audio-format", "mp3",
+                "--audio-quality", "192K",
+                "--no-warnings",
+                "-o", f"{temp_dir}/%(title)s.%(ext)s",
+                "--extractor-args", "youtube:player_client=android",
+                url
+            ]
+            
+            if cookies_path:
+                cmd.extend(["--cookies", cookies_path])
+            print(f"Running audio command: {' '.join(cmd)}")
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300) # 5 min timeout for download
+            
+            if result.returncode != 0:
+                print(f"Audio download failed: {result.stderr}")
+                return {"success": False, "error": f"Audio download failed: {result.stderr}"}
+            
+            audio_files = glob.glob(f"{temp_dir}/*.mp3")
+            print(f"Found audio files: {audio_files}")
+            
+            if audio_files:
+                audio_file_path = audio_files[0]
+                title = os.path.splitext(os.path.basename(audio_file_path))[0]
+                print(f"Processing audio file: {audio_file_path}")
                 
-                if cookies_path:
-                    cmd.extend(["--cookies", cookies_path])
-                print(f"Running subtitle command: {' '.join(cmd)}")
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                # Split audio if needed (20MB chunks for safety)
+                max_size = 20 * 1024 * 1024
+                chunk_paths = YtDlpService.split_audio_ffmpeg(audio_file_path, max_size)
+                print(f"Split into {len(chunk_paths)} chunks")
                 
-                vtt_files = glob.glob(f"{temp_dir}/*.vtt")
-                print(f"Found VTT files: {vtt_files}")
+                full_transcript = ""
+                for i, chunk_path in enumerate(chunk_paths):
+                    print(f"Transcribing chunk {i+1}/{len(chunk_paths)}: {chunk_path}")
+                    try:
+                        transcript = YtDlpService.transcribe_with_retry(client, chunk_path)
+                        full_transcript += transcript + "\n"
+                    except Exception as e:
+                        print(f"Failed to transcribe chunk {i+1}: {str(e)}")
+                        # Continue with other chunks
+                    
+                    # Clean up chunk file if it's not the original
+                    if chunk_path != audio_file_path and os.path.exists(chunk_path):
+                        os.remove(chunk_path)
                 
-                if vtt_files:
-                    with open(vtt_files[0], "r", encoding="utf-8") as f:
-                        content = f.read()
-                    
-                    # Clean VTT content (simple cleaning)
-                    lines = content.splitlines()
-                    cleaned_lines = []
-                    seen_lines = set()
-                    for line in lines:
-                        line = line.strip()
-                        # Skip timestamps, headers, and empty lines
-                        if (not line or 
-                            line.startswith('WEBVTT') or 
-                            '-->' in line or 
-                            line.isdigit() or
-                            line in seen_lines):
-                            continue
-                        cleaned_lines.append(line)
-                        seen_lines.add(line)
-                    
-                    cleaned_content = " ".join(cleaned_lines)
-                    
-                    # Get title using yt-dlp --get-title
-                    title_cmd = ["yt-dlp", "--get-title", url]
-                    title_res = subprocess.run(title_cmd, capture_output=True, text=True)
-                    title = title_res.stdout.strip() or "Video Transcript"
-                    
+                if full_transcript.strip():
                     return {
                         "success": True, 
-                        "method": "subtitles", 
-                        "content": cleaned_content,
+                        "method": "audio", 
+                        "content": full_transcript.strip(),
                         "title": title
                     }
+                else:
+                    return {"success": False, "error": "Failed to transcribe any audio chunks"}
 
-                # 2. Fallback: download audio and transcribe with OpenAI Whisper
-                print("No subtitles found, falling back to audio transcription...")
-                
-                if not settings.OPENAI_API_KEY:
-                    return {"success": False, "error": "OpenAI API key required for audio transcription"}
-                
-                client = OpenAI(api_key=settings.OPENAI_API_KEY)
-                
-                cmd = [
-                    "yt-dlp",
-                    "--extract-audio",
-                    "--audio-format", "mp3",
-                    "--audio-quality", "192K",
-                    "--no-warnings",
-                    "-o", f"{temp_dir}/%(title)s.%(ext)s",
-                    "--extractor-args", "youtube:player_client=android",
-                    url
-                ]
-                
-                if cookies_path:
-                    cmd.extend(["--cookies", cookies_path])
-                print(f"Running audio command: {' '.join(cmd)}")
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=300) # 5 min timeout for download
-                
-                if result.returncode != 0:
-                    print(f"Audio download failed: {result.stderr}")
-                    return {"success": False, "error": f"Audio download failed: {result.stderr}"}
-                
-                audio_files = glob.glob(f"{temp_dir}/*.mp3")
-                print(f"Found audio files: {audio_files}")
-                
-                if audio_files:
-                    audio_file_path = audio_files[0]
-                    title = os.path.splitext(os.path.basename(audio_file_path))[0]
-                    print(f"Processing audio file: {audio_file_path}")
-                    
-                    # Split audio if needed (20MB chunks for safety)
-                    max_size = 20 * 1024 * 1024
-                    chunk_paths = YtDlpService.split_audio_ffmpeg(audio_file_path, max_size)
-                    print(f"Split into {len(chunk_paths)} chunks")
-                    
-                    full_transcript = ""
-                    for i, chunk_path in enumerate(chunk_paths):
-                        print(f"Transcribing chunk {i+1}/{len(chunk_paths)}: {chunk_path}")
-                        try:
-                            transcript = YtDlpService.transcribe_with_retry(client, chunk_path)
-                            full_transcript += transcript + "\n"
-                        except Exception as e:
-                            print(f"Failed to transcribe chunk {i+1}: {str(e)}")
-                            # Continue with other chunks
-                        
-                        # Clean up chunk file if it's not the original
-                        if chunk_path != audio_file_path and os.path.exists(chunk_path):
-                            os.remove(chunk_path)
-                    
-                    if full_transcript.strip():
-                        return {
-                            "success": True, 
-                            "method": "audio", 
-                            "content": full_transcript.strip(),
-                            "title": title
-                        }
-                    else:
-                        return {"success": False, "error": "Failed to transcribe any audio chunks"}
-
-                return {"success": False, "error": "Failed to download audio"}
+            return {"success": False, "error": "Failed to download audio"}
         except Exception as e:
             print(f"Error in process_video: {str(e)}")
             import traceback
