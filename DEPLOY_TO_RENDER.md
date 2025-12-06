@@ -76,6 +76,20 @@ If the frontend can't talk to the backend:
 2.  You might need to update `main.py` to allow the specific Render frontend URL in `CORSMiddleware`.
     -   Currently, it allows `["*"]` (all origins), so it should work out of the box.
 
+### YouTube Ingestion Errors (Bot Detection)
+If you see "Sign in to confirm you’re not a bot" errors when processing YouTube videos:
+
+1.  **Install a Cookie Exporter**: Install a browser extension like "Get cookies.txt LOCALLY" (Chrome/Firefox).
+2.  **Log in to YouTube**: Go to youtube.com and ensure you are logged in.
+3.  **Export Cookies**: Use the extension to export your cookies to a file (e.g., `cookies.txt`).
+4.  **Copy Content**: Open the file and copy the entire text content.
+5.  **Add to Render**:
+    -   Go to your **vibeknowing-api** service in Render.
+    -   Go to **Environment**.
+    -   Add a new variable named `YOUTUBE_COOKIES`.
+    -   Paste the cookie content as the value.
+    -   Save changes. Render will redeploy automatically.
+
 ## Free Plan Limitations
 -   **Spin-down**: Free web services on Render spin down after 15 minutes of inactivity. The first request might take 30-60 seconds to load.
 -   **Database**: The free PostgreSQL database expires after 90 days. Upgrade to a paid plan for persistence.

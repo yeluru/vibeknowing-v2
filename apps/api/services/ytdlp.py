@@ -107,6 +107,14 @@ class YtDlpService:
         
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
+                # Write cookies to file if env var exists
+                cookies_path = None
+                if os.environ.get("YOUTUBE_COOKIES"):
+                    cookies_path = f"{temp_dir}/cookies.txt"
+                    with open(cookies_path, "w") as f:
+                        f.write(os.environ.get("YOUTUBE_COOKIES"))
+                    print("Created temporary cookies file from environment variable")
+
                 # 1. Try to get subtitles first (cheaper and faster)
                 cmd = [
                     "yt-dlp",
@@ -119,6 +127,9 @@ class YtDlpService:
                     "-o", f"{temp_dir}/%(title)s.%(ext)s",
                     url
                 ]
+                
+                if cookies_path:
+                    cmd.extend(["--cookies", cookies_path])
                 print(f"Running subtitle command: {' '.join(cmd)}")
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
                 
@@ -176,6 +187,9 @@ class YtDlpService:
                     "-o", f"{temp_dir}/%(title)s.%(ext)s",
                     url
                 ]
+                
+                if cookies_path:
+                    cmd.extend(["--cookies", cookies_path])
                 print(f"Running audio command: {' '.join(cmd)}")
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=300) # 5 min timeout for download
                 
