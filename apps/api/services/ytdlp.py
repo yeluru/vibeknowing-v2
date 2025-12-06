@@ -6,9 +6,26 @@ import math
 import time
 from typing import List, Dict, Optional
 from openai import OpenAI
+from youtube_transcript_api import YouTubeTranscriptApi
+import re
 from config import settings
 
 class YtDlpService:
+    @staticmethod
+    def extract_video_id(url: str) -> Optional[str]:
+        """Extract YouTube video ID from URL"""
+        patterns = [
+            r'(?:v=|\/)([0-9A-Za-z_-]{11}).*',
+            r'(?:youtu\.be\/)([0-9A-Za-z_-]{11})',
+            r'(?:embed\/)([0-9A-Za-z_-]{11})'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, url)
+            if match:
+                return match.group(1)
+        return None
+
     @staticmethod
     def split_audio_ffmpeg(audio_file: str, max_size: int = 20*1024*1024) -> List[str]:
         """Split audio file into chunks smaller than max_size bytes"""
@@ -105,6 +122,36 @@ class YtDlpService:
             print("yt-dlp not available")
             return {"success": False, "error": "yt-dlp not available"}
         
+        # 0. Try youtube-transcript-api first (most reliable for transcripts)
+        video_id = YtDlpService.extract_video_id(url)
+        if video_id:
+            print(f"Attempting youtube-transcript-api for ID: {video_id}")
+            try:
+                transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+                formatter = ""
+                for item in transcript_list:
+                    formatter += item['text'] + " "
+                
+                # Get title using yt-dlp (lightweight)
+                title = "YouTube Video"
+                try:
+                    title_cmd = ["yt-dlp", "--get-title", "--no-warnings", url]
+                    title_res = subprocess.run(title_cmd, capture_output=True, text=True, timeout=10)
+                    if title_res.returncode == 0:
+                        title = title_res.stdout.strip()
+                except:
+                    pass
+
+                return {
+                    "success": True,
+                    "method": "youtube_transcript_api",
+                    "content": formatter.strip(),
+                    "title": title
+                }
+            except Exception as e:
+                print(f"youtube-transcript-api failed: {str(e)}")
+                # Continue to yt-dlp fallback
+
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
                 # Write cookies to file if env var exists
