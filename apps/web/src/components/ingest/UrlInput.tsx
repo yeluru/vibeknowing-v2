@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Link2, Loader2, Paperclip, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { API_BASE } from "@/lib/api";
 
 export function UrlInput() {
     const [input, setInput] = useState("");
@@ -29,7 +30,7 @@ export function UrlInput() {
                     formData.append("force_ocr", "true");
                 }
 
-                const response = await fetch("http://localhost:8000/ingest/file", {
+                const response = await fetch(`${API_BASE}/ingest/file`, {
                     method: "POST",
                     body: formData,
                 });
@@ -45,7 +46,7 @@ export function UrlInput() {
             }
             // Handle URL ingestion
             else if (input.includes("youtube.com") || input.includes("youtu.be")) {
-                const response = await fetch("http://localhost:8000/ingest/youtube", {
+                const response = await fetch(`${API_BASE}/ingest/youtube`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url: input, project_id: "default" }),
@@ -61,7 +62,7 @@ export function UrlInput() {
                 }
             } else {
                 // Default to web scraper for other URLs
-                const response = await fetch("http://localhost:8000/ingest/web", {
+                const response = await fetch(`${API_BASE}/ingest/web`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url: input, project_id: "default" }),

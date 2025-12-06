@@ -16,6 +16,7 @@ import { StudioInterface } from "@/components/studio/StudioInterface";
 import { ContentViewer } from "@/components/content/ContentViewer";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { API_BASE } from "@/lib/api";
 
 interface Source {
     id: string;
@@ -186,7 +187,7 @@ export default function SourcePage() {
         try {
             // If summary already exists, we are regenerating, so force=true
             const force = !!summary;
-            const response = await fetch(`http://localhost:8000/ai/summarize/${params.id}?force=${force}`, {
+            const response = await fetch(`${API_BASE}/ai/summarize/${params.id}?force=${force}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
             });
@@ -221,7 +222,7 @@ export default function SourcePage() {
         if (!source) setLoading(true);
 
         try {
-            const response = await fetch(`http://localhost:8000/sources/${params.id}`);
+            const response = await fetch(`${API_BASE}/sources/${params.id}`);
             if (response.ok) {
                 const data = await response.json();
                 setSource(data);
@@ -268,7 +269,7 @@ export default function SourcePage() {
 
         setUploading(true);
         try {
-            const response = await fetch(`http://localhost:8000/sources/${params.id}/transcript`, {
+            const response = await fetch(`${API_BASE}/sources/${params.id}/transcript`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ transcript: manualTranscript }),

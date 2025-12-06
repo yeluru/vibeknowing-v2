@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, Trophy, RefreshCw, ArrowRight } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 import { QuestionCard } from "./QuestionCard";
 
 interface Question {
@@ -30,7 +31,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
     useEffect(() => {
         const loadExistingQuiz = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/ai/quiz/${sourceId}`);
+                const response = await fetch(`${API_BASE}/ai/quiz/${sourceId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.questions && data.questions.length > 0) {
@@ -54,7 +55,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
     const generateQuiz = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/ai/quiz/${sourceId}`, {
+            const response = await fetch(`${API_BASE}/ai/quiz/${sourceId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

@@ -2,7 +2,7 @@ let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 if (apiUrl && !apiUrl.startsWith("http")) {
     apiUrl = `https://${apiUrl}`;
 }
-const API_BASE = apiUrl;
+export const API_BASE = apiUrl;
 
 export interface Category {
     id: string;

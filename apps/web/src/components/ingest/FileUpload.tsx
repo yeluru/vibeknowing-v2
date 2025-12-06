@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileText, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { Upload, File, X, Loader2, CheckCircle } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export function FileUpload() {
@@ -22,7 +23,7 @@ export function FileUpload() {
         formData.append("file", file);
 
         try {
-            const response = await fetch("http://localhost:8000/ingest/file", {
+            const response = await fetch(`${API_BASE}/ingest/file`, {
                 method: "POST",
                 body: formData,
             });

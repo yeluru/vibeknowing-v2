@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Layers, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw, Check, X, Loader2 } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 import { FlashcardDeck } from "./FlashcardDeck";
 
 interface Flashcard {
@@ -25,12 +26,12 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
     useEffect(() => {
         const loadExistingCards = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/ai/flashcards/${sourceId}`);
+                const response = await fetch(`${API_BASE} /ai/flashcards / ${sourceId} `);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.flashcards && data.flashcards.length > 0) {
                         const formattedCards: Flashcard[] = data.flashcards.map((c: any, index: number) => ({
-                            id: `c-${index}`,
+                            id: `c - ${index} `,
                             front: c.front,
                             back: c.back
                         }));
@@ -47,7 +48,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
     const generateCards = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/ai/flashcards/${sourceId}`, {
+            const response = await fetch(`${API_BASE} /ai/flashcards / ${sourceId} `, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -60,7 +61,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
             const apiCards = data.flashcards || [];
 
             const formattedCards: Flashcard[] = apiCards.map((c: any, index: number) => ({
-                id: `c-${index}`,
+                id: `c - ${index} `,
                 front: c.front,
                 back: c.back
             }));
@@ -77,7 +78,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
 
     const handleNext = (difficulty: 'easy' | 'medium' | 'hard') => {
         // Here we would send the difficulty rating to the backend for spaced repetition scheduling
-        console.log(`Card ${cards[currentIndex].id} rated as ${difficulty}`);
+        console.log(`Card ${cards[currentIndex].id} rated as ${difficulty} `);
 
         if (currentIndex < cards.length - 1) {
             setCurrentIndex(prev => prev + 1);

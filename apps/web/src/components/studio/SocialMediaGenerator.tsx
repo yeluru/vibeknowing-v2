@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, Share2, Copy, Check, Twitter, Linkedin, Instagram } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface SocialMediaGeneratorProps {
@@ -53,7 +54,7 @@ export function SocialMediaGenerator({ sourceId, title = "Social Media Generator
     useEffect(() => {
         const loadExistingContent = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/ai/social-media/${sourceId}?platform=${platform}`);
+                const response = await fetch(`${API_BASE}/ai/social-media/${sourceId}?platform=${platform}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.post) {
@@ -73,7 +74,7 @@ export function SocialMediaGenerator({ sourceId, title = "Social Media Generator
     const generateContent = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/ai/social-media/${sourceId}?platform=${platform}`, {
+            const response = await fetch(`${API_BASE}/ai/social-media/${sourceId}?platform=${platform}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

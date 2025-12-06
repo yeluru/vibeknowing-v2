@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, FilePenLine, Save, Download } from "lucide-react";
+import { Loader2, RefreshCw, Save, FileText, Check } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -20,7 +21,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
     useEffect(() => {
         const loadExistingArticle = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/ai/article/${sourceId}`);
+                const response = await fetch(`${API_BASE}/ai/article/${sourceId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.content) {
@@ -39,7 +40,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
     const generateArticle = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/ai/article/${sourceId}?style=blog`, {
+            const response = await fetch(`${API_BASE}/ai/article/${sourceId}?style=blog`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -61,7 +62,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
     const handleSave = async () => {
         setSaving(true);
         try {
-            const response = await fetch(`http://localhost:8000/ai/article/${sourceId}`, {
+            const response = await fetch(`${API_BASE}/ai/article/${sourceId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content })

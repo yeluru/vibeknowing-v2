@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MessageList, Message } from "./MessageList";
+import { API_BASE } from "@/lib/api";
 import { ChatInput } from "./ChatInput";
 import { v4 as uuidv4 } from "uuid";
 
@@ -28,7 +29,7 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
 
     const loadHistory = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/ai/chat/history/${sourceId}`);
+            const response = await fetch(`${API_BASE}/ai/chat/history/${sourceId}`);
             if (response.ok) {
                 const history = await response.json();
                 setMessages(history.map((msg: any) => ({
@@ -56,7 +57,7 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
         setIsLoading(true);
 
         try {
-            const response = await fetch("http://localhost:8000/ai/chat", {
+            const response = await fetch(`${API_BASE}/ai/chat`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

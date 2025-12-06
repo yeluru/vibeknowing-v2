@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, GitGraph } from "lucide-react";
+import { Loader2, RefreshCw, Download, Copy, Check } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 interface DiagramViewerProps {
     sourceId: string;
@@ -16,7 +17,7 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
     useEffect(() => {
         const loadExistingDiagram = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/ai/diagram/${sourceId}`);
+                const response = await fetch(`${API_BASE}/ai/diagram/${sourceId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.diagram) {
@@ -35,7 +36,7 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
     const generateDiagram = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/ai/diagram/${sourceId}`, {
+            const response = await fetch(`${API_BASE}/ai/diagram/${sourceId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
