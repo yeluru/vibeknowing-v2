@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, RefreshCw, Download, Copy, Check } from "lucide-react";
+import { Loader2, RefreshCw, Download, Copy, Check, GitGraph } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 
 interface DiagramViewerProps {
