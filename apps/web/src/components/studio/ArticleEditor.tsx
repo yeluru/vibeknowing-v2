@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, RefreshCw, Save, FileText, Check } from "lucide-react";
+import { Loader2, RefreshCw, Save, FileText, Check, FilePenLine, Download } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

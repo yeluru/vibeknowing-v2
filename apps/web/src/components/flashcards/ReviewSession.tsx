@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, RotateCw, Check, X, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw, Check, X, Loader2, Layers, CheckCircle } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 import { FlashcardDeck } from "./FlashcardDeck";
 
