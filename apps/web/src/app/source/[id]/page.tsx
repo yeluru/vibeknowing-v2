@@ -17,6 +17,7 @@ import { ContentViewer } from "@/components/content/ContentViewer";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { API_BASE } from "@/lib/api";
+import { EditableTitle } from "@/components/ui/EditableTitle";
 
 interface Source {
     id: string;
@@ -28,6 +29,10 @@ interface Source {
     created_at: string;
     meta_data?: any;
     project_id?: string;
+    project?: {
+        id: string;
+        title: string;
+    };
 }
 
 interface Message {
@@ -105,6 +110,69 @@ export default function SourcePage() {
     const [prevProject, setPrevProject] = useState<string | null>(null);
     const [nextProject, setNextProject] = useState<string | null>(null);
 
+    const loadSource = useCallback(async () => {
+        // Only set loading on initial load, not during polling
+        const isInitialLoad = !source;
+        if (isInitialLoad) setLoading(true);
+
+        try {
+            const response = await fetch(`${API_BASE}/sources/${params.id}`);
+            if (response.ok) {
+                const data = await response.json();
+
+                // Check if content just became available (was processing, now has content)
+                const wasProcessing = isProcessing;
+                const hasContent = data.content_text && data.content_text.length > 0 && !data.content_text.includes('[Content extraction failed');
+
+                setSource(data);
+
+                // Check processing status
+                if (data.meta_data?.status === 'processing') {
+                    setIsProcessing(true);
+                    // Poll again in 3 seconds to check if processing is complete
+                    setTimeout(loadSource, 3000);
+                } else {
+                    setIsProcessing(false);
+
+                    // Refresh sidebar in two cases:
+                    // 1. If we were processing and now have content (polling detected completion)
+                    // 2. If this is initial load and content exists (page loaded after completion)
+                    const shouldRefresh = (wasProcessing && hasContent) || (isInitialLoad && hasContent);
+
+                    if (shouldRefresh) {
+                        console.log('Refreshing sidebar - wasProcessing:', wasProcessing, 'isInitialLoad:', isInitialLoad);
+                        // Small delay to ensure DB update is propagated
+                        setTimeout(() => {
+                            window.dispatchEvent(new Event('refresh-sidebar'));
+                        }, 500);
+                    }
+                }
+
+                // Load existing summary if available
+                if (data.summary) {
+                    setSummary(data.summary);
+                }
+
+                // Show upload option if transcript failed
+                if (data.content_text && data.content_text.includes("Transcript extraction failed")) {
+                    setShowTranscriptUpload(true);
+                }
+
+            }
+        } catch (error) {
+            console.error("Error loading source:", error);
+            setIsProcessing(false);
+        } finally {
+            setLoading(false);
+        }
+    }, [params.id, isProcessing, source]);
+
+    // Use a ref to access the latest loadSource without triggering re-effects
+    const loadSourceRef = useRef(loadSource);
+    useEffect(() => {
+        loadSourceRef.current = loadSource;
+    }, [loadSource]);
+
     useEffect(() => {
         loadSource();
     }, [params.id]);
@@ -132,6 +200,36 @@ export default function SourcePage() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [studioDropdownOpen]);
+
+    // Listen for sidebar refresh events to keep title in sync
+    useEffect(() => {
+        const handleRefresh = () => {
+            loadSourceRef.current();
+        };
+        window.addEventListener('refresh-sidebar', handleRefresh);
+        return () => window.removeEventListener('refresh-sidebar', handleRefresh);
+    }, []);
+
+    const handleUpdateTitle = async (newTitle: string) => {
+        if (!source?.project_id) return;
+        try {
+            const response = await fetch(`${API_BASE}/sources/projects/${source.project_id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle })
+            });
+
+            if (response.ok) {
+                // Reload source to get updated title
+                loadSource();
+                // Dispatch event to update sidebar
+                window.dispatchEvent(new Event('refresh-sidebar'));
+            }
+        } catch (error) {
+            console.error("Failed to update title:", error);
+            toast.error("Failed to update project title");
+        }
+    };
 
     const loadNavigation = async () => {
         if (!source?.project_id) return;
@@ -173,6 +271,7 @@ export default function SourcePage() {
         try {
             await projectsApi.delete(source.project_id);
             toast.success("Project deleted successfully");
+            window.dispatchEvent(new Event('refresh-sidebar'));
             router.push('/');
         } catch (error) {
             console.error("Failed to delete project:", error);
@@ -217,42 +316,7 @@ export default function SourcePage() {
         }
     }, [activeTab, source, summary, generating, isProcessing, handleGenerateSummary]);
 
-    const loadSource = async () => {
-        // Only set loading on initial load, not during polling
-        if (!source) setLoading(true);
 
-        try {
-            const response = await fetch(`${API_BASE}/sources/${params.id}`);
-            if (response.ok) {
-                const data = await response.json();
-                setSource(data);
-
-                // Check processing status
-                if (data.meta_data?.status === 'processing') {
-                    setIsProcessing(true);
-                    // Poll again in 2 seconds
-                    setTimeout(loadSource, 2000);
-                } else {
-                    setIsProcessing(false);
-                }
-
-                // Load existing summary if available
-                if (data.summary) {
-                    setSummary(data.summary);
-                }
-
-                // Show upload option if transcript failed
-                if (data.content_text && data.content_text.includes("Transcript extraction failed")) {
-                    setShowTranscriptUpload(true);
-                }
-
-            }
-        } catch (error) {
-            console.error("Error loading source:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // Wrapper for manual refresh button
     const fetchSource = () => {
@@ -326,7 +390,12 @@ export default function SourcePage() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 min-w-0 flex-1">
                         <div className="min-w-0 flex-1">
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-2 break-words leading-tight">{source.title}</h1>
+                            <EditableTitle
+                                initialValue={source.project?.title || source.title}
+                                onSave={handleUpdateTitle}
+                                isHeader={true}
+                                className="mb-2"
+                            />
                             <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500 truncate font-medium">{source.url}</p>
                         </div>
                     </div>
@@ -561,32 +630,49 @@ export default function SourcePage() {
                         <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/60 p-6 sm:p-8 shadow-xl transition-colors duration-300">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                                 <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">Transcript</h2>
-                                <button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(source.content_text);
-                                        setCopiedTranscript(true);
-                                        setTimeout(() => setCopiedTranscript(false), 2000);
-                                    }}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 hover-lift"
-                                >
-                                    {copiedTranscript ? (
-                                        <>
-                                            <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                            Copied!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy className="h-4 w-4" />
-                                            Copy
-                                        </>
-                                    )}
-                                </button>
+                                {!isProcessing && (
+                                    <button
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(source.content_text);
+                                            setCopiedTranscript(true);
+                                            setTimeout(() => setCopiedTranscript(false), 2000);
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 hover-lift"
+                                    >
+                                        {copiedTranscript ? (
+                                            <>
+                                                <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                Copied!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Copy className="h-4 w-4" />
+                                                Copy
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                             </div>
-                            <div className="prose prose-sm max-w-none">
-                                <p className="whitespace-pre-wrap text-gray-900 dark:text-white leading-relaxed text-base">
-                                    {source.content_text}
-                                </p>
-                            </div>
+                            {isProcessing ? (
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <Loader2 className="h-12 w-12 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Processing your file...</h3>
+                                    <p className="text-sm text-gray-500 dark:text-slate-400">This may take a few moments. Please don't close this page.</p>
+                                    <button
+                                        onClick={fetchSource}
+                                        className="mt-6 flex items-center gap-2 px-4 py-2 text-sm font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-all"
+                                    >
+                                        <RefreshCw className="h-4 w-4" />
+                                        Check Status
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="prose prose-sm max-w-none">
+                                    <p className="whitespace-pre-wrap text-gray-900 dark:text-white leading-relaxed text-base">
+                                        {source.content_text}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )
                 }

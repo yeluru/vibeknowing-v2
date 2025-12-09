@@ -126,11 +126,21 @@ class YtDlpService:
                 if response.status_code == 200:
                     data = response.json()
                     print("Worker processing successful!")
+                    
+                    # Determine default title based on URL type
+                    default_title = "Video"
+                    if 'youtube.com' in url or 'youtu.be' in url:
+                        default_title = "YouTube Video"
+                    elif 'instagram.com' in url:
+                        default_title = "Instagram Reel"
+                    elif 'ted.com' in url:
+                        default_title = "TED Talk"
+                    
                     return {
                         "success": True,
                         "method": f"worker_{data.get('method', 'unknown')}",
                         "content": data.get("transcript", ""),
-                        "title": "YouTube Video (Worker)" # Worker doesn't return title yet, can be improved later
+                        "title": data.get("title", default_title)
                     }
                 else:
                     print(f"Worker failed with status {response.status_code}: {response.text}")
@@ -175,12 +185,24 @@ class YtDlpService:
                             formatter += item['text'] + " "
                         
                         # Get title using yt-dlp (lightweight)
-                        title = "YouTube Video"
+                        # Determine default title based on URL type
+                        default_title = "Video"
+                        if 'youtube.com' in url or 'youtu.be' in url:
+                            default_title = "YouTube Video"
+                        elif 'instagram.com' in url:
+                            default_title = "Instagram Reel"
+                        elif 'ted.com' in url:
+                            default_title = "TED Talk"
+                        
+                        title = default_title
                         try:
                             title_cmd = ["yt-dlp", "--get-title", "--no-warnings", url]
                             title_res = subprocess.run(title_cmd, capture_output=True, text=True, timeout=10)
-                            if title_res.returncode == 0:
-                                title = title_res.stdout.strip()
+                            if title_res.returncode == 0 and title_res.stdout.strip():
+                                extracted_title = title_res.stdout.strip()
+                                # Only use if it looks like a valid title (not empty)
+                                if extracted_title:
+                                    title = extracted_title
                         except:
                             pass
 
@@ -276,8 +298,9 @@ class YtDlpService:
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=300) # 5 min timeout for download
                 
                 if result.returncode != 0:
-                    print(f"Audio download failed: {result.stderr}")
-                    return {"success": False, "error": f"Audio download failed: {result.stderr}"}
+                    error_msg = result.stderr.strip() or result.stdout.strip() or "Unknown yt-dlp error"
+                    print(f"Audio download failed: {error_msg}")
+                    return {"success": False, "error": f"Audio download failed: {error_msg}"}
                 
                 audio_files = glob.glob(f"{temp_dir}/*.mp3")
                 print(f"Found audio files: {audio_files}")

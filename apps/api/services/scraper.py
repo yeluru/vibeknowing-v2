@@ -18,14 +18,28 @@ class WebScraperService:
         """Detect the type of URL"""
         domain = urlparse(url).netloc.lower()
         
-        if 'youtube.com' in domain or 'youtu.be' in domain:
-            return 'youtube'
-        elif 'instagram.com' in domain:
-            return 'instagram'
-        elif 'linkedin.com' in domain:
+        # Video platforms that should be processed by worker
+        video_platforms = [
+            'youtube.com', 'youtu.be',
+            'instagram.com',
+            'ted.com',
+            'tiktok.com',
+            'vimeo.com',
+            'dailymotion.com',
+            'twitch.tv',
+            'twitter.com', 'x.com',  # Twitter/X videos
+            'facebook.com', 'fb.watch',
+            'reddit.com',  # Reddit videos
+            'streamable.com',
+            'rumble.com'
+        ]
+        
+        for platform in video_platforms:
+            if platform in domain:
+                return 'video'
+        
+        if 'linkedin.com' in domain:
             return 'linkedin'
-        elif 'ted.com' in domain:
-            return 'ted'
         else:
             return 'web'
     

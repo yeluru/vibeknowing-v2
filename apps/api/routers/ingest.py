@@ -23,14 +23,14 @@ def truncate_title(title: str, max_length: int = 30) -> str:
     return title
 
 @router.post("/youtube")
-async def ingest_youtube(request: UrlRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return await ingest_url(request, db, current_user)
+async def ingest_youtube(request: UrlRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return await ingest_url(request, background_tasks, db, current_user)
 
 @router.post("/web")
-async def ingest_web(request: UrlRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return await ingest_url(request, db, current_user)
+async def ingest_web(request: UrlRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return await ingest_url(request, background_tasks, db, current_user)
 
-async def ingest_url(request: UrlRequest, db: Session, current_user: models.User):
+async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db: Session, current_user: models.User):
     """Universal URL ingestion - handles YouTube, Instagram, LinkedIn, TED, and any webpage"""
     # Handle default project
     # Handle default project
@@ -93,54 +93,23 @@ async def ingest_url(request: UrlRequest, db: Session, current_user: models.User
     error_message = None
     
     try:
-        if url_type == 'youtube':
-            # Use existing YouTube transcript service
-            from services.transcript import TranscriptService
-            video_id = TranscriptService.extract_video_id(request.url)
+        # Check for video type (covering all video platforms) or specific legacy types
+        if url_type == 'video' or url_type in ['youtube', 'instagram', 'ted']:
+            # Process video URLs in background
+            print(f"Queuing {url_type} URL for background processing: {request.url}")
+            source.meta_data = {"status": "processing"}
+            source.title = f"Processing video..."
+            db.commit()
             
-            if video_id:
-                print(f"Attempting to fetch transcript for video ID: {video_id}")
-                transcript_text = TranscriptService.get_transcript(video_id)
-                
-                if transcript_text:
-                    source.content_text = transcript_text
-                    
-                    # Try to fetch video title
-                    try:
-                        import subprocess
-                        # Use yt-dlp to get just the title (fast)
-                        title_cmd = ["yt-dlp", "--get-title", "--no-warnings", request.url]
-                        title_res = subprocess.run(title_cmd, capture_output=True, text=True, timeout=10)
-                        if title_res.returncode == 0 and title_res.stdout.strip():
-                            source.title = truncate_title(title_res.stdout.strip())
-                        else:
-                            source.title = truncate_title(f"YouTube: {video_id}")
-                    except Exception as e:
-                        print(f"Failed to fetch title: {e}")
-                        source.title = truncate_title(f"YouTube: {video_id}")
-                        
-                    content_fetched = True
-                    print(f"Successfully fetched transcript ({len(transcript_text)} chars)")
-                else:
-                    print(f"Standard transcript fetch failed for {video_id}, trying yt-dlp fallback...")
-                    try:
-                        from services.ytdlp import YtDlpService
-                        result = YtDlpService.process_video(request.url)
-                        
-                        if result['success']:
-                            source.content_text = result['content']
-                            source.title = truncate_title(result.get('title', f"YouTube: {video_id}"))
-                            content_fetched = True
-                            print(f"Successfully fetched transcript via yt-dlp ({len(source.content_text)} chars)")
-                        else:
-                            error_message = f"Transcript returned empty and fallback failed: {result.get('error')}"
-                            print(f"Transcript fetch returned None for {video_id} and fallback failed")
-                    except Exception as e:
-                        error_message = f"Transcript returned empty and fallback error: {str(e)}"
-                        print(f"Fallback error: {e}")
-            else:
-                error_message = "Could not extract video ID from URL"
-                print(f"Failed to extract video ID from: {request.url}")
+            # Add background task to process the video
+            background_tasks.add_task(process_youtube_background, source.id, request.url, project_id)
+            
+            return {
+                "status": "processing", 
+                "source_id": source.id, 
+                "has_content": False, 
+                "url_type": url_type
+            }
         else:
             # Use web scraper for all other URLs
             print(f"Scraping {url_type} URL: {request.url}")
@@ -181,7 +150,21 @@ Original URL: {request.url}"""
     
     # Update project title with source title if this is a new project
     if request.project_id == "default" and source.title:
-        project.title = truncate_title(source.title)
+        base_title = truncate_title(source.title)
+        
+        # Check if title exists
+        existing_project = db.query(models.Project).filter(
+            models.Project.owner_id == current_user.id,
+            models.Project.title == base_title,
+            models.Project.id != project.id
+        ).first()
+
+        if existing_project:
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%b %d, %H:%M")
+            project.title = f"{base_title} ({timestamp})"
+        else:
+            project.title = base_title
     
     db.commit()
     return {"status": "ready", "source_id": source.id, "has_content": content_fetched, "url_type": url_type}
@@ -190,6 +173,7 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
     from database import SessionLocal
     import models
     import traceback
+    import os
     
     print(f"Background processing started for {filename} (Source ID: {source_id})")
     db = SessionLocal()
@@ -202,9 +186,45 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
         # Handle different file types
         if file_ext in ['mp3', 'mp4', 'wav', 'm4a', 'webm', 'mpeg', 'mpga'] or \
            (content_type and ('audio' in content_type or 'video' in content_type)):
-            # Audio/Video file - use Whisper for transcription
-            print(f"Detected audio/video file, using Whisper transcription")
+            # Audio/Video file - try worker first, then fallback to local Whisper
+            print(f"Detected audio/video file, checking for worker...")
             source_type = "audio"
+            
+            # Check for WORKER_URL to offload processing
+            worker_url = os.environ.get("WORKER_URL")
+            if worker_url:
+                worker_endpoint = worker_url.replace('/transcribe', '/transcribe-file')
+                print(f"Found WORKER_URL, sending file to: {worker_endpoint}")
+                
+                try:
+                    import requests
+                    import io
+                    
+                    # Prepare file for upload
+                    files = {'file': (filename, io.BytesIO(content_bytes), content_type)}
+                    response = requests.post(worker_endpoint, files=files, timeout=600)  # 10 min timeout for large files
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        content_text = data.get("transcript", "")
+                        print(f"Worker transcription successful ({len(content_text)} chars)")
+                        # Update source with success
+                        source = db.query(models.Source).filter(models.Source.id == source_id).first()
+                        if source:
+                            source.content_text = content_text
+                            source.type = source_type
+                            source.meta_data = {"status": "completed", "method": "worker"}
+                            db.commit()
+                        return  # Exit early on success
+                    else:
+                        print(f"Worker failed with status {response.status_code}: {response.text}")
+                        print("Falling back to local Whisper processing...")
+                except Exception as e:
+                    print(f"Worker request failed: {str(e)}")
+                    print("Falling back to local Whisper processing...")
+            
+            # Fallback: Local Whisper transcription
+            print(f"Using local Whisper transcription")
             
             # Save temporarily for Whisper
             import tempfile
@@ -495,6 +515,89 @@ Supported formats:
     finally:
         db.close()
 
+
+def process_youtube_background(source_id: str, url: str, project_id: str):
+    """Background task to process YouTube URLs"""
+    from database import SessionLocal
+    import models
+    import traceback
+    
+    print(f"Background processing started for YouTube URL: {url} (Source ID: {source_id})")
+    db = SessionLocal()
+    
+    try:
+        from services.ytdlp import YtDlpService
+        
+        # Extract video ID
+        video_id = YtDlpService.extract_video_id(url)
+        
+        if video_id:
+            print(f"Attempting to fetch transcript for video ID: {video_id}")
+            result = YtDlpService.process_video(url)
+            
+            # Update source with result
+            source = db.query(models.Source).filter(models.Source.id == source_id).first()
+            if source:
+                if result.get('success'):
+                    source.content_text = result['content']
+                    fallback_prefix = "Video"
+                    if "youtube" in result.get('method', ''):
+                        fallback_prefix = "YouTube"
+                    source.title = result.get('title', f"{fallback_prefix}: {video_id}")[:255]
+                    source.meta_data = {"status": "completed", "method": result.get('method', 'unknown')}
+                    print(f"Successfully fetched transcript via {result.get('method')} ({len(source.content_text)} chars)")
+                    
+                    # Update project title if this was a new project
+                    # Update project title if this was a new project
+                    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+                    if project and source.title:
+                        base_title = source.title[:200]
+                        
+                        # Check if title exists
+                        existing_project = db.query(models.Project).filter(
+                            models.Project.owner_id == project.owner_id,
+                            models.Project.title == base_title,
+                            models.Project.id != project.id
+                        ).first()
+
+                        if existing_project:
+                            from datetime import datetime
+                            timestamp = datetime.now().strftime("%b %d, %H:%M")
+                            project.title = f"{base_title} ({timestamp})"
+                        else:
+                            project.title = base_title
+                            
+                        print(f"Updated project title to: {project.title}")
+                else:
+                    error_message = f"Content extraction failed: {result.get('error')}"
+                    source.content_text = f"[{error_message}]"
+                    source.title = f"YouTube: {video_id} (Failed)"
+                    source.meta_data = {"status": "failed", "error": error_message}
+                    print(f"Transcript fetch failed: {error_message}")
+                
+                db.commit()
+        else:
+            # Update source with error
+            source = db.query(models.Source).filter(models.Source.id == source_id).first()
+            if source:
+                source.content_text = "[Could not extract video ID from URL]"
+                source.title = "YouTube (Invalid URL)"
+                source.meta_data = {"status": "failed", "error": "Invalid video ID"}
+                db.commit()
+                
+    except Exception as e:
+        print(f"Error processing YouTube URL: {str(e)}")
+        traceback.print_exc()
+        
+        # Update source with error
+        source = db.query(models.Source).filter(models.Source.id == source_id).first()
+        if source:
+            source.content_text = f"[Processing error: {str(e)}]"
+            source.meta_data = {"status": "failed", "error": str(e)}
+            db.commit()
+    finally:
+        db.close()
+
 @router.post("/file")
 async def ingest_file(
     background_tasks: BackgroundTasks,
@@ -509,9 +612,23 @@ async def ingest_file(
     # Handle default project (same logic as URL ingestion)
     # Handle default project (same logic as URL ingestion)
     if project_id == "default":
+        # Check if title exists for file upload
+        base_title = file.filename or "New Project"
+        final_title = base_title
+        
+        existing_project = db.query(models.Project).filter(
+            models.Project.owner_id == current_user.id,
+            models.Project.title == base_title
+        ).first()
+
+        if existing_project:
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%b %d, %H:%M")
+            final_title = f"{base_title} ({timestamp})"
+
         # Create NEW project
         project = models.Project(
-            title=file.filename or "New Project",
+            title=final_title,
             description="Created from file upload",
             owner_id=current_user.id
         )

@@ -28,6 +28,10 @@ async def get_source(source_id: str, db: Session = Depends(get_db)):
         "summary": source.summary,
         "meta_data": source.meta_data,
         "project_id": source.project_id,
+        "project": {
+            "id": source.project.id,
+            "title": source.project.title
+        } if source.project else None,
         "created_at": source.created_at
     }
 
@@ -169,4 +173,43 @@ async def delete_project(
     db.commit()
     
     return {"status": "deleted", "project_id": project_id}
+
+
+class ProjectUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+
+@router.put("/projects/{project_id}")
+async def update_project(
+    project_id: str,
+    update: ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Update a project's details (title, description)."""
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.owner_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    if update.title is not None:
+        project.title = update.title
+    
+    if update.description is not None:
+        project.description = update.description
+        
+    db.commit()
+    db.refresh(project)
+    
+    return {
+        "status": "updated", 
+        "project": {
+            "id": project.id,
+            "title": project.title,
+            "description": project.description
+        }
+    }
 

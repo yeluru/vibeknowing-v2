@@ -45,24 +45,9 @@ export function UrlInput() {
                 }
             }
             // Handle URL ingestion
-            else if (input.includes("youtube.com") || input.includes("youtu.be")) {
+            else {
+                // Send all URLs to the ingestion endpoint (backend handles async/sync decision)
                 const response = await fetch(`${API_BASE}/ingest/youtube`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url: input, project_id: "default" }),
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    window.dispatchEvent(new Event('refresh-sidebar'));
-                    router.push(`/source/${data.source_id}`);
-                } else {
-                    const error = await response.json();
-                    alert(error.detail || "Failed to process YouTube URL");
-                }
-            } else {
-                // Default to web scraper for other URLs
-                const response = await fetch(`${API_BASE}/ingest/web`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ url: input, project_id: "default" }),

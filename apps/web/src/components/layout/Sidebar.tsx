@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     Folder,
     FileText,
@@ -16,10 +16,12 @@ import {
     Palette,
     Sparkles,
     Search,
-    Zap
+    Zap,
+    RefreshCw
 } from "lucide-react";
-import { categoriesApi, projectsApi, Category, Project } from "@/lib/api";
+import { categoriesApi, projectsApi, Category, Project, API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { EditableTitle } from '@/components/ui/EditableTitle';
 
 interface SidebarProps {
     onNavigate?: () => void;
@@ -72,7 +74,10 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     useEffect(() => {
         loadData();
 
-        const handleRefresh = () => loadData();
+        const handleRefresh = () => {
+            console.log('Sidebar received refresh-sidebar event');
+            loadData();
+        };
         window.addEventListener('refresh-sidebar', handleRefresh);
 
         // Close dropdown when clicking outside
@@ -210,6 +215,23 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         )
         : uncategorizedProjects;
 
+    const handleUpdateTitle = async (projectId: string, newTitle: string) => {
+        try {
+            const response = await fetch(`${API_BASE}/sources/projects/${projectId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle })
+            });
+
+            if (response.ok) {
+                // Dispatch event to update other components
+                window.dispatchEvent(new Event('refresh-sidebar'));
+            }
+        } catch (error) {
+            console.error("Failed to update title:", error);
+        }
+    };
+
     const renderProjectItem = (project: Project) => (
         <div
             key={project.id}
@@ -236,12 +258,17 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     project.first_source_id && pathname === `/source/${project.first_source_id}` && "bg-gradient-to-r from-indigo-50 dark:from-indigo-900/30 to-purple-50/30 dark:to-purple-900/30 text-indigo-700 dark:text-indigo-300 font-semibold shadow-md border border-indigo-200 dark:border-indigo-800/50"
                 )}
             >
-                <span className="relative z-10 flex items-center gap-2">
+                <div className="relative z-10 flex items-center gap-2">
                     <FileText className="h-3.5 w-3.5 opacity-60 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
-                    <span className="truncate" title={project.title}>
-                        {project.title.length > 30 ? `${project.title.substring(0, 30)}...` : project.title}
-                    </span>
-                </span>
+                    <div className="flex-1 min-w-0">
+                        <EditableTitle
+                            initialValue={project.title}
+                            onSave={(val) => handleUpdateTitle(project.id, val)}
+                            className="w-full"
+                            editOnIconOnly={true}
+                        />
+                    </div>
+                </div>
                 {project.first_source_id && pathname === `/source/${project.first_source_id}` && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-r-full"></div>
                 )}
@@ -339,16 +366,25 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     </div>
                 </Link>
 
-                {/* Search Bar */}
-                <div className="relative mb-2">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <input
-                        type="text"
-                        placeholder="Search projects..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
-                    />
+                {/* Search Bar with Refresh Button */}
+                <div className="relative mb-2 flex items-center gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                        <input
+                            type="text"
+                            placeholder="Search projects..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
+                        />
+                    </div>
+                    <button
+                        onClick={() => loadData()}
+                        className="p-2 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg transition-all duration-200"
+                        title="Refresh projects"
+                    >
+                        <RefreshCw className="h-4 w-4" />
+                    </button>
                 </div>
 
                 <Link
