@@ -22,8 +22,7 @@ export default function AppShell({ children, title }: { children: React.ReactNod
 
     return (
         <div className="flex h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-purple-50/20 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900 transition-colors duration-300">
-            {/* Theme Toggle - Fixed Top Right */}
-            <ThemeToggle />
+
 
             {/* Mobile Overlay with enhanced blur */}
             {sidebarOpen && (

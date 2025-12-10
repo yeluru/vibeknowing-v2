@@ -31,7 +31,7 @@ export interface Project {
 
 export const categoriesApi = {
     async list(): Promise<Category[]> {
-        const res = await fetch(`${API_BASE}/categories/`);
+        const res = await fetch(`${API_BASE}/categories/?t=${Date.now()}`, { cache: 'no-store' });
         if (!res.ok) throw new Error("Failed to fetch categories");
         return res.json();
     },
@@ -67,9 +67,9 @@ export const categoriesApi = {
 export const projectsApi = {
     async list(categoryId?: string): Promise<Project[]> {
         const url = categoryId
-            ? `${API_BASE}/sources/projects/?category_id=${categoryId}`
-            : `${API_BASE}/sources/projects/`;
-        const res = await fetch(url);
+            ? `${API_BASE}/sources/projects/?category_id=${categoryId}&t=${Date.now()}`
+            : `${API_BASE}/sources/projects/?t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) throw new Error("Failed to fetch projects");
         return res.json();
     },

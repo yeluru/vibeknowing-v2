@@ -38,7 +38,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
-    const [sidebarWidth, setSidebarWidth] = useState(288);
+    const [sidebarWidth, setSidebarWidth] = useState(346);
     const [isResizing, setIsResizing] = useState(false);
     const sidebarRef = useRef<HTMLElement>(null);
     const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
@@ -110,6 +110,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             setRefreshKey(prev => prev + 1); // Force re-render
             setActiveDropdown(null);
 
+            // Notify other components (e.g., Home page)
+            window.dispatchEvent(new Event('refresh-sidebar'));
+
             console.log('State updated successfully');
         } catch (error) {
             console.error("Failed to move project:", error);
@@ -134,6 +137,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             setProjects(projs);
             setRefreshKey(prev => prev + 1);
             setActiveDropdown(null);
+
+            // Notify other components
+            window.dispatchEvent(new Event('refresh-sidebar'));
         } catch (error) {
             console.error("Failed to delete project:", error);
             alert("Failed to delete project");
@@ -148,6 +154,13 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             ]);
             setCategories(cats);
             setProjects(projs);
+
+            // Default behavior: Expand ALL categories since scrollbar is hidden
+            const newExpanded = new Set<string>();
+            newExpanded.add("uncategorized");
+            cats.forEach(cat => newExpanded.add(cat.id));
+            setExpanded(newExpanded);
+
         } catch (error) {
             console.error("Failed to load sidebar data:", error);
         } finally {
@@ -408,9 +421,65 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-indigo-400 opacity-0 group-hover/studio:opacity-100 transition-opacity duration-300"></div>
                     )}
                 </Link>
+
+                <Link
+                    href="/"
+                    onClick={onNavigate}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/newproj text-slate-600 dark:text-slate-300 hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-indigo-900/30 hover:to-purple-50/30 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 mt-1"
+                >
+                    <div className="relative z-10 flex items-center gap-2.5">
+                        <Plus className="h-4 w-4" />
+                        <span>New Project</span>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover/newproj:opacity-100 transition-opacity duration-300"></div>
+                </Link>
+
+                {/* New Category Input */}
+                {isCreating ? (
+                    <form onSubmit={handleCreateCategory} className="px-2 mt-2">
+                        <input
+                            autoFocus
+                            type="text"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            onBlur={() => !newCategoryName && setIsCreating(false)}
+                            placeholder="Category name..."
+                            className="w-full px-2 py-1 text-sm border border-purple-200 dark:border-purple-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                        />
+                    </form>
+                ) : (
+                    <button
+                        onClick={() => setIsCreating(true)}
+                        className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gradient-to-r hover:from-purple-50 dark:hover:from-purple-900/30 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-lg transition-all duration-300 border border-dashed border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md group relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative z-10 flex items-center gap-2">
+                            <Plus className="h-4 w-4 transform group-hover:rotate-90 transition-transform duration-300" />
+                            <span className="font-medium">New Category</span>
+                        </div>
+                    </button>
+                )}
             </div>
 
-            <div className="relative flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar" key={refreshKey}>
+            {/* Invisible Scrollbar Styles */}
+            <style jsx global>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+                .group\\/sidebar:hover .scrollbar-hide::-webkit-scrollbar {
+                    display: block;
+                    width: 6px;
+                }
+                .group\\/sidebar:hover .scrollbar-hide {
+                   scrollbar-width: thin;
+                }
+            `}</style>
+
+            <div className="relative flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide" key={refreshKey}>
                 {/* Stats Summary */}
                 {!loading && (
                     <div className="mb-4 p-3 rounded-xl bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-100 dark:border-indigo-800/30">
@@ -528,31 +597,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     );
                 })}
 
-                {/* New Category Input */}
-                {isCreating ? (
-                    <form onSubmit={handleCreateCategory} className="px-2 mt-2">
-                        <input
-                            autoFocus
-                            type="text"
-                            value={newCategoryName}
-                            onChange={(e) => setNewCategoryName(e.target.value)}
-                            onBlur={() => !newCategoryName && setIsCreating(false)}
-                            placeholder="Category name..."
-                            className="w-full px-2 py-1 text-sm border border-purple-200 dark:border-purple-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                        />
-                    </form>
-                ) : (
-                    <button
-                        onClick={() => setIsCreating(true)}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 mt-3 text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gradient-to-r hover:from-purple-50 dark:hover:from-purple-900/30 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-lg transition-all duration-300 border border-dashed border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md group relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative z-10 flex items-center gap-2">
-                            <Plus className="h-4 w-4 transform group-hover:rotate-90 transition-transform duration-300" />
-                            <span className="font-medium">New Category</span>
-                        </div>
-                    </button>
-                )}
+
             </div>
 
 

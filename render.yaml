@@ -18,6 +18,21 @@ services:
         sync: false
     autoDeploy: false
 
+  # Worker Service
+  - type: worker
+    name: vibeknowing-worker
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: cd apps/worker && pip install -r requirements.txt
+    startCommand: cd apps/worker && uvicorn worker:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: OPENAI_API_KEY
+        sync: false
+    autoDeploy: false
+
   # Frontend Web Service
   - type: web
     name: vibeknowing-web

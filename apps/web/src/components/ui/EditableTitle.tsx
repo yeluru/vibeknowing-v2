@@ -80,7 +80,9 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
                     onKeyDown={handleKeyDown}
                     onBlur={handleSave}
                     className={cn(
-                        "bg-white dark:bg-slate-800 border-2 border-purple-500 rounded px-2 py-1 outline-none text-gray-900 dark:text-gray-100 w-full transition-all",
+                        "bg-white dark:bg-slate-800 border-2 border-purple-500 rounded px-2 py-1 outline-none text-gray-900 dark:text-gray-100 w-full transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500",
+                        // Fix for browser autofill white background
+                        "[&:-webkit-autofill]:bg-white dark:[&:-webkit-autofill]:bg-slate-800 [&:-webkit-autofill]:text-gray-900 dark:[&:-webkit-autofill]:text-gray-100",
                         isHeader ? "text-2xl sm:text-3xl font-extrabold" : "text-sm font-medium"
                     )}
                     placeholder={placeholder}

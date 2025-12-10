@@ -88,7 +88,7 @@ export function UrlInput() {
     const canSubmit = (input.trim().length > 0 || file) && !isLoading;
 
     return (
-        <div className="w-full max-w-2xl">
+        <div className="w-full">
             <form onSubmit={handleSubmit} className="relative">
                 {/* File Preview Badge */}
                 {file && (
@@ -105,16 +105,16 @@ export function UrlInput() {
                     </div>
                 )}
 
-                {/* Main Input Container */}
-                <div className="flex items-center space-x-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-2 shadow-sm focus-within:ring-2 focus-within:ring-purple-500 transition-all">
+                {/* Main Input Container - Premium Styling */}
+                <div className="flex items-center space-x-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 pl-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-xl focus-within:ring-2 focus-within:ring-purple-500/50 transition-all duration-300">
                     {/* File Upload Button */}
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-gray-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 dark:bg-purple-900/30 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors"
                         title="Upload file (audio, video, PDF, text)"
                     >
-                        <Paperclip className="h-5 w-5" />
+                        <Paperclip className="h-6 w-6" />
                     </button>
                     <input
                         ref={fileInputRef}
@@ -125,13 +125,13 @@ export function UrlInput() {
                     />
 
                     {/* URL Icon */}
-                    <Link2 className="h-5 w-5 text-gray-400 dark:text-slate-500" />
+                    <Link2 className="h-6 w-6 text-gray-400 dark:text-slate-400" />
 
                     {/* Text Input */}
                     <input
                         type="text"
-                        placeholder="Paste URL or upload file (YouTube, TED, Web, Audio, Video, PDF, Word, Text)..."
-                        className="flex-1 border-none bg-transparent px-2 py-1 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-0"
+                        placeholder="Paste URL or upload file (YouTube, Web, PDF)..."
+                        className="flex-1 border-none bg-transparent px-4 py-4 text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:text-gray-900 dark:[&:-webkit-autofill]:text-white dark:[&:-webkit-autofill]:shadow-[0_0_0_30px_#1e293b_inset] [&:-webkit-autofill]:shadow-[0_0_0_30px_white_inset]"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         disabled={!!file}
@@ -142,11 +142,11 @@ export function UrlInput() {
                         type="submit"
                         disabled={!canSubmit}
                         className={cn(
-                            "rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2",
-                            !canSubmit && "cursor-not-allowed opacity-50"
+                            "rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]",
+                            !canSubmit && "cursor-not-allowed opacity-50 grayscale"
                         )}
                     >
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Analyze"}
+                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Analyze"}
                     </button>
                 </div>
 
