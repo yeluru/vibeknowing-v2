@@ -106,47 +106,62 @@ export function UrlInput() {
                 )}
 
                 {/* Main Input Container - Premium Styling */}
-                <div className="flex items-center space-x-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 pl-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-xl focus-within:ring-2 focus-within:ring-purple-500/50 transition-all duration-300">
-                    {/* File Upload Button */}
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-gray-400 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors"
-                        title="Upload file (audio, video, PDF, text)"
-                    >
-                        <Paperclip className="h-6 w-6" />
-                    </button>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        className="hidden"
-                        accept=".mp3,.mp4,.wav,.m4a,.webm,.pdf,.docx,.txt,.md,.csv,.json"
-                        onChange={handleFileSelect}
-                    />
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 p-2 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-gray-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300">
 
-                    {/* URL Icon */}
-                    <Link2 className="h-6 w-6 text-gray-400 dark:text-slate-400" />
+                    {/* Input Wrapper */}
+                    <div className="flex-1 flex items-center bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-transparent focus-within:border-purple-200 dark:focus-within:border-purple-800 focus-within:bg-white dark:focus-within:bg-slate-900 transition-all duration-300">
+                        {/* File Upload Button */}
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-3 ml-1 text-gray-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors"
+                            title="Upload file (audio, video, PDF, text)"
+                        >
+                            <Paperclip className="h-5 w-5" />
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            className="hidden"
+                            accept=".mp3,.mp4,.wav,.m4a,.webm,.pdf,.docx,.txt,.md,.csv,.json"
+                            onChange={handleFileSelect}
+                        />
 
-                    {/* Text Input */}
-                    <input
-                        type="text"
-                        placeholder="Paste URL or upload file (YouTube, Web, PDF)..."
-                        className="flex-1 border-none bg-transparent px-4 h-14 text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:text-gray-900 dark:[&:-webkit-autofill]:text-white dark:[&:-webkit-autofill]:shadow-[0_0_0_30px_#1e293b_inset] [&:-webkit-autofill]:shadow-[0_0_0_30px_white_inset]"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        disabled={!!file}
-                    />
+                        {/* URL Icon - Desktop Only */}
+                        <div className="hidden md:flex items-center justify-center w-8">
+                            <Link2 className="h-5 w-5 text-gray-400 dark:text-slate-500" />
+                        </div>
 
-                    {/* Submit Button */}
+                        {/* Text Input */}
+                        <input
+                            type="text"
+                            placeholder="Paste URL (YouTube/Web) or upload file..."
+                            className="flex-1 border-none bg-transparent px-3 py-4 h-14 text-base md:text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 w-full"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            disabled={!!file}
+                        />
+                    </div>
+
+                    {/* Submit Button - Full Width Mobile, Auto Desktop */}
                     <button
                         type="submit"
                         disabled={!canSubmit}
                         className={cn(
-                            "h-14 flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 text-base font-bold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]",
+                            "h-14 md:h-auto md:py-3 flex items-center justify-center rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 text-base font-bold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] w-full md:w-auto shrink-0",
                             !canSubmit && "cursor-not-allowed opacity-50 grayscale"
                         )}
                     >
-                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Analyze"}
+                        {isLoading ? (
+                            <div className="flex items-center gap-2">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <span className="md:hidden">Analyzing...</span>
+                            </div>
+                        ) : (
+                            <span className="flex items-center gap-2">
+                                Analyze <span className="hidden md:inline">Now</span>
+                            </span>
+                        )}
                     </button>
                 </div>
 

@@ -159,9 +159,9 @@ export default function Home() {
 
   return (
     <div className="space-y-16 pb-20 relative">
-      <section className="relative pt-12 pb-16 px-4 overflow-hidden border border-slate-200 rounded-[3rem] max-w-6xl mx-auto mt-4 bg-white/50 backdrop-blur-3xl">
+      <section className="relative pt-6 pb-8 lg:pt-12 lg:pb-16 px-3 lg:px-4 overflow-hidden border border-slate-200 rounded-[2rem] lg:rounded-[3rem] max-w-6xl mx-auto mt-0 lg:mt-4 bg-white/50 backdrop-blur-3xl">
         {/* Brand Logo - Inside Top Right */}
-        <Logo className="absolute top-8 right-8 z-50 pointer-events-none" />
+        <Logo className="absolute top-3 left-3 lg:left-auto lg:top-8 lg:right-8 z-50 pointer-events-none scale-75 lg:scale-100 origin-top-left lg:origin-top-right" />
 
         {/* Background Glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] -z-10" />
@@ -200,21 +200,21 @@ export default function Home() {
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="max-w-[80%] mx-auto text-center space-y-8"
+          className="w-full lg:max-w-[80%] mx-auto text-center space-y-5 lg:space-y-8"
         >
-          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-slate-800/50 border border-indigo-100 dark:border-indigo-900/50 backdrop-blur-sm shadow-sm group hover:border-indigo-300 transition-colors cursor-default">
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-slate-800/50 border border-indigo-100 dark:border-indigo-900/50 backdrop-blur-sm shadow-sm group hover:border-indigo-300 transition-colors cursor-default mt-8 lg:mt-0">
             <Sparkles className="h-4 w-4 text-indigo-500 animate-pulse" />
             <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-indigo-600 transition-colors">The OS for Learning</span>
           </motion.div>
 
-          <motion.h1 variants={fadeInUp} className="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6">
+          <motion.h1 variants={fadeInUp} className="text-4xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-4 lg:mb-6">
             Master Any Topic. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-violet-600 to-blue-600 animate-gradient bg-300% leading-[1.4] pb-4">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-violet-600 to-blue-600 animate-gradient bg-300% leading-[1.4] pb-2 lg:pb-4">
               In Record Time.
             </span>
           </motion.h1>
 
-          <motion.p variants={fadeInUp} className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
+          <motion.p variants={fadeInUp} className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-6 lg:mb-10 leading-relaxed font-medium px-2">
             The AI workspace that turns your YouTube videos, PDFs, and web pages into deep understanding.
             Generate flashcards, quizzes, and essays instantly.
           </motion.p>
@@ -324,29 +324,43 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={staggerContainer}
-          className="max-w-6xl mx-auto px-4 pt-8"
+          className="max-w-6xl mx-auto px-4 pt-4 lg:pt-8"
         >
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Your Learning Goals</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">Pick up where you left off</p>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Refresh Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 lg:mb-8 gap-4">
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <div>
+                <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">Your Learning Goals</h2>
+                <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm lg:text-base">Pick up where you left off</p>
+              </div>
               <button
                 onClick={async () => {
                   setIsRefreshing(true);
                   await loadData();
                   setIsRefreshing(false);
                 }}
-                className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-indigo-600 transition-all"
+                className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-indigo-600 transition-all sm:hidden"
                 title="Refresh Projects"
               >
                 <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
               </button>
-              <div className="relative">
+            </div>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {/* Desktop Refresh Button */}
+              <button
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  await loadData();
+                  setIsRefreshing(false);
+                }}
+                className="hidden sm:block p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-indigo-600 transition-all"
+                title="Refresh Projects"
+              >
+                <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+              </button>
+              <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input type="text" placeholder="Search goals..." className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="text" placeholder="Search goals..." className="w-full sm:w-auto pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
             </div>
           </div>
@@ -362,7 +376,7 @@ export default function Home() {
                     ({group.projects.length} / {group.totalCount})
                   </span>
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {group.projects.map((project, i) => {
                     // Alternating Pastel Colors
                     const isViolet = i % 2 === 0;
