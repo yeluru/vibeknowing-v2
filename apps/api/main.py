@@ -30,6 +30,8 @@ origins = [
     "http://127.0.0.1:3000",
     "https://vibeknowing-web-wk0z.onrender.com",
     "https://vibeknowing-api-wk0z.onrender.com",
+    "https://vibeknowing.com",
+    "https://www.vibeknowing.com",
 ]
 
 print("Starting API with CORS origins:", origins)
