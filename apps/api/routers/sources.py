@@ -13,6 +13,32 @@ router = APIRouter(
 class TranscriptUpdate(BaseModel):
     transcript: str
 
+@router.get("/projects")
+async def list_projects(
+    category_id: str = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """List all projects, optionally filtered by category."""
+    query = db.query(models.Project).filter(models.Project.owner_id == current_user.id)
+    
+    if category_id:
+        query = query.filter(models.Project.category_id == category_id)
+    
+    projects = query.order_by(models.Project.updated_at.desc()).all()
+    
+    return [{
+        "id": p.id,
+        "title": p.title,
+        "description": p.description,
+        "category_id": p.category_id,
+        "created_at": p.created_at,
+        "updated_at": p.updated_at,
+        "source_count": len(p.sources),
+        "first_source_id": p.sources[0].id if p.sources else None
+    } for p in projects]
+
+
 @router.get("/{source_id}")
 async def get_source(source_id: str, db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
@@ -96,30 +122,6 @@ async def delete_source(
     
     return {"status": "deleted", "source_id": source_id}
 
-@router.get("/projects/")
-async def list_projects(
-    category_id: str = None,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    """List all projects, optionally filtered by category."""
-    query = db.query(models.Project).filter(models.Project.owner_id == current_user.id)
-    
-    if category_id:
-        query = query.filter(models.Project.category_id == category_id)
-    
-    projects = query.order_by(models.Project.updated_at.desc()).all()
-    
-    return [{
-        "id": p.id,
-        "title": p.title,
-        "description": p.description,
-        "category_id": p.category_id,
-        "created_at": p.created_at,
-        "updated_at": p.updated_at,
-        "source_count": len(p.sources),
-        "first_source_id": p.sources[0].id if p.sources else None
-    } for p in projects]
 
 class CategoryUpdate(BaseModel):
     category_id: str | None = None

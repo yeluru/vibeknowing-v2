@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { UrlInput } from "@/components/ingest/UrlInput";
+import { Logo } from "@/components/Logo";
 import {
   FileText, Youtube, Globe, Sparkles, Brain, Zap, Palette,
   Clock, ArrowRight, Target, Search, Mic, Share2, Video, Folder,
-  Layers, PenTool, Layout, MoreHorizontal, Trash2, RefreshCcw
+  Layers, PenTool, MoreHorizontal, Trash2, RefreshCcw,
+  Twitter, Linkedin, Github, Instagram, Music, MessageCircle, File
 } from "lucide-react";
 import { projectsApi, Project, categoriesApi, Category } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -102,7 +104,7 @@ export default function Home() {
       grouped[catId].push(p);
     });
 
-    const groups: { id: string; name: string; projects: Project[] }[] = [];
+    const groups: { id: string; name: string; totalCount: number; projects: Project[] }[] = [];
 
     // 1. Uncategorized (Always First)
     if (grouped['uncategorized'] && grouped['uncategorized'].length > 0) {
@@ -111,7 +113,7 @@ export default function Home() {
         id: 'uncategorized',
         name: 'Uncategorized',
         totalCount: sorted.length,
-        projects: sorted.slice(0, 5)
+        projects: sorted.slice(0, 4)
       });
     }
 
@@ -123,7 +125,7 @@ export default function Home() {
           id: cat.id,
           name: cat.name,
           totalCount: sorted.length,
-          projects: sorted.slice(0, 5)
+          projects: sorted.slice(0, 4)
         });
       }
     });
@@ -156,11 +158,43 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-16 pb-20">
-      {/* Hero Section */}
+    <div className="space-y-16 pb-20 relative">
       <section className="relative pt-12 pb-16 px-4 overflow-hidden border border-slate-200 rounded-[3rem] max-w-6xl mx-auto mt-4 bg-white/50 backdrop-blur-3xl">
+        {/* Brand Logo - Inside Top Right */}
+        <Logo className="absolute top-8 right-8 z-50 pointer-events-none" />
+
         {/* Background Glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] -z-10" />
+
+        {/* Left Decorations (Inputs: Social Cloud) - Hidden on Mobile */}
+        <div className="hidden lg:block absolute left-6 top-6 z-0 pointer-events-none select-none">
+          <motion.div
+            initial={{ opacity: 0, rotate: 20, transformOrigin: 'top left' }}
+            animate={{ opacity: 1, rotate: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 10,
+              mass: 1
+            }}
+            className="relative"
+          >
+            {/* Glass Container for Cloud */}
+            <div className="p-3 bg-white/40 backdrop-blur-md border border-white/50 rounded-3xl shadow-xl">
+              <div className="grid grid-cols-3 gap-1.5">
+                <div className="p-2 bg-red-50/80 rounded-lg text-red-500"><Youtube className="h-4 w-4" /></div>
+                <div className="p-2 bg-blue-50/80 rounded-lg text-blue-400"><Twitter className="h-4 w-4" /></div>
+                <div className="p-2 bg-blue-50/80 rounded-lg text-blue-700"><Linkedin className="h-4 w-4" /></div>
+                <div className="p-2 bg-orange-50/80 rounded-lg text-orange-500"><FileText className="h-4 w-4" /></div>
+                <div className="p-2 bg-slate-50/80 rounded-lg text-slate-700"><Github className="h-4 w-4" /></div>
+                <div className="p-2 bg-pink-50/80 rounded-lg text-pink-500"><Instagram className="h-4 w-4" /></div>
+                <div className="p-2 bg-emerald-50/80 rounded-lg text-emerald-500"><Globe className="h-4 w-4" /></div>
+                <div className="p-2 bg-purple-50/80 rounded-lg text-purple-500"><Mic className="h-4 w-4" /></div>
+                <div className="p-2 bg-indigo-50/80 rounded-lg text-indigo-500"><MessageCircle className="h-4 w-4" /></div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
 
         <motion.div
           initial="hidden"
@@ -180,7 +214,7 @@ export default function Home() {
             </span>
           </motion.h1>
 
-          <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
+          <motion.p variants={fadeInUp} className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
             The AI workspace that turns your YouTube videos, PDFs, and web pages into deep understanding.
             Generate flashcards, quizzes, and essays instantly.
           </motion.p>
@@ -214,60 +248,68 @@ export default function Home() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 1: Deep Understanding */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-[320px] rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
-              <div className="h-20 w-20 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 text-indigo-600 group-hover:scale-110 transition-transform duration-300">
-                <Brain className="h-10 w-10" />
+              <div className="flex items-center gap-5 mb-5">
+                <div className="h-16 w-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                  <Brain className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Deep Understanding</h3>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Deep Understanding</h3>
-                <p className="text-slate-600 leading-relaxed text-lg">
-                  Don't just read. Understand. Our AI analyzes your sources to create a personalized knowledge base.
+                <p className="text-slate-600 leading-relaxed text-base">
+                  Stop drowning in information. VibeKnowing doesn't just summarize; it deconstructs complex topics into their core concepts. From 3-hour lectures to dense research papers, our AI extracts the signal from the noise, creating a structured knowledge base you can actually master in minutes.
                 </p>
               </div>
             </div>
           </motion.div>
 
           {/* Card 2: Active Recall */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-[320px] rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800 shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
-              <div className="h-20 w-20 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 group-hover:scale-110 transition-transform duration-300">
-                <Zap className="h-10 w-10" />
+              <div className="flex items-center gap-5 mb-5">
+                <div className="h-16 w-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                  <Zap className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Active Recall</h3>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Active Recall</h3>
-                <p className="text-slate-600 leading-relaxed text-lg">
-                  Auto-generated flashcards and spaced repetition to lock knowledge into your long-term memory.
+                <p className="text-slate-600 leading-relaxed text-base">
+                  Forget the forgetting curve. Our system automatically generates scientifically-backed flashcards, scheduling reviews at the exact moment you're about to forget. It's not just studying; it's downloading knowledge directly into your long-term memory with maximum efficiency.
                 </p>
               </div>
             </div>
           </motion.div>
 
           {/* Card 3: Smart Quizzes */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-[320px] rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-200 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 shadow-sm hover:shadow-xl hover:border-amber-300 transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
-              <div className="h-20 w-20 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 text-amber-600 group-hover:scale-110 transition-transform duration-300">
-                <Target className="h-10 w-10" />
+              <div className="flex items-center gap-5 mb-5">
+                <div className="h-16 w-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                  <Target className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Smart Quizzes</h3>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Smart Quizzes</h3>
-                <p className="text-slate-600 leading-relaxed text-lg">
-                  Test yourself before the exam. AI generates relevant, difficult questions from your study materials.
+                <p className="text-slate-600 leading-relaxed text-base">
+                  Walk into every exam with confidence. VibeKnowing analyzes your material to predict the toughest questions. It generates adaptive quizzes that pinpoint your weak spots and provide instant feedback. Turn passive reading into active mastery and be battle-ready for any test.
                 </p>
               </div>
             </div>
           </motion.div>
 
           {/* Card 4: Creation Studio */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-[320px] rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:border-purple-200 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-purple-50/50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800 shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
-              <div className="h-20 w-20 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 text-purple-600 group-hover:scale-110 transition-transform duration-300">
-                <Palette className="h-10 w-10" />
+              <div className="flex items-center gap-5 mb-5">
+                <div className="h-16 w-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                  <Palette className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Creation Studio</h3>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Creation Studio</h3>
-                <p className="text-slate-600 leading-relaxed text-lg">
-                  Turn insights into output. Generate blog posts, social threads, and soon—AI-produced audio podcasts.
+                <p className="text-slate-600 leading-relaxed text-base">
+                  Transform from learner to creator. Don't let insights gather dust—instantly remix your knowledge base into engaging blog posts, viral social threads, or comprehensive study guides. Coming soon: Turn your notes into studio-quality audio podcasts to share with the world.
                 </p>
               </div>
             </div>
@@ -320,7 +362,7 @@ export default function Home() {
                     ({group.projects.length} / {group.totalCount})
                   </span>
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {group.projects.map((project, i) => {
                     // Alternating Pastel Colors
                     const isViolet = i % 2 === 0;
@@ -334,7 +376,7 @@ export default function Home() {
                           <motion.div
                             whileHover={{ y: -8, scale: 1.02 }}
                             className={cn(
-                              "aspect-square rounded-3xl p-6 relative overflow-visible group shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full z-0",
+                              "h-72 rounded-3xl p-6 relative overflow-visible group shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between z-0",
                               bgColorClass
                             )}
                           >
@@ -343,12 +385,7 @@ export default function Home() {
                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/40 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none" />
 
                             {/* Valid Header Icon */}
-                            <div className="relative z-10 flex justify-between items-start pointer-events-none">
-                              <div className={cn("w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm", themeColorClass)}>
-                                {project.type === 'youtube' && <Youtube className="h-5 w-5" />}
-                                {project.type === 'pdf' && <FileText className="h-5 w-5" />}
-                                {project.type === 'web' && <Globe className="h-5 w-5" />}
-                              </div>
+                            <div className="relative z-10 flex justify-end items-start pointer-events-none">
                               {project.status === 'Ready' && (
                                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" title="Active"></div>
                               )}
@@ -360,7 +397,7 @@ export default function Home() {
                                 <Folder className="h-3 w-3" />
                                 {categoryName}
                               </div>
-                              <h3 className="text-slate-900 font-bold text-lg leading-snug line-clamp-3 mb-2">
+                              <h3 className="text-slate-900 font-bold text-base leading-snug line-clamp-4 mb-2">
                                 {project.title}
                               </h3>
                             </div>

@@ -131,7 +131,7 @@ export function UrlInput() {
                     <input
                         type="text"
                         placeholder="Paste URL or upload file (YouTube, Web, PDF)..."
-                        className="flex-1 border-none bg-transparent px-4 py-4 text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:text-gray-900 dark:[&:-webkit-autofill]:text-white dark:[&:-webkit-autofill]:shadow-[0_0_0_30px_#1e293b_inset] [&:-webkit-autofill]:shadow-[0_0_0_30px_white_inset]"
+                        className="flex-1 border-none bg-transparent px-4 h-14 text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 [&:-webkit-autofill]:bg-transparent [&:-webkit-autofill]:text-gray-900 dark:[&:-webkit-autofill]:text-white dark:[&:-webkit-autofill]:shadow-[0_0_0_30px_#1e293b_inset] [&:-webkit-autofill]:shadow-[0_0_0_30px_white_inset]"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         disabled={!!file}
@@ -142,7 +142,7 @@ export function UrlInput() {
                         type="submit"
                         disabled={!canSubmit}
                         className={cn(
-                            "rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]",
+                            "h-14 flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 text-base font-bold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]",
                             !canSubmit && "cursor-not-allowed opacity-50 grayscale"
                         )}
                     >
