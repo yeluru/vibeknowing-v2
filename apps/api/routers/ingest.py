@@ -35,10 +35,31 @@ async def ingest_web(request: UrlRequest, background_tasks: BackgroundTasks, db:
     return await ingest_url(request, background_tasks, db, current_user)
 
 async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db: Session, current_user: Optional[models.User]):
-    """Universal URL ingestion - handles YouTube, Instagram, LinkedIn, TED, and any webpage"""
-    # Handle default project
+    # Universal URL ingestion - handles YouTube, Instagram, LinkedIn, TED, and any webpage
     owner_id = current_user.id if current_user else None
 
+    # 1. Check if URL already exists in any of the user's projects BEFORE creating anything
+    if owner_id:
+        existing_source = db.query(models.Source).join(models.Project).filter(
+            models.Project.owner_id == owner_id,
+            models.Source.url == request.url
+        ).first()
+        
+        if existing_source:
+            # Get the project associated with this source
+            existing_project = db.query(models.Project).filter(models.Project.id == existing_source.project_id).first()
+            print(f"URL already exists: {request.url} -> Source ID: {existing_source.id} in Project: {existing_project.title}")
+            return {
+                "status": "exists", 
+                "source_id": existing_source.id, 
+                "has_content": bool(existing_source.content_text),
+                "url_type": existing_source.type,
+                "message": "Source already exists, redirecting...",
+                "project_id": existing_project.id,
+                "project_title": existing_project.title
+            }
+
+    # 2. Handle default project creation (only if source doesn't exist)
     if request.project_id == "default":
         # Create a NEW project for this source
         project = models.Project(
@@ -61,33 +82,26 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
         project = query.first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
-
-    # Check if URL already exists in any of the user's projects
-    # For guests, we skip this check to avoid leaking other guests' data, or we just check specific project?
-    # Simpler to always check if we have a user.
-    if owner_id:
-        existing_source = db.query(models.Source).join(models.Project).filter(
-            models.Project.owner_id == owner_id,
-            models.Source.url == request.url
-        ).first()
-    else:
-        # For guests, only check within the CURRENT project we just created/found (likely empty if new)
+    
+    # 3. For guest users (no owner_id), we check duplicates *within* the specific project we just found/created.
+    # (Though if it's 'default', it's empty, so no dupe possible. If specific project, might have dupes.)
+    if not owner_id:
         existing_source = db.query(models.Source).filter(
             models.Source.project_id == project_id,
             models.Source.url == request.url
         ).first()
-
-    if existing_source:
-        print(f"URL already exists: {request.url} -> Source ID: {existing_source.id}")
-        return {
-            "status": "exists", 
-            "source_id": existing_source.id, 
-            "has_content": bool(existing_source.content_text),
-            "url_type": existing_source.type,
-            "message": "Source already exists, redirecting...",
-            "project_id": project.id,
-            "project_title": project.title
-        }
+        
+        if existing_source:
+             print(f"URL already exists in guest project: {request.url}")
+             return {
+                "status": "exists", 
+                "source_id": existing_source.id, 
+                "has_content": bool(existing_source.content_text),
+                "url_type": existing_source.type,
+                "message": "Source already exists, redirecting...",
+                "project_id": project.id,
+                "project_title": project.title
+            }
 
     # Detect URL type
     from services.scraper import WebScraperService
