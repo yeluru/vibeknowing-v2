@@ -26,12 +26,12 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
     useEffect(() => {
         const loadExistingCards = async () => {
             try {
-                const response = await fetch(`${API_BASE} /ai/flashcards / ${sourceId} `);
+                const response = await fetch(`${API_BASE}/ai/flashcards/${sourceId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.flashcards && data.flashcards.length > 0) {
                         const formattedCards: Flashcard[] = data.flashcards.map((c: any, index: number) => ({
-                            id: `c - ${index} `,
+                            id: `c-${index}`,
                             front: c.front,
                             back: c.back
                         }));
