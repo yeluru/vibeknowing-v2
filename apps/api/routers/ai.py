@@ -411,4 +411,22 @@ async def update_article(source_id: str, update: ArticleUpdate, db: Session = De
     db.commit()
     
     return article_data
-
+@router.get("/debug/{source_id}")
+async def debug_artifacts(source_id: str, db: Session = Depends(get_db)):
+    """Debug endpoint to list all artifacts for a source."""
+    artifacts = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id
+    ).all()
+    
+    return {
+        "count": len(artifacts),
+        "artifacts": [
+            {
+                "id": a.id,
+                "type": a.type,
+                "created_at": a.created_at,
+                "has_content": bool(a.content),
+                "title": a.title
+            } for a in artifacts
+        ]
+    }
