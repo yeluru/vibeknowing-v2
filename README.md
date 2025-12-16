@@ -292,6 +292,12 @@ npm test
 
 ## 🆕 Recent Updates (December 2024)
 
+### AI & Content Processing
+- ✅ **Visual Text Extraction**: New OCR capability using OpenAI Vision API to extract text from silent video frames and slides.
+- ✅ **Instagram Carousel Support**: Full support for extracting all slides from Instagram carousels (Sidecar posts), including text extraction from images.
+- ✅ **Expert Educator Articles**: Refined "Blog" style prompt to generate high-quality, educational technical content.
+- ✅ **Article Regeneration**: Added "Regenerate" button in Article Editor to re-create content without starting over.
+
 ### UI/UX Improvements
 - ✅ **Resizable Sidebar**: Drag the sidebar edge to adjust width (200-480px)
 - ✅ **Drag-and-Drop Organization**: Drag projects between categories for easy organization
@@ -299,12 +305,9 @@ npm test
 - ✅ **Redesigned Home Page**: Streamlined layout with integrated feature blocks
 - ✅ **Optimized Transitions**: Smooth animations without lag during interactions
 
-### Bug Fixes & Enhancements
-- ✅ **Instagram Embed Support**: Fixed Instagram Reels embedding
-- ✅ **YouTube Shorts**: Added support for YouTube Shorts URLs
-- ✅ **API Port Standardization**: Unified backend port to 8000
-- ✅ **Database Migrations**: Added migration scripts for data updates
-- ✅ **Frontend Performance**: Optimized component rendering and state management
+### DevOps & Deployment
+- ✅ **Deployment Scripts**: Added `init_postgres.py`, `force_reset_db.py`, and `seed_db.py` for easy Render deployment.
+- ✅ **Admin Seeding**: Automatic creation of default admin user (`admin@localhost`) for new deployments.
 
 ---
 
