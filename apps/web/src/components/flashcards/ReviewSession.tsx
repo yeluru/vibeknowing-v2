@@ -48,7 +48,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
     const generateCards = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE} /ai/flashcards / ${sourceId} `, {
+            const response = await fetch(`${API_BASE}/ai/flashcards/${sourceId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -61,7 +61,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
             const apiCards = data.flashcards || [];
 
             const formattedCards: Flashcard[] = apiCards.map((c: any, index: number) => ({
-                id: `c - ${index} `,
+                id: `c-${index}`,
                 front: c.front,
                 back: c.back
             }));
