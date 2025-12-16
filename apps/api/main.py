@@ -11,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from database import engine
 import models
 from routers import ingest, ai, create, sources, categories, auth
+import force_reset_db
+import seed_db
 
 load_dotenv()
 
@@ -63,3 +65,16 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.post("/reset-db-secret")
+async def reset_db_secret():
+    """
+    Emergency endpoint to reset the database when shell access is not available.
+    WARNING: This drops all tables!
+    """
+    try:
+        force_reset_db.force_reset()
+        seed_db.seed()
+        return {"status": "success", "message": "Database reset and seeded successfully."}
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to reset DB: {str(e)}"}
