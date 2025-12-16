@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Form, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
+from typing import Optional
 from database import get_db
-from dependencies import get_current_user
+from dependencies import get_current_user, get_optional_user
 import models
 from pydantic import BaseModel
+from services.processing_agent import ProcessingAgent
+from services.orchestrator import AgentOrchestrator
+import asyncio
 
 router = APIRouter(
     prefix="/ingest",
@@ -23,23 +27,24 @@ def truncate_title(title: str, max_length: int = 30) -> str:
     return title
 
 @router.post("/youtube")
-async def ingest_youtube(request: UrlRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+async def ingest_youtube(request: UrlRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_user)):
     return await ingest_url(request, background_tasks, db, current_user)
 
 @router.post("/web")
-async def ingest_web(request: UrlRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+async def ingest_web(request: UrlRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_user)):
     return await ingest_url(request, background_tasks, db, current_user)
 
-async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db: Session, current_user: models.User):
+async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db: Session, current_user: Optional[models.User]):
     """Universal URL ingestion - handles YouTube, Instagram, LinkedIn, TED, and any webpage"""
     # Handle default project
-    # Handle default project
+    owner_id = current_user.id if current_user else None
+
     if request.project_id == "default":
         # Create a NEW project for this source
         project = models.Project(
             title="New Project", # Will be updated to source title later
             description="Created from URL",
-            owner_id=current_user.id
+            owner_id=owner_id
         )
         db.add(project)
         db.commit()
@@ -49,18 +54,28 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
     else:
         project_id = request.project_id
         # Verify project belongs to user
-        project = db.query(models.Project).filter(
-            models.Project.id == project_id,
-            models.Project.owner_id == current_user.id
-        ).first()
+        query = db.query(models.Project).filter(models.Project.id == project_id)
+        if owner_id:
+             query = query.filter(models.Project.owner_id == owner_id)
+        
+        project = query.first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
     # Check if URL already exists in any of the user's projects
-    existing_source = db.query(models.Source).join(models.Project).filter(
-        models.Project.owner_id == current_user.id,
-        models.Source.url == request.url
-    ).first()
+    # For guests, we skip this check to avoid leaking other guests' data, or we just check specific project?
+    # Simpler to always check if we have a user.
+    if owner_id:
+        existing_source = db.query(models.Source).join(models.Project).filter(
+            models.Project.owner_id == owner_id,
+            models.Source.url == request.url
+        ).first()
+    else:
+        # For guests, only check within the CURRENT project we just created/found (likely empty if new)
+        existing_source = db.query(models.Source).filter(
+            models.Source.project_id == project_id,
+            models.Source.url == request.url
+        ).first()
 
     if existing_source:
         print(f"URL already exists: {request.url} -> Source ID: {existing_source.id}")
@@ -69,7 +84,9 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
             "source_id": existing_source.id, 
             "has_content": bool(existing_source.content_text),
             "url_type": existing_source.type,
-            "message": "Source already exists, redirecting..."
+            "message": "Source already exists, redirecting...",
+            "project_id": project.id,
+            "project_title": project.title
         }
 
     # Detect URL type
@@ -108,7 +125,9 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
                 "status": "processing", 
                 "source_id": source.id, 
                 "has_content": False, 
-                "url_type": url_type
+                "url_type": url_type,
+                "project_id": project.id,
+                "project_title": project.title
             }
         else:
             # Use web scraper for all other URLs
@@ -120,6 +139,11 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
                 source.title = truncate_title(result['title'])
                 content_fetched = True
                 print(f"Successfully scraped content ({len(result['content'])} chars)")
+                
+                # Trigger Processing Agent
+                print(f"Dispatching ProcessingAgent for source {source.id}")
+                agent = ProcessingAgent(source.id)
+                AgentOrchestrator.dispatch(agent, None, background_tasks)
             else:
                 error_message = result['content']
                 print(f"Scraping failed: {error_message}")
@@ -153,8 +177,12 @@ Original URL: {request.url}"""
         base_title = truncate_title(source.title)
         
         # Check if title exists
-        existing_project = db.query(models.Project).filter(
-            models.Project.owner_id == current_user.id,
+        if owner_id:
+             query = db.query(models.Project).filter(models.Project.owner_id == owner_id)
+        else:
+             query = db.query(models.Project).filter(models.Project.owner_id == None)
+
+        existing_project = query.filter(
             models.Project.title == base_title,
             models.Project.id != project.id
         ).first()
@@ -167,7 +195,21 @@ Original URL: {request.url}"""
             project.title = base_title
     
     db.commit()
-    return {"status": "ready", "source_id": source.id, "has_content": content_fetched, "url_type": url_type}
+    
+    # Trigger Processing Agent if content was fetched
+    if content_fetched:
+        print(f"Dispatching ProcessingAgent for ingested source {source.id}")
+        agent = ProcessingAgent(source.id)
+        AgentOrchestrator.dispatch(agent, None, background_tasks)
+        
+    return {
+        "status": "ready", 
+        "source_id": source.id, 
+        "has_content": content_fetched, 
+        "url_type": url_type,
+        "project_id": project.id,
+        "project_title": project.title
+    }
 
 def process_file_background(source_id: str, content_bytes: bytes, filename: str, file_ext: str, content_type: str, force_ocr: bool):
     from database import SessionLocal
@@ -508,6 +550,15 @@ Supported formats:
                 
             db.commit()
             print(f"Background processing completed for source {source_id}")
+            
+            # Trigger Processing Agent (Synchronous wrapper for async agent)
+            if content_text and not error_message:
+                try:
+                    print(f"Triggering ProcessingAgent for file source {source_id}")
+                    agent = ProcessingAgent(source_id)
+                    asyncio.run(agent.run(None))
+                except Exception as e:
+                    print(f"Failed to run ProcessingAgent: {e}")
         else:
             print(f"Source {source_id} not found during background processing")
     except Exception as e:
@@ -576,6 +627,14 @@ def process_youtube_background(source_id: str, url: str, project_id: str):
                     print(f"Transcript fetch failed: {error_message}")
                 
                 db.commit()
+
+                # Trigger Processing Agent (Synchronous wrapper for async agent)
+                try:
+                    print(f"Triggering ProcessingAgent for YouTube source {source_id}")
+                    agent = ProcessingAgent(source_id)
+                    asyncio.run(agent.run(None))
+                except Exception as e:
+                    print(f"Failed to run ProcessingAgent: {e}")
         else:
             # Update source with error
             source = db.query(models.Source).filter(models.Source.id == source_id).first()
@@ -605,21 +664,28 @@ async def ingest_file(
     file: UploadFile = File(...),
     force_ocr: bool = Form(False),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: Optional[models.User] = Depends(get_optional_user)
 ):
     """Upload and process files: audio/video (transcribe), PDF (extract text), or text files"""
     
-    # Handle default project (same logic as URL ingestion)
+    owner_id = current_user.id if current_user else None
+
     # Handle default project (same logic as URL ingestion)
     if project_id == "default":
         # Check if title exists for file upload
         base_title = file.filename or "New Project"
         final_title = base_title
         
-        existing_project = db.query(models.Project).filter(
-            models.Project.owner_id == current_user.id,
-            models.Project.title == base_title
-        ).first()
+        query = db.query(models.Project).filter(models.Project.title == base_title)
+        if owner_id:
+             query = query.filter(models.Project.owner_id == owner_id)
+        else:
+             query = query.filter(models.Project.owner_id == None) # Or handle appropriately
+             # Ideally for guests we don't deduplicate against other guests' projects if we can't identify them.
+             # But here we are just checking if a project exists to avoid naming conflicts within the SAME user's scope.
+             # If guest, we might just always create new or rely on frontend to reuse project ID.
+
+        existing_project = query.first()
 
         if existing_project:
             from datetime import datetime
@@ -630,7 +696,7 @@ async def ingest_file(
         project = models.Project(
             title=final_title,
             description="Created from file upload",
-            owner_id=current_user.id
+            owner_id=owner_id
         )
         db.add(project)
         db.commit()
@@ -639,10 +705,11 @@ async def ingest_file(
         project_id = project.id
     else:
         # Verify project belongs to user
-        project = db.query(models.Project).filter(
-            models.Project.id == project_id,
-            models.Project.owner_id == current_user.id
-        ).first()
+        query = db.query(models.Project).filter(models.Project.id == project_id)
+        if owner_id:
+             query = query.filter(models.Project.owner_id == owner_id)
+        
+        project = query.first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
@@ -681,7 +748,9 @@ async def ingest_file(
         "status": "processing", 
         "source_id": source.id,
         "has_content": False,
-        "file_type": "file"
+        "file_type": "file",
+        "project_id": project.id,
+        "project_title": project.title
     }
 
 class ExtensionRequest(BaseModel):
@@ -690,7 +759,7 @@ class ExtensionRequest(BaseModel):
     type: str
 
 @router.post("/extension")
-async def ingest_extension(request: ExtensionRequest, db: Session = Depends(get_db)):
+async def ingest_extension(request: ExtensionRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # TODO: Authenticate user via token
     # For now, use the first user found
     user = db.query(models.User).first()
@@ -719,10 +788,15 @@ async def ingest_extension(request: ExtensionRequest, db: Session = Depends(get_
     db.commit()
     db.refresh(source)
 
+    # Trigger Processing Agent
+    print(f"Dispatching ProcessingAgent for extension source {source.id}")
+    agent = ProcessingAgent(source.id)
+    AgentOrchestrator.dispatch(agent, None, background_tasks)
+
     return {"status": "captured", "source_id": source.id}
 
 @router.post("/refresh/{source_id}")
-async def refresh_source(source_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+async def refresh_source(source_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     """Re-ingest a source by re-scraping the original URL and updating the database"""
     # Get the source and verify ownership
     source = db.query(models.Source).join(models.Project).filter(

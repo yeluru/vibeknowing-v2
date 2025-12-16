@@ -1,6 +1,8 @@
+import axios from "axios";
+
 let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-// Handle Render's internal hostname (e.g., "vibeknowing-api-wk0z") by appending the domain
+// Handle Render's internal hostname
 if (apiUrl && !apiUrl.includes(".") && !apiUrl.includes("localhost")) {
     apiUrl = `${apiUrl}.onrender.com`;
 }
@@ -8,7 +10,48 @@ if (apiUrl && !apiUrl.includes(".") && !apiUrl.includes("localhost")) {
 if (apiUrl && !apiUrl.startsWith("http")) {
     apiUrl = `https://${apiUrl}`;
 }
+
 export const API_BASE = apiUrl;
+
+// Create axios instance
+const api = axios.create({
+    baseURL: API_BASE,
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+
+// Add a request interceptor to include the token
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// Add a response interceptor to handle 401 errors globally
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // Token is invalid or expired
+            const token = localStorage.getItem("token");
+            if (token) {
+                console.warn("Session expired or invalid token. Logging out...");
+                localStorage.removeItem("token");
+                // Force reload to reset application state
+                if (typeof window !== "undefined") {
+                    window.location.href = "/";
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 export interface Category {
     id: string;
@@ -31,62 +74,48 @@ export interface Project {
 
 export const categoriesApi = {
     async list(): Promise<Category[]> {
-        const res = await fetch(`${API_BASE}/categories/?t=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error("Failed to fetch categories");
-        return res.json();
+        // FastAPI @router.get("/") on prefix "/categories" -> expects "/categories/"
+        const res = await api.get('/categories/');
+        return res.data;
     },
 
     async create(name: string): Promise<Category> {
-        const res = await fetch(`${API_BASE}/categories/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name }),
-        });
-        if (!res.ok) throw new Error("Failed to create category");
-        return res.json();
+        // FastAPI @router.post("/") -> expects "/categories/"
+        const res = await api.post('/categories/', { name });
+        return res.data;
     },
 
     async update(id: string, name: string): Promise<Category> {
-        const res = await fetch(`${API_BASE}/categories/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name }),
-        });
-        if (!res.ok) throw new Error("Failed to update category");
-        return res.json();
+        // FastAPI @router.put("/{id}") -> expects "/categories/{id}" (no trailing slash)
+        const res = await api.put(`/categories/${id}`, { name });
+        return res.data;
     },
 
     async delete(id: string): Promise<void> {
-        const res = await fetch(`${API_BASE}/categories/${id}`, {
-            method: "DELETE",
-        });
-        if (!res.ok) throw new Error("Failed to delete category");
+        await api.delete(`/categories/${id}`);
     },
 };
 
 export const projectsApi = {
     async list(categoryId?: string): Promise<Project[]> {
-        const url = categoryId
-            ? `${API_BASE}/sources/projects/?category_id=${categoryId}&t=${Date.now()}`
-            : `${API_BASE}/sources/projects/?t=${Date.now()}`;
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error("Failed to fetch projects");
-        return res.json();
+        // FastAPI @router.get("/projects") -> expects "/sources/projects" (no trailing slash)
+        const res = await api.get('/sources/projects', {
+            params: { category_id: categoryId }
+        });
+        return res.data;
     },
 
     async updateCategory(projectId: string, categoryId: string | null): Promise<void> {
-        const res = await fetch(`${API_BASE}/sources/projects/${projectId}/category`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ category_id: categoryId }),
-        });
-        if (!res.ok) throw new Error("Failed to update project category");
+        await api.put(`/sources/projects/${projectId}/category`, { category_id: categoryId });
     },
 
     async delete(id: string): Promise<void> {
-        const res = await fetch(`${API_BASE}/sources/projects/${id}`, {
-            method: "DELETE",
-        });
-        if (!res.ok) throw new Error("Failed to delete project");
+        await api.delete(`/sources/projects/${id}`);
+    },
+
+    async claim(projectIds: string[]): Promise<void> {
+        await api.post('/sources/projects/claim', { project_ids: projectIds });
     },
 };
+
+export default api;

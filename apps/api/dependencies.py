@@ -5,18 +5,30 @@ from sqlalchemy.orm import Session
 import models
 from typing import Optional
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+from jose import JWTError, jwt
+from config import settings
 
-async def get_current_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    # For MVP: Auto-create/use a default user
-    # TODO: Validate token with Supabase/Clerk in production
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    # AUTH BYPASS: Always return or create local admin user
+    email = "admin@localhost"
     
-    user = db.query(models.User).filter(models.User.email == "demo@vibeknowing.com").first()
+    user = db.query(models.User).filter(models.User.email == email).first()
     if not user:
-        # Create a demo user
-        user = models.User(email="demo@vibeknowing.com", full_name="Demo User")
+        # Create default admin user if missing
+        from services.auth import AuthService
+        user = models.User(
+            email=email,
+            hashed_password=AuthService.get_password_hash("admin"),
+            full_name="Admin User"
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
-    
+        
     return user
+
+async def get_optional_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[models.User]:
+    # Bypass: Always return the signed-in admin user
+    return await get_current_user(token or "dummy", db)

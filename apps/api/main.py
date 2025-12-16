@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from database import engine
 import models
-from routers import ingest, ai, create, sources, categories
+from routers import ingest, ai, create, sources, categories, auth
 
 load_dotenv()
 
@@ -50,6 +50,7 @@ app.include_router(ai.router)
 app.include_router(create.router)
 app.include_router(sources.router)
 app.include_router(categories.router)
+app.include_router(auth.router)
 
 @app.get("/")
 async def root():

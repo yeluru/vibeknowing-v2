@@ -215,3 +215,29 @@ async def update_project(
         }
     }
 
+class ClaimProjectsRequest(BaseModel):
+    project_ids: list[str]
+
+@router.post("/projects/claim")
+async def claim_projects(
+    request: ClaimProjectsRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Claim guest projects (owner_id=NULL) for the current user."""
+    if not request.project_ids:
+        return {"claimed_count": 0}
+        
+    # Update projects where id in list AND owner_id is NULL
+    # Security: Ensure we only claim orphaned projects, not other users' projects
+    updated = db.query(models.Project).filter(
+        models.Project.id.in_(request.project_ids),
+        models.Project.owner_id == None
+    ).update(
+        {models.Project.owner_id: current_user.id},
+        synchronize_session=False
+    )
+    
+    db.commit()
+    return {"claimed_count": updated}
+

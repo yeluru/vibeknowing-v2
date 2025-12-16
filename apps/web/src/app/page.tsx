@@ -13,6 +13,7 @@ import { projectsApi, Project, categoriesApi, Category } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -20,6 +21,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null); // New State
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     loadData();
@@ -32,9 +34,16 @@ export default function Home() {
       window.removeEventListener('refresh-sidebar', handleRefresh);
       window.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [isAuthenticated]); // Re-run when auth state changes
 
   const loadData = async () => {
+    if (!isAuthenticated) {
+      const guestProjects = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+      setProjects(guestProjects);
+      setCategories([]);
+      setLoading(false);
+      return;
+    }
     // ... (existing loadData)
     try {
       const [projs, cats] = await Promise.all([
@@ -144,7 +153,7 @@ export default function Home() {
   // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } }
   };
 
   const staggerContainer = {

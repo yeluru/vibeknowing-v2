@@ -233,6 +233,11 @@ export default function SourcePage() {
 
     const loadNavigation = async () => {
         if (!source?.project_id) return;
+
+        // Skip for guests
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) return;
+
         try {
             // 1. Get all projects (we need to find the current one in the list)
             // Ideally we'd filter by category if we knew it, but we can just fetch all for now
@@ -278,6 +283,9 @@ export default function SourcePage() {
             toast.error("Failed to delete project");
         }
     };
+
+    // Check if user is authenticated for UI conditional rendering
+    const isAuthenticated = typeof window !== 'undefined' && !!localStorage.getItem('token');
 
     // loadChatHistory removed (handled by ChatInterface)
 
@@ -400,13 +408,15 @@ export default function SourcePage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={handleDeleteProject}
-                        className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900/30 rounded-lg transition-colors"
-                        title="Delete Project"
-                    >
-                        <Trash2 className="h-5 w-5" />
-                    </button>
+                    {isAuthenticated && (
+                        <button
+                            onClick={handleDeleteProject}
+                            className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900/30 rounded-lg transition-colors"
+                            title="Delete Project"
+                        >
+                            <Trash2 className="h-5 w-5" />
+                        </button>
+                    )}
                 </div>
                 {/* Action Buttons - Enhanced */}
                 <div className="mt-6 flex flex-wrap gap-2 sm:gap-3">
@@ -595,31 +605,32 @@ export default function SourcePage() {
                         <span className="hidden sm:inline">View</span>
                     </button>
                 </div>
-                {/* Navigation Arrows - Bottom Right */}
-                <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-gray-100 dark:bg-slate-700 rounded-lg p-1 shadow-md">
-                    <a
-                        href={prevProject ? `/source/${prevProject}` : '#'}
-                        className={`p-1.5 rounded-md transition-colors ${prevProject
-                            ? 'text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-sm'
-                            : 'text-gray-300 dark:text-slate-600 cursor-default opacity-50'
-                            }`}
-                        title="Previous Project"
-                        onClick={e => !prevProject && e.preventDefault()}
-                    >
-                        <ChevronLeft className="h-5 w-5" />
-                    </a>
-                    <a
-                        href={nextProject ? `/source/${nextProject}` : '#'}
-                        className={`p-1.5 rounded-md transition-colors ${nextProject
-                            ? 'text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-sm'
-                            : 'text-gray-300 dark:text-slate-600 cursor-default opacity-50'
-                            }`}
-                        title="Next Project"
-                        onClick={e => !nextProject && e.preventDefault()}
-                    >
-                        <ChevronRight className="h-5 w-5" />
-                    </a>
-                </div>
+                {isAuthenticated && (
+                    <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-gray-100 dark:bg-slate-700 rounded-lg p-1 shadow-md">
+                        <a
+                            href={prevProject ? `/source/${prevProject}` : '#'}
+                            className={`p-1.5 rounded-md transition-colors ${prevProject
+                                ? 'text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-sm'
+                                : 'text-gray-300 dark:text-slate-600 cursor-default opacity-50'
+                                }`}
+                            title="Previous Project"
+                            onClick={e => !prevProject && e.preventDefault()}
+                        >
+                            <ChevronLeft className="h-5 w-5" />
+                        </a>
+                        <a
+                            href={nextProject ? `/source/${nextProject}` : '#'}
+                            className={`p-1.5 rounded-md transition-colors ${nextProject
+                                ? 'text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-sm'
+                                : 'text-gray-300 dark:text-slate-600 cursor-default opacity-50'
+                                }`}
+                            title="Next Project"
+                            onClick={e => !nextProject && e.preventDefault()}
+                        >
+                            <ChevronRight className="h-5 w-5" />
+                        </a>
+                    </div>
+                )}
             </div >
 
             {/* Content Area - Scrollable */}

@@ -22,12 +22,14 @@ import {
 import { categoriesApi, projectsApi, Category, Project, API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { EditableTitle } from '@/components/ui/EditableTitle';
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
     onNavigate?: () => void;
 }
 
 export function Sidebar({ onNavigate }: SidebarProps) {
+    const { isAuthenticated } = useAuth();
     const pathname = usePathname();
     const [categories, setCategories] = useState<Category[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -90,6 +92,38 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         };
     }, []);
 
+    useEffect(() => {
+        const checkClaiming = async () => {
+            if (isAuthenticated) {
+                try {
+                    const guestProjectsStr = localStorage.getItem('guest_projects');
+                    if (!guestProjectsStr) return;
+
+                    const guestProjects = JSON.parse(guestProjectsStr);
+                    if (Array.isArray(guestProjects) && guestProjects.length > 0) {
+                        const ids = guestProjects
+                            .map((p: any) => p.id)
+                            .filter((id: any) => typeof id === 'string' && id.length > 0);
+
+                        if (ids.length > 0) {
+                            await projectsApi.claim(ids);
+                            localStorage.removeItem('guest_projects');
+                            localStorage.removeItem('guest_project_count');
+                            loadData();
+                        } else {
+                            // Invalid data in local storage, clear it
+                            localStorage.removeItem('guest_projects');
+                        }
+                    }
+                } catch (error) {
+                    // Silent fail to avoid console spam, or log debug only
+                    console.debug("Failed to claim guest projects:", error);
+                }
+            }
+        };
+        checkClaiming();
+    }, [isAuthenticated]);
+
     const handleMoveProject = async (projectId: string, categoryId: string | null) => {
         try {
             console.log('Moving project:', projectId, 'to category:', categoryId);
@@ -146,14 +180,39 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         }
     };
 
+
     const loadData = async () => {
+        console.log("LoadData called. Auth:", isAuthenticated);
+        if (!isAuthenticated) {
+            try {
+                const raw = localStorage.getItem('guest_projects');
+                const guestProjects = JSON.parse(raw || '[]');
+                console.log("Raw Guest Projects:", guestProjects);
+
+                // Simple filter for valid projects
+                const validProjects = guestProjects.filter((p: any) => p && p.id);
+                console.log("Setting projects:", validProjects);
+
+                setProjects(validProjects as Project[]);
+                setCategories([]);
+            } catch (e) {
+                console.error("Error loading guest projects:", e);
+                setProjects([]);
+            }
+            setLoading(false);
+            return;
+        }
+
         try {
             const [cats, projs] = await Promise.all([
                 categoriesApi.list(),
                 projectsApi.list()
             ]);
             setCategories(cats);
-            setProjects(projs);
+
+            // Deduplicate authenticated projects
+            const uniqueProjects = Array.from(new Map(projs.map((p) => [p.id, p])).values());
+            setProjects(uniqueProjects);
 
             // Default behavior: Expand ALL categories since scrollbar is hidden
             const newExpanded = new Set<string>();
@@ -530,7 +589,11 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
                         {expanded.has("uncategorized") && (
                             <div className="ml-4 mt-1.5 space-y-1 border-l-2 border-indigo-200 dark:border-indigo-800/50 pl-3 animate-in slide-in-from-top-2 duration-200">
-                                {filteredUncategorized.map(renderProjectItem)}
+                                {filteredUncategorized.map(p => (
+                                    <div key={p.id}>
+                                        {renderProjectItem(p)}
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -589,7 +652,11 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                                             No projects
                                         </div>
                                     ) : (
-                                        catProjects.map(renderProjectItem)
+                                        catProjects.map(p => (
+                                            <div key={p.id}>
+                                                {renderProjectItem(p)}
+                                            </div>
+                                        ))
                                     )}
                                 </div>
                             )}

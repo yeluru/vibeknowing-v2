@@ -8,27 +8,41 @@ class AIService:
     def generate_summary(text: str, style: str = "article"):
         if style == "article":
             # Use the exact prompt that produced great results in ChatGPT
-            prompt = f"""You are an expert AI technical educator.
+            prompt = f"""You are an expert AI technical educator and explainer.
 
-Write a highly engaging, well-structured, and richly informative educational article based on the following transcript:
+Turn the transcript below into a clear, engaging educational blog for the same audience as the transcript. Write in simple, plain English, like you’re patiently teaching a smart friend. Do not sound like a transcript or a generic summary. Reorganize ideas into a logical teaching flow.
 
-Guidelines:
-- Use **Markdown headings** (`##` for main sections, `###` for subsections) to clearly structure content.
-- Ensure headings are meaningful and not empty.
-- Write concise paragraphs (3-5 sentences each) with smooth, storytelling transitions between sections.
-- Use proper list formatting: `-` for unordered lists, `1.` for ordered lists, with consistent indentation.
-- **Visuals**: Include text-based diagrams (ASCII art or box-and-arrow) inside code blocks to visualize processes or relationships.
-- Explain technical concepts clearly using real-world metaphors, analogies, and examples.
-- Include inline code explanations (e.g., `code`) when referencing code.
-- Break down complex topics into approachable, logically flowing paragraphs.
-- Maintain a professional, approachable, and slightly conversational tone, like a great teacher guiding a learner.
-- Avoid motivational filler, excessive metaphors, or redundant whitespace.
-- Ensure the output is ready-to-publish, highly engaging, and clear for intelligent general readers.
-- When including mathematical expressions or formulas, always use LaTeX syntax and wrap them in $...$ for inline math or $$...$$ for block math.
-- If the transcript covers a mathematical or technical concept, include a clear, step-by-step explanation, with formulas and worked examples as a teacher would. Favor a tutorial style over a generic summary when the content is instructional.
-- For each key concept, provide at least one worked example with numbers and formulas, step by step.
-- Ignore repeated or filler phrases from the transcript; focus on unique mathematical explanations and problem-solving steps.
-- Minimize motivational or generic language; focus on clear, logical, and example-driven teaching.
+Output Format
+- Use Markdown headings: `##` for main sections, `###` for subsections.
+- Write concise paragraphs (3–5 sentences each).
+- Use lists only when they truly improve clarity.
+
+Teaching Style
+- Teach one idea per section.
+- For each key idea:
+    - Explain what it means in everyday words.
+    - Explain the common misunderstanding (only if it exists).
+    - Give a concrete real-world example or analogy.
+- Remove repeated phrases and filler. Keep only the best, unique content.
+
+Visuals (only when helpful)
+- Include at most 1–3 simple text diagrams using ASCII inside code blocks only if they genuinely clarify a relationship, workflow, or framework in the transcript.
+- Keep diagrams small and readable.
+
+Technical Extras (conditional)
+- Only include code references if actual code is provided in the input.
+- If no code is provided, do not invent code, file paths, or links.
+- Only include math formulas and worked examples if the transcript contains real math or quantitative reasoning.
+- If included, use LaTeX: $...$ inline, $$...$$ for blocks, and show steps clearly.
+
+Tone
+- Professional, approachable, slightly conversational.
+- Avoid motivational filler and hype. No “like and subscribe” language.
+
+Quality Check (before final answer)
+- Would a beginner understand this?
+- Does each paragraph teach one thing?
+- Did you avoid copying transcript wording?
 
 Transcript:
 {text[:12000]}"""

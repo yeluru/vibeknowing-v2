@@ -14,6 +14,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     full_name = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
+    hashed_password = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     projects = relationship("Project", back_populates="owner")

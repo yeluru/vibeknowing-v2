@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Link2, Loader2, Paperclip, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { API_BASE } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function UrlInput() {
     const [input, setInput] = useState("");
@@ -14,9 +15,26 @@ export function UrlInput() {
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const { isAuthenticated } = useAuth();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if ((!input.trim() && !file) || isLoading) return;
+
+        // Access Control Logic
+        if (!isAuthenticated) {
+            const guestCount = parseInt(localStorage.getItem('guest_project_count') || '0');
+            if (guestCount >= 1) {
+                // Trial Expired
+                // @ts-ignore
+                import("sonner").then(({ toast }) => {
+                    toast.error("Free trial limit reached. Please sign up to create more projects.");
+                });
+                router.push("/auth/signup");
+                return;
+            }
+            // Increment trial count (will be set to 1 on success)
+        }
 
         setIsLoading(true);
         try {
@@ -37,6 +55,23 @@ export function UrlInput() {
 
                 if (response.ok) {
                     const data = await response.json();
+                    if (!isAuthenticated) {
+                        localStorage.setItem('guest_project_count', '1');
+
+                        // Save guest project metadata
+                        const guestProjects = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+                        if (!guestProjects.find((p: any) => p.id === data.project_id)) {
+                            guestProjects.unshift({
+                                id: data.project_id,
+                                title: data.project_title,
+                                created_at: new Date().toISOString(),
+                                first_source_id: data.source_id,
+                                category_id: null,
+                                source_count: 1
+                            });
+                            localStorage.setItem('guest_projects', JSON.stringify(guestProjects));
+                        }
+                    }
                     window.dispatchEvent(new Event('refresh-sidebar'));
                     router.push(`/source/${data.source_id}`);
                 } else {
@@ -55,8 +90,30 @@ export function UrlInput() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    window.dispatchEvent(new Event('refresh-sidebar'));
-                    router.push(`/source/${data.source_id}`);
+                    if (!isAuthenticated) {
+                        localStorage.setItem('guest_project_count', '1');
+
+                        // Save guest project metadata
+                        const guestProjects = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+                        if (!guestProjects.find((p: any) => p.id === data.project_id)) {
+                            guestProjects.unshift({
+                                id: data.project_id,
+                                title: data.project_title,
+                                created_at: new Date().toISOString(),
+                                first_source_id: data.source_id,
+                                category_id: null,
+                                source_count: 1
+                            });
+                            localStorage.setItem('guest_projects', JSON.stringify(guestProjects));
+                        }
+                    }
+                    if (!isAuthenticated) {
+                        // Force full reload for guests to ensure Sidebar picks up localStorage changes
+                        window.location.href = `/source/${data.source_id}`;
+                    } else {
+                        window.dispatchEvent(new Event('refresh-sidebar'));
+                        router.push(`/source/${data.source_id}`);
+                    }
                 } else {
                     const error = await response.json();
                     alert(error.detail || "Failed to process URL");

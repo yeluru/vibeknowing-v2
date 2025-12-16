@@ -192,6 +192,18 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                 </div>
                                 <div className="flex gap-2">
                                     <button
+                                        onClick={() => {
+                                            if (confirm("Are you sure you want to regenerate the article? This will overwrite your current edits.")) {
+                                                generateArticle();
+                                            }
+                                        }}
+                                        disabled={loading}
+                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                                        Regenerate
+                                    </button>
+                                    <button
                                         onClick={handleSave}
                                         disabled={saving}
                                         className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg transition-colors disabled:opacity-50"
@@ -213,11 +225,26 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                 <textarea
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
-                                    className="w-full h-[500px] p-4 font-mono text-sm border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                    className="w-full min-h-[500px] p-4 font-mono text-sm border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                    style={{ fieldSizing: "content" } as any}
                                 />
                             ) : (
-                                <div className="prose prose-purple dark:prose-invert max-w-none h-[500px] overflow-y-auto p-6 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                                <div className="prose prose-purple dark:prose-invert max-w-none p-6 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800">
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            h1: ({ ...props }) => <h1 className="!text-3xl !font-bold !mt-4 !mb-2" {...props} />,
+                                            h2: ({ ...props }) => <h2 className="!text-2xl !font-bold !mt-4 !mb-2" {...props} />,
+                                            h3: ({ ...props }) => <h3 className="!text-xl !font-bold !mt-3 !mb-2" {...props} />,
+                                            h4: ({ ...props }) => <h4 className="!text-lg !font-bold !mt-3 !mb-1" {...props} />,
+                                            p: ({ ...props }) => <p className="!mb-3 !leading-relaxed" {...props} />,
+                                            ul: ({ ...props }) => <ul className="!my-2 !list-disc !pl-4" {...props} />,
+                                            ol: ({ ...props }) => <ol className="!my-2 !list-decimal !pl-4" {...props} />,
+                                            li: ({ ...props }) => <li className="!mb-1" {...props} />,
+                                        }}
+                                    >
+                                        {content}
+                                    </ReactMarkdown>
                                 </div>
                             )}
                         </div>
@@ -238,6 +265,6 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
