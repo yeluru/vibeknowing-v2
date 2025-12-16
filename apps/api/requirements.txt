@@ -18,3 +18,4 @@ youtube-transcript-api>=0.6.2
 yt-dlp>=2024.0.0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+bcrypt==4.0.1
