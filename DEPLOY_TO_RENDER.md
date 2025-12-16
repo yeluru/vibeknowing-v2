@@ -1,95 +1,88 @@
 # Deploying VibeKnowing V2 to Render.com
 
-This guide will walk you through deploying the full VibeKnowing V2 stack (Frontend, Backend, and Database) to Render.com using Infrastructure as Code (IaC).
+This guide outlines how to deploy the full VibeKnowing stack (Frontend, Backend, Worker, Database) to Render.com.
 
-## Prerequisites
+## Architecture Overview
+You will deploy 4 services on Render:
+1.  **PostgreSQL Database**: Managed relational database.
+2.  **Web Service (API)**: Python FastAPI backend (`apps/api`).
+3.  **Web Service (Worker)**: Python FastAPI worker (`vibeknowing-worker`).
+4.  **Web Service (Frontend)**: Next.js frontend (`apps/web`).
 
-1.  A [Render.com](https://render.com) account.
-2.  Your GitHub repository connected to Render.
-3.  An **OpenAI API Key** ready to use.
+---
 
-## Step 1: Push Your Code
+## Step 1: Create the Database 🗄️
+1.  Go to [Render Dashboard](https://dashboard.render.com).
+2.  Click **New +** -> **PostgreSQL**.
+3.  **Name**: `vibeknowing-db`
+4.  **Region**: Choose closest to you (e.g., Oregon, Frankfurt).
+5.  **Plan**: Free (for testing) or Starter.
+6.  Click **Create Database**.
+7.  **Wait** for it to become available.
+8.  Copy the **Internal DB URL** (starts with `postgres://...`). You will need this for the other services.
 
-Ensure your latest code is pushed to GitHub, including the `render.yaml` file in the root directory.
+---
 
-```bash
-git add .
-git commit -m "chore: add render deployment configuration"
-git push origin main
-```
+## Step 2: Deploy the API Backend ⚙️
+1.  Click **New +** -> **Web Service**.
+2.  Connect your GitHub repository.
+3.  **Name**: `vibeknowing-api`
+4.  **Root Directory**: `vibeknowing-v2/apps/api`
+5.  **Environment**: `Python 3`
+6.  **Build Command**: `pip install -r requirements.txt`
+7.  **Start Command**: `uvicorn main:app --host 0.0.0.0 --port 10000`
+8.  **Environment Variables**:
+    *   `DATABASE_URL`: Paste the **Internal DB URL** from Step 1.
+    *   `OPENAI_API_KEY`: Your OpenAI Key.
+    *   `SECRET_KEY`: Generate a random string (e.g., `openssl rand -hex 32`).
+    *   `WORKER_URL`: Set this later (after deploying Worker).
+9.  Click **Create Web Service**.
 
-## Step 2: Create a New Blueprint Instance
+---
 
-1.  Log in to your Render Dashboard.
-2.  Click the **New +** button and select **Blueprint**.
-3.  Connect your GitHub repository (`vibeknowing-v2`).
-4.  Render will automatically detect the `render.yaml` file.
+## Step 3: Deploy the Worker 👷
+1.  Click **New +** -> **Web Service**.
+2.  Connect the **same** repository.
+3.  **Name**: `vibeknowing-worker`
+4.  **Root Directory**: `vibeknowing-worker`
+5.  **Environment**: `Python 3`
+6.  **Build Command**: `pip install -r requirements.txt`
+7.  **Start Command**: `uvicorn worker:app --host 0.0.0.0 --port 10000`
+8.  **Environment Variables**:
+    *   `OPENAI_API_KEY`: Your OpenAI Key.
+9.  Click **Create Web Service**.
+10. **After Creation**: Copy the Worker's URL (e.g., `https://vibeknowing-worker.onrender.com`).
+11. **Update API Env**: Go back to `vibeknowing-api` -> **Environment** -> Add `WORKER_URL` with this value.
 
-## Step 3: Configure Environment Variables
+---
 
-Render will show you the resources it's about to create:
--   `vibeknowing-db` (PostgreSQL Database)
--   `vibeknowing-api` (Python Backend)
--   `vibeknowing-web` (Node.js Frontend)
+## Step 4: Deploy the Frontend 🖥️
+1.  Click **New +** -> **Web Service**.
+2.  Connect the **same** repository.
+3.  **Name**: `vibeknowing-web`
+4.  **Root Directory**: `vibeknowing-v2/apps/web`
+5.  **Environment**: `Node`
+6.  **Build Command**: `npm install && npm run build`
+7.  **Start Command**: `npm start`
+8.  **Environment Variables**:
+    *   `NEXT_PUBLIC_API_URL`: The URL of your `vibeknowing-api` service (e.g., `https://vibeknowing-api.onrender.com`).
+9.  Click **Create Web Service**.
 
-It will ask for one required environment variable:
--   **OPENAI_API_KEY**: Paste your OpenAI API key here.
+---
 
-## Step 4: Apply Blueprint
-
-Click **Apply Blueprint**. Render will now:
-1.  Provision a PostgreSQL database.
-2.  Build and deploy the Backend API (and connect it to the DB).
-3.  Build and deploy the Frontend (and connect it to the API).
-
-This process typically takes 5-10 minutes.
-
-## Step 5: Verify Deployment
-
-Once the deployment finishes:
-1.  Go to the **Dashboard**.
-2.  Click on the **vibeknowing-web** service.
-3.  Click the URL (e.g., `https://vibeknowing-web.onrender.com`).
-4.  Your app should be live!
+## Step 5: Initialize Production DB 🏁
+Since Render's DB starts empty, you need to create the tables and admin user.
+1.  Go to `vibeknowing-api` dashboard.
+2.  Click **Shell** (Connect).
+3.  Run the initialization commands:
+    ```bash
+    # Create tables
+    python init_postgres.py
+    
+    # Create admin user (admin@localhost / admin)
+    python seed_db.py
+    ```
 
 ## Troubleshooting
-
-### Database Migrations
-The blueprint sets up the database but doesn't automatically run migrations (table creation). You might need to run them manually the first time.
-
-1.  Go to the **vibeknowing-api** service in Render Dashboard.
-2.  Click **Shell** to open a terminal in the running container.
-3.  Run the migration command:
-    ```bash
-    cd apps/api
-    python -m migrations.init_db
-    ```
-    *(Note: Ensure you have a migration script or use `python -c "from database import engine; from models import Base; Base.metadata.create_all(bind=engine)"` if you don't have a dedicated migration script yet.)*
-
-### Build Failures
--   **Frontend**: Check the logs. If it fails on `npm install`, ensure `package-lock.json` is consistent.
--   **Backend**: Ensure `requirements.txt` has all dependencies.
-
-### CORS Issues
-If the frontend can't talk to the backend:
-1.  Check the `vibeknowing-api` logs.
-2.  You might need to update `main.py` to allow the specific Render frontend URL in `CORSMiddleware`.
-    -   Currently, it allows `["*"]` (all origins), so it should work out of the box.
-
-### YouTube Ingestion Errors (Bot Detection)
-If you see "Sign in to confirm you’re not a bot" errors when processing YouTube videos:
-
-1.  **Install a Cookie Exporter**: Install a browser extension like "Get cookies.txt LOCALLY" (Chrome/Firefox).
-2.  **Log in to YouTube**: Go to youtube.com and ensure you are logged in.
-3.  **Export Cookies**: Use the extension to export your cookies to a file (e.g., `cookies.txt`).
-4.  **Copy Content**: Open the file and copy the entire text content.
-5.  **Add to Render**:
-    -   Go to your **vibeknowing-api** service in Render.
-    -   Go to **Environment**.
-    -   Add a new variable named `YOUTUBE_COOKIES`.
-    -   Paste the cookie content as the value.
-    -   Save changes. Render will redeploy automatically.
-
-## Free Plan Limitations
--   **Spin-down**: Free web services on Render spin down after 15 minutes of inactivity. The first request might take 30-60 seconds to load.
--   **Database**: The free PostgreSQL database expires after 90 days. Upgrade to a paid plan for persistence.
+*   **Logs**: Check the logs tab of each service if something fails.
+*   **Cold Starts**: On the free tier, services spin down after inactivity. Initial requests may take 50s+.
