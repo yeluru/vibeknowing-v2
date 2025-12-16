@@ -173,6 +173,18 @@ async def generate_flashcards(source_id: str, force: bool = False, db: Session =
         raise HTTPException(status_code=404, detail="Source content not found")
 
     print(f"Generating flashcards for source {source_id}")
+    
+    # Check for existing flashcards artifact
+    if not force:
+        existing_artifact = db.query(models.Artifact).filter(
+            models.Artifact.source_id == source_id,
+            models.Artifact.type == "flashcards"
+        ).order_by(models.Artifact.created_at.desc()).first()
+        
+        if existing_artifact:
+            print(f"Returning cached flashcards for source {source_id}")
+            return existing_artifact.content
+
     flashcards_json_str = AIService.generate_flashcards(source.content_text)
     
     import json
