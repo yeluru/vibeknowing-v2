@@ -196,6 +196,7 @@ async def generate_flashcards(source_id: str, force: bool = False, db: Session =
     # Save as artifact
     artifact = models.Artifact(
         project_id=source.project_id,
+        source_id=source.id,
         type="flashcards",
         title=f"Flashcards for {source.title}",
         content=flashcards_data
