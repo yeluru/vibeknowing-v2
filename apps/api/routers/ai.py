@@ -178,7 +178,7 @@ async def generate_flashcards(source_id: str, force: bool = False, db: Session =
     if not force:
         existing_artifact = db.query(models.Artifact).filter(
             models.Artifact.source_id == source_id,
-            models.Artifact.type == "flashcards"
+            models.Artifact.type == "flashcard"
         ).order_by(models.Artifact.created_at.desc()).first()
         
         if existing_artifact:
@@ -197,7 +197,7 @@ async def generate_flashcards(source_id: str, force: bool = False, db: Session =
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
-        type="flashcards",
+        type="flashcard",
         title=f"Flashcards for {source.title}",
         content=flashcards_data
     )
@@ -216,7 +216,7 @@ async def get_flashcards(source_id: str, db: Session = Depends(get_db)):
     
     artifact = db.query(models.Artifact).filter(
         models.Artifact.source_id == source_id,
-        models.Artifact.type == "flashcards"
+        models.Artifact.type == "flashcard"
     ).order_by(models.Artifact.created_at.desc()).first()
     
     if not artifact:
