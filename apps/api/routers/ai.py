@@ -414,17 +414,20 @@ async def update_article(source_id: str, update: ArticleUpdate, db: Session = De
 @router.get("/debug/{source_id}")
 async def debug_artifacts(source_id: str, db: Session = Depends(get_db)):
     """Debug endpoint to list artifacts and check environment."""
-    # Check scraper environment
-    playwright_status = "Unknown"
-    try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            playwright_status = "Installed (API loadable)"
-            # Optional: Check for browsers? (Hard to do quickly without launching)
-    except ImportError:
-        playwright_status = "ImportError (Package missing)"
-    except Exception as e:
-        playwright_status = f"Error: {str(e)}"
+    
+    # Check scraper environment in a thread to verify Playwright installation safely
+    def check_playwright():
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                return "Installed (API loadable, Check Passed)"
+        except ImportError:
+            return "ImportError (Package missing)"
+        except Exception as e:
+            return f"Error: {str(e)}"
+
+    import asyncio
+    playwright_status = await asyncio.to_thread(check_playwright)
 
     artifacts = db.query(models.Artifact).filter(
         models.Artifact.source_id == source_id

@@ -146,7 +146,9 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
         else:
             # Use web scraper for all other URLs
             print(f"Scraping {url_type} URL: {request.url}")
-            result = WebScraperService.scrape_url(request.url)
+            # Run blocking scraper in a separate thread to avoid blocking the async loop
+            # This is critical for Playwright sync API which cannot run in the main loop
+            result = await asyncio.to_thread(WebScraperService.scrape_url, request.url)
             
             if result['success'] and result['content']:
                 source.content_text = result['content']
