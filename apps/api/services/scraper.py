@@ -199,21 +199,63 @@ class WebScraperService:
     def scrape_generic_webpage(url: str) -> dict:
         """Extract main content from any webpage with robust fallbacks."""
         try:
+            # Mimic a real Chrome browser to bypass simple bot protection (403/406)
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-                'Referer': 'https://www.google.com/'
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Cache-Control': 'max-age=0'
             }
 
             # Simple retry loop
+            response = None
             for attempt in range(3):
-                response = requests.get(url, headers=headers, timeout=20)
-                if response.status_code == 200:
-                    break
+                try:
+                    response = requests.get(url, headers=headers, timeout=20)
+                    
+                    # If blocked (403 Forbidden or 429 Too Many Requests), switch to Playwright immediately
+                    if response.status_code in [403, 429]:
+                        print(f"Request blocked (status {response.status_code}). Attempting Playwright fallback for {url}")
+                        break # Break loop to trigger fallback
+                        
+                    if response.status_code == 200:
+                        break
+                except requests.RequestException:
+                    pass
                 time.sleep(2 ** attempt)
-            else:
+            
+            # Fallback to Playwright if requests failed or was blocked
+            if (response is None or response.status_code != 200) and sync_playwright:
+                try:
+                    print(f"Falling back to Playwright for {url}")
+                    rendered_html = WebScraperService._render_page(url)
+                    # If we got here, Playwright success
+                    soup = BeautifulSoup(rendered_html, 'html.parser')
+                    # Mock a response object for common logic below
+                    class MockResponse:
+                        content = rendered_html.encode('utf-8')
+                        headers = {}
+                    response = MockResponse()
+                except Exception as pw_error:
+                    print(f"Playwright fallback failed: {pw_error}")
+                    if response is None:
+                        return {
+                            'title': urlparse(url).netloc,
+                            'content': f'Failed to connect to page: {pw_error}',
+                            'success': False
+                        }
+            
+            if response is None or (hasattr(response, 'status_code') and response.status_code != 200):
                 return {
                     'title': urlparse(url).netloc,
-                    'content': f'Failed to fetch page (status {response.status_code})',
+                    'content': f'Failed to fetch page (status {getattr(response, "status_code", "unknown")})',
                     'success': False
                 }
 
@@ -249,30 +291,36 @@ class WebScraperService:
                         'success': False
                     }
 
-            # If the fetched HTML is very short, it likely needs JavaScript rendering.
-            if len(response.content) < 200:
-                try:
-                    rendered_html = WebScraperService._render_page(url)
-                    soup = BeautifulSoup(rendered_html, 'html.parser')
-                except Exception:
-                    # Fallback to raw content if Playwright fails
+            # If not already parsed by Playwright block
+            if not isinstance(response, BeautifulSoup): 
+                # If the fetched HTML is very short, it likely needs JavaScript rendering.
+                if len(response.content) < 500 and sync_playwright:
+                    try:
+                        print(f"Content too short ({len(response.content)} bytes). Retrying with Playwright...")
+                        rendered_html = WebScraperService._render_page(url)
+                        soup = BeautifulSoup(rendered_html, 'html.parser')
+                    except Exception as e:
+                        # Fallback to raw content if Playwright fails
+                        print(f"Playwright short-content fallback failed: {e}")
+                        soup = BeautifulSoup(response.content, 'html.parser')
+                else:
                     soup = BeautifulSoup(response.content, 'html.parser')
-            else:
-                soup = BeautifulSoup(response.content, 'html.parser')
-
+            
+            # remainder of logic...
+            
             # Title extraction
             title_tag = soup.find('title')
             title = title_tag.get_text(strip=True) if title_tag else urlparse(url).netloc
 
             # Strip out noisy tags
-            for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'noscript']):
+            for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'noscript', 'iframe', 'svg']):
                 tag.decompose()
 
             # Primary content search
             main_content = (
                 soup.find('main') or
                 soup.find('article') or
-                soup.find('div', class_=re.compile('content|article|post', re.I)) or
+                soup.find('div', class_=re.compile('content|article|post|formatted', re.I)) or
                 soup.find('section', class_=re.compile('content|article|post|body', re.I)) or
                 soup.find('div', id=re.compile('content|article|post|body', re.I))
             )
@@ -296,9 +344,9 @@ class WebScraperService:
                 if body:
                     content = body.get_text(separator='\n', strip=True)
 
-            # Length guard
-            if len(content) > 50000:
-                content = content[:50000] + "\n\n[Content truncated...]"
+            # Length guard - increased for long articles
+            if len(content) > 100000:
+                content = content[:100000] + "\n\n[Content truncated...]"
 
             return {
                 'title': title,
