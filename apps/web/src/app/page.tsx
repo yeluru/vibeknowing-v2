@@ -84,12 +84,20 @@ export default function Home() {
   const handleDeleteProject = async (projectId: string) => {
     if (!confirm("Are you sure you want to delete this project?")) return;
 
-    // 1. Optimistic Update
+    // 1. Optimistic Update (Immediate Feedback)
     setProjects(prev => prev.filter(p => p.id !== projectId));
     setActiveDropdown(null);
 
+    // GUEST MODE HANDLER
+    if (!isAuthenticated) {
+      const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+      const updated = current.filter((p: Project) => p.id !== projectId);
+      localStorage.setItem('guest_projects', JSON.stringify(updated));
+      return; // Stop here, no API call needed
+    }
+
     try {
-      // 2. API Call
+      // 2. API Call (Auth Users Only)
       await projectsApi.delete(projectId);
 
       // 3. Buffered Refresh
