@@ -404,7 +404,8 @@ class WebScraperService:
         if url_type == 'instagram':
             return WebScraperService.scrape_instagram(url)
         elif url_type == 'linkedin':
-            return WebScraperService.scrape_linkedin(url)
+            # Use generic scraper for LinkedIn as it needs the same robust handling (Playwright/Headers)
+            return WebScraperService.scrape_generic_webpage(url)
         elif url_type == 'ted':
             return WebScraperService.scrape_ted(url)
         elif url_type == 'web':
