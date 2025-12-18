@@ -91,7 +91,8 @@ export default function Home() {
     // GUEST MODE HANDLER
     if (!isAuthenticated) {
       const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
-      const updated = current.filter((p: Project) => p.id !== projectId);
+      // Use loose comparison or string conversion to be safe
+      const updated = current.filter((p: Project) => String(p.id) !== String(projectId));
       localStorage.setItem('guest_projects', JSON.stringify(updated));
       return; // Stop here, no API call needed
     }

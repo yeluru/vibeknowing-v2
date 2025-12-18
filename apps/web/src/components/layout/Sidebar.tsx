@@ -159,6 +159,17 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             return;
         }
 
+        // GUEST MODE HANDLER
+        if (!isAuthenticated) {
+            const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+            const updated = current.filter((p: any) => p.id !== projectId);
+            localStorage.setItem('guest_projects', JSON.stringify(updated));
+            loadData(); // Reload sidebar data immediately
+            // Dispatch event to update Main Page
+            window.dispatchEvent(new Event('refresh-sidebar'));
+            return;
+        }
+
         try {
             await projectsApi.delete(projectId);
 
