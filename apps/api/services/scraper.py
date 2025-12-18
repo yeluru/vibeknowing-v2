@@ -199,19 +199,10 @@ class WebScraperService:
     def scrape_generic_webpage(url: str) -> dict:
         """Extract main content from any webpage with robust fallbacks."""
         try:
-            # Mimic a real Chrome browser to bypass simple bot protection (403/406)
+            # Revert to simpler headers as complex ones might trigger stricter anti-bot protections
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Sec-Fetch-User': '?1',
-                'Cache-Control': 'max-age=0'
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
+                'Referer': 'https://www.google.com/'
             }
 
             # Simple retry loop
@@ -229,7 +220,7 @@ class WebScraperService:
                         break
                 except requests.RequestException:
                     pass
-                time.sleep(2 ** attempt)
+                time.sleep(1) # Faster retry
             
             # Fallback to Playwright if requests failed or was blocked
             if (response is None or response.status_code != 200) and sync_playwright:
@@ -242,15 +233,16 @@ class WebScraperService:
                     class MockResponse:
                         content = rendered_html.encode('utf-8')
                         headers = {}
+                        status_code = 200 # Mark as success since we got content
                     response = MockResponse()
                 except Exception as pw_error:
                     print(f"Playwright fallback failed: {pw_error}")
-                    if response is None:
-                        return {
-                            'title': urlparse(url).netloc,
-                            'content': f'Failed to connect to page: {pw_error}',
-                            'success': False
-                        }
+                    # Return the specific browser error instead of the generic 403
+                    return {
+                        'title': urlparse(url).netloc,
+                        'content': f'Browser automation failed: {str(pw_error)}',
+                        'success': False
+                    }
             
             if response is None or (hasattr(response, 'status_code') and response.status_code != 200):
                 return {
@@ -368,12 +360,40 @@ class WebScraperService:
         """
         if sync_playwright is None:
             raise RuntimeError("Playwright is not installed")
+            
+        print(f"Launching Playwright for {url}")
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.goto(url, wait_until="networkidle")
-            content = page.content()
-            browser.close()
+            # Use improved stealth args
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--disable-blink-features=AutomationControlled']
+            )
+            
+            context = browser.new_context(
+                user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                viewport={'width': 1920, 'height': 1080}
+            )
+            
+            page = context.new_page()
+            
+            # Add extra headers
+            page.set_extra_http_headers({
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Upgrade-Insecure-Requests': '1'
+            })
+            
+            try:
+                # Use domcontentloaded for faster/safer loading, then wait a bit
+                page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                # Small wait for dynamic content hydration (common in SPA like Claude)
+                page.wait_for_timeout(5000) 
+                content = page.content()
+            except Exception as e:
+                print(f"Playwright navigation failed: {e}")
+                raise e
+            finally:
+                browser.close()
+                
             return content
 
     @staticmethod
