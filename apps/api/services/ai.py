@@ -3,8 +3,8 @@ from config import settings
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-class AIService:
     @staticmethod
+    def cleanup_content(text: str) -> str:
         """Clean up raw webpage text to remove boilerplate, ads, and navigation."""
         prompt = """You are an expert content editor.
 Your task is to extract ONLY the main content/article/post from the raw webpage text below and format it as a clean Markdown transcript.
