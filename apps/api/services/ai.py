@@ -5,6 +5,48 @@ client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 class AIService:
     @staticmethod
+        """Clean up raw webpage text to remove boilerplate, ads, and navigation."""
+        prompt = """You are an expert content editor.
+Your task is to extract ONLY the main content/article/post from the raw webpage text below and format it as a clean Markdown transcript.
+
+CRITICAL CLEANUP RULES:
+1. SOCIAL MEDIA POSTS: If this is a social media post (LinkedIn, Twitter, etc.), keep ONLY the main post text.
+   - REMOVE all comments, replies, and reactions.
+   - REMOVE interactions like "Like", "Comment", "Share", "Repost".
+   - REMOVE relative timestamps (e.g., "17h", "2d").
+   - REMOVE author bios, follower counts, and "You might also like" sections.
+2. ARTICLES: Keep the headline and body text. Remove headers, footers, sidebars, and "Read more" links.
+3. FORMATTING: Use clean Markdown. No extra horizontal rules or clutter.
+4. ACCURACY: Do NOT summarize. Keep the exact wording of the main content.
+5. LANGUAGE: Preserve the original language.
+
+The output should look like a clean document, ready for reading, without any UI noise.
+
+Return ONLY the cleaned main content."""
+
+        try:
+            print(f"Cleaning up content ({len(text)} chars)...")
+            # Truncate input if too long to save tokens, but keep enough for context
+            # GPT-4o has 128k context, but let's be reasonable
+            input_text = text[:50000] 
+            
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a helpful content cleaner."},
+                    {"role": "user", "content": f"{prompt}\n\nRaw Content:\n{input_text}"}
+                ],
+                max_completion_tokens=16000 # Allow long outputs for full transcripts
+            )
+            result = response.choices[0].message.content
+            print(f"Content cleanup successful ({len(result)} chars)")
+            return result
+        except Exception as e:
+            print(f"AI Error (Cleanup): {e}")
+            # Fallback: return original text if cleanup fails
+            return text
+
+    @staticmethod
     def generate_summary(text: str, style: str = "article"):
         if style == "article":
             # Use the exact prompt that produced great results in ChatGPT

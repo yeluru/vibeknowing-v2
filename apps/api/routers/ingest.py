@@ -151,7 +151,12 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
             result = await asyncio.to_thread(WebScraperService.scrape_url, request.url)
             
             if result['success'] and result['content']:
-                source.content_text = result['content']
+                # Clean up content using LLM
+                print(f"Scraping successful. Cleaning up content using AI...")
+                from services.ai import AIService
+                cleaned_content = await asyncio.to_thread(AIService.cleanup_content, result['content'])
+                
+                source.content_text = cleaned_content
                 source.title = truncate_title(result['title'])
                 content_fetched = True
                 print(f"Successfully scraped content ({len(result['content'])} chars)")
