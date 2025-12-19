@@ -14,7 +14,9 @@ except ImportError:
 class WebScraperService:
     
     @staticmethod
+    def detect_url_type(url: str) -> str:
         """Detect the type of URL"""
+        url = url.strip()
         # Handle URLs without scheme
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
