@@ -118,6 +118,7 @@ class YtDlpService:
         print(f"Starting yt-dlp processing for URL: {url}")
 
         # Check for WORKER_URL to offload processing
+        worker_url = os.environ.get("WORKER_URL")
         if worker_url:
             print(f"Found WORKER_URL: {worker_url}. Attempting to offload processing...")
             try:
