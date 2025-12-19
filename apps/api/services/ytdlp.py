@@ -118,11 +118,13 @@ class YtDlpService:
         print(f"Starting yt-dlp processing for URL: {url}")
 
         # Check for WORKER_URL to offload processing
-        worker_url = os.environ.get("WORKER_URL")
         if worker_url:
             print(f"Found WORKER_URL: {worker_url}. Attempting to offload processing...")
             try:
-                response = requests.post(worker_url, json={"url": url}, timeout=300)
+                # Add header to bypass ngrok free tier warning page
+                headers = {"ngrok-skip-browser-warning": "true"}
+                response = requests.post(worker_url, json={"url": url}, headers=headers, timeout=300)
+                
                 if response.status_code == 200:
                     data = response.json()
                     print("Worker processing successful!")
@@ -143,10 +145,12 @@ class YtDlpService:
                         "title": data.get("title", default_title)
                     }
                 else:
-                    print(f"Worker failed with status {response.status_code}: {response.text}")
+                    # Log the full response for debugging
+                    print(f"Worker failed with status {response.status_code}")
+                    print(f"Worker response: {response.text[:500]}") # First 500 chars
                     print("Falling back to local processing...")
             except Exception as e:
-                print(f"Worker request failed: {str(e)}")
+                print(f"Worker request failed with error: {str(e)}")
                 print("Falling back to local processing...")
         
         # Check if yt-dlp is available
