@@ -3,6 +3,7 @@ from config import settings
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
+class AIService:
     @staticmethod
     def cleanup_content(text: str) -> str:
         """Clean up raw webpage text to remove boilerplate, ads, and navigation."""
