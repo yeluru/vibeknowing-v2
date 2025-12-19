@@ -123,10 +123,12 @@ class YtDlpService:
             print(f"Found WORKER_URL environment variable. Attempting to offload processing...")
             print(f"Target Worker URL: {worker_url}")
             try:
-                # Add headers to bypass ngrok warning and simulate browser
+                # Add headers to bypass ngrok warning
+                # NOTE: Do NOT spoof a browser User-Agent, as that triggers the warning page.
+                # Use a custom UA and the bypass header.
                 headers = {
                     "ngrok-skip-browser-warning": "true",
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "User-Agent": "VibeKnowing-API/1.0", 
                     "Accept": "application/json",
                     "Content-Type": "application/json"
                 }
@@ -154,6 +156,18 @@ class YtDlpService:
                 else:
                     # Log the full response for debugging
                     print(f"Worker failed with status {response.status_code}")
+                    
+                    # Try to extract page title to see what the error is
+                    error_title = "Unknown Error"
+                    try:
+                        import re
+                        match = re.search(r'<title>(.*?)</title>', response.text, re.IGNORECASE)
+                        if match:
+                            error_title = match.group(1)
+                    except:
+                        pass
+                        
+                    print(f"Worker Error Page Title: {error_title}")
                     print(f"Worker response content: {response.text[:1000]}") 
                     print("Falling back to local processing...")
             except Exception as e:
