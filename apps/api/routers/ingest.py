@@ -105,7 +105,9 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
 
     # Detect URL type
     from services.scraper import WebScraperService
+    print(f"DEBUG: Incoming URL for detection: '{request.url}'")
     url_type = WebScraperService.detect_url_type(request.url)
+    print(f"DEBUG: Detected URL type: '{url_type}'")
     
     # Create source entry
     source = models.Source(
