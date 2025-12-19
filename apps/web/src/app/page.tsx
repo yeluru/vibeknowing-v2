@@ -190,82 +190,114 @@ export default function Home() {
 
   return (
     <div className="space-y-16 pb-20 relative">
-      <section className="relative pt-6 pb-8 lg:pt-12 lg:pb-16 px-3 lg:px-4 overflow-hidden border border-slate-200 rounded-[2rem] lg:rounded-[3rem] max-w-6xl mx-auto mt-0 lg:mt-4 bg-white/50 backdrop-blur-3xl">
+      <section className="vk-hero relative pt-6 pb-8 lg:pt-12 lg:pb-14 px-4 lg:px-8 overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] max-w-6xl mx-auto mt-0 lg:mt-4">
         {/* Brand Logo - Inside Top Right */}
-        <Logo className="absolute top-3 left-3 lg:left-auto lg:top-8 lg:right-8 z-50 pointer-events-none scale-75 lg:scale-100 origin-top-left lg:origin-top-right" />
+        <Logo className="absolute top-3 left-3 md:top-8 md:left-8 z-50 pointer-events-none scale-75 md:scale-100 origin-top-left" />
 
-        {/* Background Glows */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] -z-10" />
-
-        {/* Left Decorations (Inputs: Social Cloud) - Hidden on Mobile */}
-        <div className="hidden lg:block absolute left-6 top-6 z-0 pointer-events-none select-none">
+        {/* Desktop: move eyebrow to the top-right corner */}
+        <div className="hidden md:block absolute top-8 right-8 z-40">
           <motion.div
-            initial={{ opacity: 0, rotate: 20, transformOrigin: 'top left' }}
-            animate={{ opacity: 1, rotate: 0 }}
-            transition={{
-              type: "spring",
-              stiffness: 120,
-              damping: 10,
-              mass: 1
-            }}
-            className="relative"
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full vk-eyebrow text-slate-700 dark:text-slate-200"
           >
-            {/* Glass Container for Cloud */}
-            <div className="p-3 bg-white/40 backdrop-blur-md border border-white/50 rounded-3xl shadow-xl">
-              <div className="grid grid-cols-3 gap-1.5">
-                <div className="p-2 bg-red-50/80 rounded-lg text-red-500"><Youtube className="h-4 w-4" /></div>
-                <div className="p-2 bg-blue-50/80 rounded-lg text-blue-400"><Twitter className="h-4 w-4" /></div>
-                <div className="p-2 bg-blue-50/80 rounded-lg text-blue-700"><Linkedin className="h-4 w-4" /></div>
-                <div className="p-2 bg-orange-50/80 rounded-lg text-orange-500"><FileText className="h-4 w-4" /></div>
-                <div className="p-2 bg-slate-50/80 rounded-lg text-slate-700"><Github className="h-4 w-4" /></div>
-                <div className="p-2 bg-pink-50/80 rounded-lg text-pink-500"><Instagram className="h-4 w-4" /></div>
-                <div className="p-2 bg-emerald-50/80 rounded-lg text-emerald-500"><Globe className="h-4 w-4" /></div>
-                <div className="p-2 bg-purple-50/80 rounded-lg text-purple-500"><Mic className="h-4 w-4" /></div>
-                <div className="p-2 bg-indigo-50/80 rounded-lg text-indigo-500"><MessageCircle className="h-4 w-4" /></div>
-              </div>
-            </div>
+            <Sparkles className="h-4 w-4 text-indigo-500" />
+            <span className="text-sm font-semibold">The OS for Learning</span>
           </motion.div>
         </div>
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={staggerContainer}
-          className="w-full lg:max-w-[80%] mx-auto text-center space-y-5 lg:space-y-8"
-        >
-          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-slate-800/50 border border-indigo-100 dark:border-indigo-900/50 backdrop-blur-sm shadow-sm group hover:border-indigo-300 transition-colors cursor-default mt-8 lg:mt-0">
-            <Sparkles className="h-4 w-4 text-indigo-500 animate-pulse" />
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-indigo-600 transition-colors">The OS for Learning</span>
+        {/* Subtle grid + glow for “industry SaaS” feel */}
+        <div className="absolute inset-0 -z-10 vk-subtle-grid opacity-60" />
+
+        <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="vk-shell">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-center">
+            {/* Left: “product preview” panel (purely visual) */}
+            <motion.div variants={fadeInUp} className="order-2 md:order-1 md:col-span-5 md:justify-self-start md:self-start md:pt-14">
+              <div className="vk-card w-full max-w-[420px] rounded-3xl p-6 lg:p-7 bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-bold text-slate-900 dark:text-slate-100">How it works</div>
+                  <div className="vk-pill px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">~ 60 seconds</div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  <div className="vk-card rounded-2xl p-4 bg-white/70 dark:bg-slate-950/30">
+                    <div className="flex items-start gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold">1</div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">Drop a link or file</div>
+                        <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">YouTube, websites, PDFs, docs, audio.</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="vk-card rounded-2xl p-4 bg-white/70 dark:bg-slate-950/30">
+                    <div className="flex items-start gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-sky-500/10 text-sky-700 dark:text-sky-300 flex items-center justify-center font-bold">2</div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">Get a knowledge workspace</div>
+                        <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">Chat, summaries, concepts, and structure.</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="vk-card rounded-2xl p-4 bg-white/70 dark:bg-slate-950/30">
+                    <div className="flex items-start gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 flex items-center justify-center font-bold">3</div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100">Practice + create</div>
+                        <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">Flashcards, quizzes, and studio tools.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="vk-card rounded-2xl p-4 bg-white/60 dark:bg-slate-950/25">
+                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Outputs</div>
+                    <div className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Flashcards · Quizzes · Notes</div>
+                  </div>
+                  <div className="vk-card rounded-2xl p-4 bg-white/60 dark:bg-slate-950/25">
+                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Best for</div>
+                    <div className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Individuals &amp; Teams · Learn fast. Grow.</div>
+                  </div>
+                </div>
+            </div>
           </motion.div>
 
-          <motion.h1 variants={fadeInUp} className="text-4xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-4 lg:mb-6">
-            Master Any Topic. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-violet-600 to-blue-600 animate-gradient bg-300% leading-[1.4] pb-2 lg:pb-4">
-              In Record Time.
-            </span>
+            {/* Right: copy + CTA */}
+            <div className="order-1 md:order-2 md:col-span-7 text-center md:text-left">
+              {/* Mobile: keep eyebrow in-flow */}
+              <motion.div variants={fadeInUp} className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full vk-eyebrow text-slate-700 dark:text-slate-200 mt-8">
+                <Sparkles className="h-4 w-4 text-indigo-500" />
+                <span className="text-sm font-semibold">The OS for Learning</span>
+              </motion.div>
+
+              <motion.h1 variants={fadeInUp} className="mt-5 text-4xl sm:text-6xl md:text-6xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.04] text-center md:text-center">
+                Master any topic.
+                <span className="block mt-2 vk-gradient-text">In record time.</span>
           </motion.h1>
 
-          <motion.p variants={fadeInUp} className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-6 lg:mb-10 leading-relaxed font-medium px-2">
-            The AI workspace that turns your YouTube videos, PDFs, and web pages into deep understanding.
-            Generate flashcards, quizzes, and essays instantly.
+              <motion.p variants={fadeInUp} className="mt-5 text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed text-center md:text-center">
+                Turn YouTube videos, PDFs, and web pages into deep understanding. Generate flashcards, quizzes, and essays instantly.
           </motion.p>
 
-          <motion.div variants={fadeInUp} className="w-full mx-auto pt-4 relative z-20">
-            {/* Redesigned Input Box - Full Width, No Outer Wrapper Styling */}
+              <motion.div variants={fadeInUp} className="mt-7 relative z-20">
             <div className="transform hover:scale-[1.01] transition-transform duration-300">
               <UrlInput />
             </div>
 
-            {/* Expanded Feature List */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-900 dark:text-white font-semibold">
-              <span className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-default"><Youtube className="h-4 w-4" /> YouTube</span>
-              <span className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-default"><Globe className="h-4 w-4" /> Websites</span>
-              <span className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-default"><FileText className="h-4 w-4" /> PDFs & Docs</span>
-              <span className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-default"><Mic className="h-4 w-4" /> Audio</span>
-              <span className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-default"><Video className="h-4 w-4" /> TED Talks</span>
-              <span className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-default"><Share2 className="h-4 w-4" /> Social Threads</span>
+                <div className="mt-5 flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 text-sm text-slate-700 dark:text-slate-200 font-semibold">
+                  <span className="inline-flex items-center gap-1.5"><Youtube className="h-4 w-4 text-indigo-600 dark:text-indigo-300" /> YouTube</span>
+                  <span className="inline-flex items-center gap-1.5"><Globe className="h-4 w-4 text-sky-600 dark:text-sky-300" /> Websites</span>
+                  <span className="inline-flex items-center gap-1.5"><FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" /> PDFs & Docs</span>
+                  <span className="inline-flex items-center gap-1.5"><Mic className="h-4 w-4 text-cyan-600 dark:text-cyan-300" /> Audio</span>
+                  <span className="inline-flex items-center gap-1.5"><Video className="h-4 w-4 text-indigo-600 dark:text-indigo-300" /> TED</span>
+                  <span className="inline-flex items-center gap-1.5"><Share2 className="h-4 w-4 text-sky-600 dark:text-sky-300" /> Social</span>
+                </div>
+              </motion.div>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
       </section>
 
@@ -279,16 +311,16 @@ export default function Home() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 1: Deep Understanding */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="vk-card group relative p-8 h-full rounded-3xl bg-white/65 dark:bg-slate-950/25 backdrop-blur-xl hover:shadow-xl transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-5 mb-5">
-                <div className="h-16 w-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                <div className="h-16 w-16 bg-indigo-500/10 dark:bg-indigo-400/10 rounded-2xl flex items-center justify-center text-indigo-700 dark:text-indigo-300 group-hover:scale-110 transition-transform duration-300 shrink-0">
                   <Brain className="h-8 w-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Deep Understanding</h3>
+                <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">Deep Understanding</h3>
               </div>
               <div>
-                <p className="text-slate-600 leading-relaxed text-base">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base">
                   Stop drowning in information. VibeKnowing doesn't just summarize; it deconstructs complex topics into their core concepts. From 3-hour lectures to dense research papers, our AI extracts the signal from the noise, creating a structured knowledge base you can actually master in minutes.
                 </p>
               </div>
@@ -296,16 +328,16 @@ export default function Home() {
           </motion.div>
 
           {/* Card 2: Active Recall */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800 shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="vk-card group relative p-8 h-full rounded-3xl bg-white/65 dark:bg-slate-950/25 backdrop-blur-xl hover:shadow-xl transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-5 mb-5">
-                <div className="h-16 w-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                <div className="h-16 w-16 bg-sky-500/10 dark:bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-700 dark:text-sky-300 group-hover:scale-110 transition-transform duration-300 shrink-0">
                   <Zap className="h-8 w-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Active Recall</h3>
+                <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">Active Recall</h3>
               </div>
               <div>
-                <p className="text-slate-600 leading-relaxed text-base">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base">
                   Forget the forgetting curve. Our system automatically generates scientifically-backed flashcards, scheduling reviews at the exact moment you're about to forget. It's not just studying; it's downloading knowledge directly into your long-term memory with maximum efficiency.
                 </p>
               </div>
@@ -313,16 +345,16 @@ export default function Home() {
           </motion.div>
 
           {/* Card 3: Smart Quizzes */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 shadow-sm hover:shadow-xl hover:border-amber-300 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="vk-card group relative p-8 h-full rounded-3xl bg-white/65 dark:bg-slate-950/25 backdrop-blur-xl hover:shadow-xl transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-5 mb-5">
-                <div className="h-16 w-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                <div className="h-16 w-16 bg-cyan-500/10 dark:bg-cyan-400/10 rounded-2xl flex items-center justify-center text-cyan-800 dark:text-cyan-300 group-hover:scale-110 transition-transform duration-300 shrink-0">
                   <Target className="h-8 w-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Smart Quizzes</h3>
+                <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">Smart Quizzes</h3>
               </div>
               <div>
-                <p className="text-slate-600 leading-relaxed text-base">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base">
                   Walk into every exam with confidence. VibeKnowing analyzes your material to predict the toughest questions. It generates adaptive quizzes that pinpoint your weak spots and provide instant feedback. Turn passive reading into active mastery and be battle-ready for any test.
                 </p>
               </div>
@@ -330,16 +362,16 @@ export default function Home() {
           </motion.div>
 
           {/* Card 4: Creation Studio */}
-          <motion.div variants={fadeInUp} className="group relative p-8 h-full rounded-3xl bg-purple-50/50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800 shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 overflow-hidden">
+          <motion.div variants={fadeInUp} className="vk-card group relative p-8 h-full rounded-3xl bg-white/65 dark:bg-slate-950/25 backdrop-blur-xl hover:shadow-xl transition-all duration-300 overflow-hidden">
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-5 mb-5">
-                <div className="h-16 w-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform duration-300 shrink-0">
+                <div className="h-16 w-16 bg-indigo-500/10 dark:bg-indigo-400/10 rounded-2xl flex items-center justify-center text-indigo-700 dark:text-indigo-300 group-hover:scale-110 transition-transform duration-300 shrink-0">
                   <Palette className="h-8 w-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 leading-tight">Creation Studio</h3>
+                <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">Creation Studio</h3>
               </div>
               <div>
-                <p className="text-slate-600 leading-relaxed text-base">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base">
                   Transform from learner to creator. Don't let insights gather dust—instantly remix your knowledge base into engaging blog posts, viral social threads, or comprehensive study guides. Coming soon: Turn your notes into studio-quality audio podcasts to share with the world.
                 </p>
               </div>
@@ -357,11 +389,12 @@ export default function Home() {
           variants={staggerContainer}
           className="max-w-6xl mx-auto px-4 pt-4 lg:pt-8"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 lg:mb-8 gap-4">
+          <div className="vk-card bg-white/55 dark:bg-slate-950/20 backdrop-blur-xl border border-slate-200/70 dark:border-slate-800 rounded-3xl p-5 sm:p-6 mb-6 lg:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center justify-between w-full sm:w-auto">
               <div>
-                <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">Your Learning Goals</h2>
-                <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm lg:text-base">Pick up where you left off</p>
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Your Learning Goals</h2>
+                <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm lg:text-base">Pick up where you left off</p>
               </div>
               <button
                 onClick={async () => {
@@ -369,7 +402,7 @@ export default function Home() {
                   await loadData();
                   setIsRefreshing(false);
                 }}
-                className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-indigo-600 transition-all sm:hidden"
+                className="p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all sm:hidden"
                 title="Refresh Projects"
               >
                 <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
@@ -384,14 +417,19 @@ export default function Home() {
                   await loadData();
                   setIsRefreshing(false);
                 }}
-                className="hidden sm:block p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-indigo-600 transition-all"
+                className="hidden sm:block p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all"
                 title="Refresh Projects"
               >
                 <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
               </button>
               <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input type="text" placeholder="Search goals..." className="w-full sm:w-auto pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input
+                  type="text"
+                  placeholder="Search goals..."
+                  className="vk-input w-full sm:w-72 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
               </div>
             </div>
           </div>
@@ -409,10 +447,10 @@ export default function Home() {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {group.projects.map((project, i) => {
-                    // Alternating Pastel Colors
-                    const isViolet = i % 2 === 0;
-                    const bgColorClass = isViolet ? 'bg-violet-100 border border-violet-200' : 'bg-emerald-100 border border-emerald-200';
-                    const themeColorClass = isViolet ? 'text-violet-600' : 'text-emerald-600';
+                    // Option A: neutral cards with indigo/sky accent
+                    const isIndigo = i % 2 === 0;
+                    const bgColorClass = "vk-card bg-white/70 dark:bg-slate-950/20 border border-slate-200/70 dark:border-slate-800";
+                    const themeColorClass = isIndigo ? 'text-indigo-700 dark:text-indigo-300' : 'text-sky-700 dark:text-sky-300';
                     const categoryName = group.name;
 
                     return (
@@ -425,9 +463,9 @@ export default function Home() {
                               bgColorClass
                             )}
                           >
-                            {/* Background Decor - Pastel Style (Subtle blobs) */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/40 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none" />
+                            {/* Background Decor (subtle v2 glow) */}
+                            <div className={cn("absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none", isIndigo ? "bg-indigo-500/10" : "bg-sky-500/10")} />
+                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-500/5 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none" />
 
                             {/* Valid Header Icon */}
                             <div className="relative z-10 flex justify-end items-start pointer-events-none">
@@ -448,7 +486,7 @@ export default function Home() {
                             </div>
 
                             {/* Footer */}
-                            <div className="relative z-10 pt-4 border-t border-slate-200/60 flex items-center justify-between text-slate-500 text-xs pointer-events-none">
+                            <div className="relative z-10 pt-4 border-t border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs pointer-events-none">
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {new Date(project.created_at).toLocaleDateString()}

@@ -149,13 +149,14 @@ export function UrlInput() {
             <form onSubmit={handleSubmit} className="relative">
                 {/* File Preview Badge */}
                 {file && (
-                    <div className="mb-2 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg text-sm">
+                    <div className="mb-2 inline-flex items-center gap-2 px-3 py-1.5 vk-pill vk-pill-muted text-sm">
                         <Paperclip className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                         <span className="text-purple-900 dark:text-purple-200 font-medium">{file.name}</span>
                         <button
                             type="button"
                             onClick={removeFile}
-                            className="text-purple-600 dark:text-purple-400 hover:text-purple-800 transition-colors"
+                            className="vk-btn vk-btn-ghost p-1 text-purple-600 dark:text-purple-400 hover:text-purple-800 transition-colors"
+                            aria-label="Remove selected file"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -163,16 +164,17 @@ export function UrlInput() {
                 )}
 
                 {/* Main Input Container - Premium Styling */}
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 p-2 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-gray-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300">
+                <div className="vk-panel flex flex-col md:flex-row items-stretch md:items-center gap-3 p-2 rounded-3xl transition-all duration-300">
 
                     {/* Input Wrapper */}
-                    <div className="flex-1 flex items-center bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-transparent focus-within:border-purple-200 dark:focus-within:border-purple-800 focus-within:bg-white dark:focus-within:bg-slate-900 transition-all duration-300">
+                    <div className="flex-1 flex items-center bg-slate-50/80 dark:bg-slate-950/30 rounded-2xl border border-transparent focus-within:border-purple-200 dark:focus-within:border-purple-800 focus-within:bg-white/70 dark:focus-within:bg-slate-950/40 transition-all duration-300">
                         {/* File Upload Button */}
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="p-3 ml-1 text-gray-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors"
+                            className="vk-btn vk-btn-ghost p-3 ml-1 text-gray-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50/70 dark:hover:bg-purple-900/20 rounded-xl transition-colors"
                             title="Upload file (audio, video, PDF, text)"
+                            aria-label="Upload a file"
                         >
                             <Paperclip className="h-5 w-5" />
                         </button>
@@ -205,9 +207,10 @@ export function UrlInput() {
                         type="submit"
                         disabled={!canSubmit}
                         className={cn(
-                            "h-14 md:h-auto md:py-3 flex items-center justify-center rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 text-base font-bold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] w-full md:w-auto shrink-0",
+                            "vk-btn vk-btn-primary h-14 md:h-auto md:py-3 flex items-center justify-center rounded-2xl px-8 text-base font-bold shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/35 hover:scale-[1.01] active:scale-[0.99] w-full md:w-auto shrink-0",
                             !canSubmit && "cursor-not-allowed opacity-50 grayscale"
                         )}
+                        aria-busy={isLoading}
                     >
                         {isLoading ? (
                             <div className="flex items-center gap-2">

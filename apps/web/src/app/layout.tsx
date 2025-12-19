@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import "./ui.v2.css";
 import AppShell from "@/components/layout/AppShell";
 import { Providers } from "@/components/providers/Providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-plus-jakarta" });
 
 export const metadata: Metadata = {
   title: "VibeKnowing V2",
@@ -21,7 +23,7 @@ export default function RootLayout({
       <head>
 
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${plusJakarta.variable} font-sans antialiased vk-ui-v2`}>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

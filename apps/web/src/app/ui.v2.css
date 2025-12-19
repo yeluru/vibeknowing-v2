@@ -1,0 +1,285 @@
+/* UI v2 Facelift (presentation-only)
+   - Fully reversible: remove this file + remove its import + remove `vk-ui-v2` class on <body>
+   - Scoped: all styles are gated under `.vk-ui-v2` to avoid changing existing UI unless enabled
+*/
+
+.vk-ui-v2 {
+  /* Derivative tokens (keep existing :root tokens intact in globals.css) */
+  --vk-surface: var(--background-light);
+  --vk-surface-2: var(--card);
+  --vk-surface-elevated: var(--background-elevated);
+  --vk-text: var(--foreground);
+  --vk-text-muted: var(--foreground-muted);
+  --vk-border: color-mix(in srgb, var(--border) 85%, transparent);
+  --vk-ring: var(--ring);
+
+  --vk-radius-sm: var(--radius-sm);
+  --vk-radius-md: var(--radius-md);
+  --vk-radius-lg: var(--radius-lg);
+  --vk-shadow-1: var(--shadow-sm);
+  --vk-shadow-2: var(--shadow);
+  --vk-shadow-3: var(--shadow-md);
+}
+
+/* UI v2 token overrides (scoped, reversible) */
+body.vk-ui-v2 {
+  /* Typography: use a more premium UI font (still fully reversible) */
+  font-family: var(--font-plus-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* More decisive “industry SaaS” palette */
+  /* Option A: Slate neutrals + Indigo primary + Cyan accent */
+  --background: #f7f8fc;
+  --background-light: #ffffff;
+  --background-elevated: #ffffff;
+  --foreground: #0b1220;
+  --foreground-muted: #58657a;
+  --card: #ffffff;
+  --card-border: #e3e8f3;
+  --border: #e3e8f3;
+  --ring: #4f46e5; /* indigo */
+
+  /* Keep existing primary/secondary variables but bias accent usage */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --secondary: #0ea5e9; /* cyan/sky */
+  --secondary-hover: #0284c7;
+  --accent: #22d3ee;
+  --accent-hover: #06b6d4;
+
+  /* Radius/shadows: calmer, more modern */
+  --radius-sm: 0.625rem; /* 10px */
+  --radius-md: 0.875rem; /* 14px */
+  --radius-lg: 1.125rem; /* 18px */
+  --radius-xl: 1.5rem;   /* 24px */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 8px 20px rgba(16, 24, 40, 0.10);
+
+  background-color: var(--background);
+  color: var(--vk-text);
+  background-image:
+    radial-gradient(circle at 50% -10%, rgba(79, 70, 229, 0.18), transparent 44%),
+    radial-gradient(circle at 0% 25%, rgba(34, 211, 238, 0.12), transparent 42%),
+    radial-gradient(circle at 100% 20%, rgba(14, 165, 233, 0.10), transparent 44%);
+  background-attachment: fixed;
+}
+
+.dark body.vk-ui-v2 {
+  --background: #070a12;
+  --background-light: #0b1020;
+  --background-elevated: #0f1630;
+  --foreground: #eef2ff;
+  --foreground-muted: #a7b0c3;
+  --card: #0b1020;
+  --card-border: #192044;
+  --border: #192044;
+  --ring: #818cf8;
+  --primary: #818cf8;
+  --primary-hover: #a5b4fc;
+  --secondary: #38bdf8;
+  --secondary-hover: #0ea5e9;
+  --accent: #22d3ee;
+  --accent-hover: #06b6d4;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 10px 26px rgba(0, 0, 0, 0.55);
+
+  background-image:
+    radial-gradient(circle at 50% -10%, rgba(99, 102, 241, 0.22), transparent 44%),
+    radial-gradient(circle at 0% 25%, rgba(34, 211, 238, 0.10), transparent 44%),
+    radial-gradient(circle at 100% 20%, rgba(56, 189, 248, 0.10), transparent 46%);
+}
+
+.vk-ui-v2 ::selection {
+  background-color: color-mix(in srgb, var(--primary) 18%, transparent);
+  color: var(--vk-text);
+}
+
+/* Typography polish (subtle; avoids changing hierarchy in components) */
+.vk-ui-v2 :where(h1, h2, h3) {
+  letter-spacing: -0.02em;
+}
+
+.vk-ui-v2 :where(h1) {
+  font-weight: 800;
+}
+
+.vk-ui-v2 :where(h2, h3) {
+  font-weight: 750;
+}
+
+.vk-ui-v2 :where(p, li) {
+  color: var(--vk-text);
+}
+
+.vk-ui-v2 :where(small, .vk-muted) {
+  color: var(--vk-text-muted);
+}
+
+/* Links: professional, readable, minimal */
+.vk-ui-v2 a {
+  color: color-mix(in srgb, var(--primary) 92%, black);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.14em;
+}
+
+.vk-ui-v2 a:hover {
+  color: var(--primary-hover);
+}
+
+/* Focus: keep accessible focus rings but make them more consistent on interactive controls */
+.vk-ui-v2 :where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--vk-ring);
+  outline-offset: 3px;
+  border-radius: var(--vk-radius-md);
+}
+
+/* Make the facelift obvious: unify chrome surfaces (header/sidebar) under v2 gate */
+body.vk-ui-v2 header {
+  background: color-mix(in srgb, var(--background-light) 72%, transparent) !important;
+  border-bottom-color: color-mix(in srgb, var(--border) 78%, transparent) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+body.vk-ui-v2 aside {
+  background: color-mix(in srgb, var(--background-light) 70%, transparent) !important;
+  border-right-color: color-mix(in srgb, var(--border) 78%, transparent) !important;
+  box-shadow: var(--shadow-md);
+}
+
+body.vk-ui-v2 main {
+  color: var(--foreground);
+}
+
+/* New v2 layout helpers (opt-in via classNames) */
+.vk-ui-v2 .vk-shell {
+  max-width: 72rem; /* ~1152px */
+  margin-inline: auto;
+}
+
+.vk-ui-v2 .vk-hero {
+  background:
+    radial-gradient(circle at 18% 28%, rgba(34, 211, 238, 0.14), transparent 55%),
+    radial-gradient(circle at 88% 20%, rgba(79, 70, 229, 0.16), transparent 52%),
+    linear-gradient(180deg, color-mix(in srgb, var(--background-light) 78%, transparent), color-mix(in srgb, var(--background-light) 64%, transparent));
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  box-shadow: var(--shadow-md);
+}
+
+.vk-ui-v2 .vk-subtle-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--border) 35%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 35%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: center;
+  mask-image: radial-gradient(circle at 50% 20%, black 0%, transparent 65%);
+}
+
+.vk-ui-v2 .vk-eyebrow {
+  background: color-mix(in srgb, var(--background-light) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.vk-ui-v2 .vk-gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Motion safety */
+@media (prefers-reduced-motion: reduce) {
+  .vk-ui-v2 * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Light component primitives (opt-in via wrapper classes; no behavior changes) */
+.vk-ui-v2 .vk-card {
+  background: color-mix(in srgb, var(--vk-surface) 92%, transparent);
+  border: 1px solid var(--vk-border);
+  border-radius: var(--vk-radius-lg);
+  box-shadow: var(--vk-shadow-1);
+}
+
+.vk-ui-v2 .vk-panel {
+  background: color-mix(in srgb, var(--vk-surface-elevated) 88%, transparent);
+  border: 1px solid var(--vk-border);
+  border-radius: var(--vk-radius-lg);
+  box-shadow: var(--vk-shadow-2);
+}
+
+.vk-ui-v2 .vk-input {
+  background: color-mix(in srgb, var(--vk-surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius: var(--vk-radius-md);
+  color: var(--vk-text);
+}
+
+.vk-ui-v2 .vk-input::placeholder {
+  color: color-mix(in srgb, var(--vk-text-muted) 90%, transparent);
+}
+
+.vk-ui-v2 .vk-btn {
+  border-radius: var(--vk-radius-md);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  box-shadow: var(--vk-shadow-1);
+}
+
+.vk-ui-v2 .vk-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.vk-ui-v2 .vk-btn-primary {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 92%, black), var(--secondary));
+  color: white;
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+}
+
+.vk-ui-v2 .vk-btn-primary:hover {
+  filter: brightness(1.03);
+}
+
+.vk-ui-v2 .vk-btn-secondary {
+  background: color-mix(in srgb, var(--vk-surface) 88%, transparent);
+  color: var(--vk-text);
+  border-color: color-mix(in srgb, var(--border) 88%, transparent);
+}
+
+.vk-ui-v2 .vk-btn-ghost {
+  background: transparent;
+  color: var(--vk-text);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.vk-ui-v2 .vk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--vk-surface) 90%, transparent);
+  color: var(--vk-text);
+}
+
+.vk-ui-v2 .vk-pill-muted {
+  color: var(--vk-text-muted);
+  background: color-mix(in srgb, var(--vk-surface) 94%, transparent);
+}
+
+.vk-ui-v2 .vk-kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.75em;
+  padding: 0.12em 0.5em;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--vk-surface) 92%, transparent);
+  color: var(--vk-text-muted);
+}
+
+

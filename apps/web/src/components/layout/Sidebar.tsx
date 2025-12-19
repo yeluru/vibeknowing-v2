@@ -355,8 +355,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 href={project.first_source_id ? `/source/${project.first_source_id}` : '#'}
                 onClick={onNavigate}
                 className={cn(
-                    "flex-1 block px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 rounded-xl hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-slate-700 hover:to-purple-50/30 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 truncate transition-all duration-300 pr-10 font-medium relative overflow-hidden group/link",
-                    project.first_source_id && pathname === `/source/${project.first_source_id}` && "bg-gradient-to-r from-indigo-50 dark:from-indigo-900/30 to-purple-50/30 dark:to-purple-900/30 text-indigo-700 dark:text-indigo-300 font-semibold shadow-md border border-indigo-200 dark:border-indigo-800/50"
+                    "flex-1 block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300 truncate transition-all duration-200 pr-10 font-medium relative overflow-hidden group/link",
+                    project.first_source_id && pathname === `/source/${project.first_source_id}` && "bg-indigo-50/70 dark:bg-indigo-900/25 text-indigo-800 dark:text-indigo-200 font-semibold shadow-sm border border-indigo-200/70 dark:border-indigo-800/60"
                 )}
             >
                 <div className="relative z-10 flex items-center gap-2">
@@ -447,22 +447,22 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         <aside
             ref={sidebarRef}
             style={{ width: `${sidebarWidth}px` }}
-            className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shadow-2xl transition-colors duration-300 relative overflow-hidden group/sidebar"
+            className="bg-white/75 dark:bg-slate-900/55 backdrop-blur-2xl border-r border-slate-200/70 dark:border-slate-800 flex flex-col h-full shadow-xl transition-colors duration-300 relative overflow-hidden group/sidebar"
         >
             {/* Decorative background elements */}
-            <div className="absolute inset-0 opacity-5 pointer-events-none">
+            <div className="absolute inset-0 opacity-[0.035] pointer-events-none">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-400 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400 rounded-full blur-3xl"></div>
             </div>
 
-            <div className="relative p-5 border-b border-slate-200/60 dark:border-slate-700/60 space-y-3 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-800 dark:to-slate-900/50 transition-colors duration-300">
+            <div className="relative p-5 border-b border-slate-200/70 dark:border-slate-800 space-y-3 bg-gradient-to-br from-white/70 to-slate-50/30 dark:from-slate-900/50 dark:to-slate-950/20 transition-colors duration-300">
                 <Link href="/" onClick={onNavigate} className="flex items-center gap-3 text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 mb-4 group">
-                    <div className="relative p-2.5 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl shadow-lg group-hover:shadow-indigo-500/50 group-hover:scale-110 transition-all duration-300 hover-lift">
+                    <div className="relative p-2.5 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl shadow-md group-hover:shadow-indigo-500/40 group-hover:scale-110 transition-all duration-300 hover-lift">
                         <Home className="h-5 w-5 text-white relative z-10" />
                         <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-2xl gradient-text tracking-tight">VibeKnowing</span>
+                        <span className="font-bold text-2xl tracking-tight text-slate-900 dark:text-slate-100">VibeKnowing</span>
                         <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">AI Learning Suite</span>
                     </div>
                 </Link>
@@ -476,12 +476,12 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                             placeholder="Search projects..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
+                            className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
                         />
                     </div>
                     <button
                         onClick={() => loadData()}
-                        className="p-2 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg transition-all duration-200"
+                        className="p-2 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 rounded-xl transition-all duration-200"
                         title="Refresh projects"
                     >
                         <RefreshCw className="h-4 w-4" />
@@ -494,8 +494,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     className={cn(
                         "flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/studio",
                         pathname === '/studio'
-                            ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg shadow-purple-500/30"
-                            : "text-slate-600 dark:text-slate-300 hover:bg-gradient-to-r hover:from-purple-50 dark:hover:from-slate-700 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 hover:text-purple-600 dark:hover:text-purple-400"
+                            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/25"
+                            : "text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300"
                     )}
                 >
                     <div className={cn(
@@ -506,20 +506,20 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                         <span>Content Studio</span>
                     </div>
                     {pathname === '/studio' && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-indigo-400 opacity-0 group-hover/studio:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-sky-500 opacity-0 group-hover/studio:opacity-100 transition-opacity duration-300"></div>
                     )}
                 </Link>
 
                 <Link
                     href="/"
                     onClick={onNavigate}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/newproj text-slate-600 dark:text-slate-300 hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-indigo-900/30 hover:to-purple-50/30 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 mt-1"
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/newproj text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300 mt-1"
                 >
                     <div className="relative z-10 flex items-center gap-2.5">
                         <Plus className="h-4 w-4" />
                         <span>New Project</span>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover/newproj:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/70 to-sky-100/60 dark:from-indigo-900/15 dark:to-sky-900/10 opacity-0 group-hover/newproj:opacity-100 transition-opacity duration-300"></div>
                 </Link>
 
                 {/* New Category Input */}
@@ -538,9 +538,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                 ) : (
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gradient-to-r hover:from-purple-50 dark:hover:from-purple-900/30 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-lg transition-all duration-300 border border-dashed border-gray-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-md group relative overflow-hidden"
+                        className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 text-sm text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 rounded-xl transition-all duration-300 border border-dashed border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md group relative overflow-hidden"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/70 to-sky-100/60 dark:from-indigo-900/15 dark:to-sky-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <div className="relative z-10 flex items-center gap-2">
                             <Plus className="h-4 w-4 transform group-hover:rotate-90 transition-transform duration-300" />
                             <span className="font-medium">New Category</span>
@@ -570,13 +570,13 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             <div className="relative flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide" key={refreshKey}>
                 {/* Stats Summary */}
                 {!loading && (
-                    <div className="mb-4 p-3 rounded-xl bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-100 dark:border-indigo-800/30">
+                    <div className="mb-4 p-3 rounded-2xl bg-white/60 dark:bg-slate-950/25 backdrop-blur-xl border border-slate-200/70 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                            <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300">
                                 <Zap className="h-3.5 w-3.5" />
                                 <span className="font-semibold">Total Projects</span>
                             </div>
-                            <span className="font-bold text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full">{projects.length}</span>
+                            <span className="font-bold text-slate-900 dark:text-slate-100 bg-white/70 dark:bg-slate-900/40 px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-slate-800">{projects.length}</span>
                         </div>
                     </div>
                 )}

@@ -20,10 +20,10 @@ export function ThemeToggle() {
     <button
       onClick={handleToggle}
       className={cn(
-        "fixed top-4 right-4 z-50 p-3 rounded-full shadow-lg transition-all duration-300 hover-lift",
-        "bg-white/90 backdrop-blur-xl border border-slate-200",
-        "dark:bg-slate-800/90 dark:border-slate-700",
-        "hover:bg-white dark:hover:bg-slate-800",
+        "fixed top-4 right-4 z-50 p-3 rounded-full shadow-md transition-all duration-300 hover-lift",
+        "bg-white/80 backdrop-blur-xl border border-slate-200/70",
+        "dark:bg-slate-900/60 dark:border-slate-800",
+        "hover:bg-white dark:hover:bg-slate-900/75",
         "text-slate-700 dark:text-slate-200"
       )}
       aria-label="Toggle theme"
