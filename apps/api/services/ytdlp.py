@@ -120,10 +120,16 @@ class YtDlpService:
         # Check for WORKER_URL to offload processing
         worker_url = os.environ.get("WORKER_URL")
         if worker_url:
-            print(f"Found WORKER_URL: {worker_url}. Attempting to offload processing...")
+            print(f"Found WORKER_URL environment variable. Attempting to offload processing...")
+            print(f"Target Worker URL: {worker_url}")
             try:
-                # Add header to bypass ngrok free tier warning page
-                headers = {"ngrok-skip-browser-warning": "true"}
+                # Add headers to bypass ngrok warning and simulate browser
+                headers = {
+                    "ngrok-skip-browser-warning": "true",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
                 response = requests.post(worker_url, json={"url": url}, headers=headers, timeout=300)
                 
                 if response.status_code == 200:
@@ -148,7 +154,7 @@ class YtDlpService:
                 else:
                     # Log the full response for debugging
                     print(f"Worker failed with status {response.status_code}")
-                    print(f"Worker response: {response.text[:500]}") # First 500 chars
+                    print(f"Worker response content: {response.text[:1000]}") 
                     print("Falling back to local processing...")
             except Exception as e:
                 print(f"Worker request failed with error: {str(e)}")
