@@ -262,8 +262,8 @@ export default function Home() {
                     <div className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Individuals &amp; Teams · Learn fast. Grow.</div>
                   </div>
                 </div>
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
 
             {/* Right: copy + CTA */}
             <div className="order-1 md:order-2 md:col-span-7 text-center md:text-left">
@@ -276,16 +276,16 @@ export default function Home() {
               <motion.h1 variants={fadeInUp} className="mt-5 text-4xl sm:text-6xl md:text-6xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.04] text-center md:text-center">
                 Master any topic.
                 <span className="block mt-2 vk-gradient-text">In record time.</span>
-          </motion.h1>
+              </motion.h1>
 
               <motion.p variants={fadeInUp} className="mt-5 text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed text-center md:text-center">
                 Turn YouTube videos, PDFs, and web pages into deep understanding. Generate flashcards, quizzes, and essays instantly.
-          </motion.p>
+              </motion.p>
 
               <motion.div variants={fadeInUp} className="mt-7 relative z-20">
-            <div className="transform hover:scale-[1.01] transition-transform duration-300">
-              <UrlInput />
-            </div>
+                <div className="transform hover:scale-[1.01] transition-transform duration-300">
+                  <UrlInput />
+                </div>
 
                 <div className="mt-5 flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 text-sm text-slate-700 dark:text-slate-200 font-semibold">
                   <span className="inline-flex items-center gap-1.5"><Youtube className="h-4 w-4 text-indigo-600 dark:text-indigo-300" /> YouTube</span>
@@ -391,45 +391,45 @@ export default function Home() {
         >
           <div className="vk-card bg-white/55 dark:bg-slate-950/20 backdrop-blur-xl border border-slate-200/70 dark:border-slate-800 rounded-3xl p-5 sm:p-6 mb-6 lg:mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center justify-between w-full sm:w-auto">
-              <div>
-                <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Your Learning Goals</h2>
-                <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm lg:text-base">Pick up where you left off</p>
+              <div className="flex items-center justify-between w-full sm:w-auto">
+                <div>
+                  <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Your Learning Goals</h2>
+                  <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm lg:text-base">Pick up where you left off</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    setIsRefreshing(true);
+                    await loadData();
+                    setIsRefreshing(false);
+                  }}
+                  className="p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all sm:hidden"
+                  title="Refresh Projects"
+                >
+                  <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+                </button>
               </div>
-              <button
-                onClick={async () => {
-                  setIsRefreshing(true);
-                  await loadData();
-                  setIsRefreshing(false);
-                }}
-                className="p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all sm:hidden"
-                title="Refresh Projects"
-              >
-                <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-              </button>
-            </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              {/* Desktop Refresh Button */}
-              <button
-                onClick={async () => {
-                  setIsRefreshing(true);
-                  await loadData();
-                  setIsRefreshing(false);
-                }}
-                className="hidden sm:block p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all"
-                title="Refresh Projects"
-              >
-                <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-              </button>
-              <div className="relative flex-1 sm:flex-none">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search goals..."
-                  className="vk-input w-full sm:w-72 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                {/* Desktop Refresh Button */}
+                <button
+                  onClick={async () => {
+                    setIsRefreshing(true);
+                    await loadData();
+                    setIsRefreshing(false);
+                  }}
+                  className="hidden sm:block p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all"
+                  title="Refresh Projects"
+                >
+                  <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+                </button>
+                <div className="relative flex-1 sm:flex-none">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search goals..."
+                    className="vk-input w-full sm:w-72 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -474,15 +474,25 @@ export default function Home() {
                               )}
                             </div>
 
-                            {/* Content */}
                             <div className="relative z-10 pointer-events-none">
                               <div className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-1">
                                 <Folder className="h-3 w-3" />
                                 {categoryName}
                               </div>
-                              <h3 className="text-slate-900 font-bold text-base leading-snug line-clamp-4 mb-2">
+                              <h3 className="text-slate-900 font-bold text-base leading-snug line-clamp-2 mb-2">
                                 {project.title}
                               </h3>
+                              {/* Enhanced Details: URL & Preview */}
+                              {project.first_source_url && (
+                                <div className="text-xs font-mono text-indigo-600 dark:text-indigo-400 mb-2 truncate opacity-80">
+                                  {project.first_source_url.replace(/^https?:\/\/(www\.)?/, '')}
+                                </div>
+                              )}
+                              {project.first_source_preview && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                                  {project.first_source_preview}
+                                </p>
+                              )}
                             </div>
 
                             {/* Footer */}

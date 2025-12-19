@@ -35,7 +35,9 @@ async def list_projects(
         "created_at": p.created_at,
         "updated_at": p.updated_at,
         "source_count": len(p.sources),
-        "first_source_id": p.sources[0].id if p.sources else None
+        "first_source_id": p.sources[0].id if p.sources else None,
+        "first_source_url": p.sources[0].url if p.sources else None,
+        "first_source_preview": (p.sources[0].content_text or "").replace('\n', ' ').strip()[:200] + "..." if p.sources and p.sources[0].content_text else None
     } for p in projects]
 
 

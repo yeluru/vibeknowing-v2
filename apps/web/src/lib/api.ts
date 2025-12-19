@@ -68,6 +68,8 @@ export interface Project {
     updated_at: string;
     source_count: number;
     first_source_id?: string;
+    first_source_url?: string;
+    first_source_preview?: string;
     type?: string;
     status?: string;
 }
