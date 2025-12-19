@@ -6,7 +6,10 @@ import { projectsApi, categoriesApi, Project, Category } from "@/lib/api";
 import Link from "next/link";
 import { toast } from "sonner";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 export default function StudioPage() {
+    const { isAuthenticated } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -15,9 +18,18 @@ export default function StudioPage() {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [isAuthenticated]);
 
     const loadData = async () => {
+        // GUEST MODE HANDLER
+        if (!isAuthenticated) {
+            const guestProjects = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+            setProjects(guestProjects);
+            setCategories([]);
+            setLoading(false);
+            return;
+        }
+
         try {
             const [projs, cats] = await Promise.all([
                 projectsApi.list(),
@@ -32,20 +44,40 @@ export default function StudioPage() {
         }
     };
 
-    const handleDelete = async (e: React.MouseEvent, projectId: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) return;
+    const executeDelete = async (projectId: string) => {
+        // GUEST MODE HANDLER
+        if (!isAuthenticated) {
+            const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+            const updated = current.filter((p: Project) => String(p.id) !== String(projectId));
+            localStorage.setItem('guest_projects', JSON.stringify(updated));
+            setProjects(prev => prev.filter(p => p.id !== projectId));
+            window.dispatchEvent(new Event('refresh-sidebar'));
+            toast.success("Project deleted successfully");
+            return;
+        }
 
         try {
             await projectsApi.delete(projectId);
             setProjects(projects.filter(p => p.id !== projectId));
+            window.dispatchEvent(new Event('refresh-sidebar'));
             toast.success("Project deleted successfully");
         } catch (error) {
             console.error("Failed to delete project:", error);
             toast.error("Failed to delete project");
         }
+    };
+
+    const handleDelete = (e: React.MouseEvent, projectId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        toast("Are you sure you want to delete this project?", {
+            description: "This action cannot be undone.",
+            action: {
+                label: "Delete",
+                onClick: () => executeDelete(projectId),
+            },
+        });
     };
 
     const getCategoryProjects = (categoryId: string | null) => {

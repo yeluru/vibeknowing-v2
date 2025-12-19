@@ -19,6 +19,7 @@ import {
     Zap,
     RefreshCw
 } from "lucide-react";
+import { toast } from "sonner";
 import { categoriesApi, projectsApi, Category, Project, API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { EditableTitle } from '@/components/ui/EditableTitle';
@@ -154,24 +155,22 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         }
     };
 
-    const handleDeleteProject = async (projectId: string) => {
-        if (!window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-            return;
-        }
-
+    const executeDeleteProject = async (projectId: string) => {
         // GUEST MODE HANDLER
         if (!isAuthenticated) {
             const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
-            const updated = current.filter((p: any) => p.id !== projectId);
+            // Ensure ID comparison is type-safe (convert both to string)
+            const updated = current.filter((p: any) => String(p.id) !== String(projectId));
             localStorage.setItem('guest_projects', JSON.stringify(updated));
-            loadData(); // Reload sidebar data immediately
-            // Dispatch event to update Main Page
+            loadData();
             window.dispatchEvent(new Event('refresh-sidebar'));
+            toast.success("Project deleted");
             return;
         }
 
         try {
             await projectsApi.delete(projectId);
+            toast.success("Project deleted");
 
             // Force reload
             const [cats, projs] = await Promise.all([
@@ -187,8 +186,18 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             window.dispatchEvent(new Event('refresh-sidebar'));
         } catch (error) {
             console.error("Failed to delete project:", error);
-            alert("Failed to delete project");
+            toast.error("Failed to delete project");
         }
+    };
+
+    const handleDeleteProject = (projectId: string) => {
+        toast("Are you sure you want to delete this project?", {
+            description: "This action cannot be undone.",
+            action: {
+                label: "Delete",
+                onClick: () => executeDeleteProject(projectId),
+            },
+        });
     };
 
 
@@ -262,16 +271,25 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         }
     };
 
-    const handleDeleteCategory = async (id: string, e: React.MouseEvent) => {
+    const handleDeleteCategory = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm("Delete this category? Projects will be moved to Uncategorized.")) return;
 
-        try {
-            await categoriesApi.delete(id);
-            loadData();
-        } catch (error) {
-            console.error("Failed to delete category:", error);
-        }
+        toast("Delete this category?", {
+            description: "Projects will be moved to Uncategorized.",
+            action: {
+                label: "Delete",
+                onClick: async () => {
+                    try {
+                        await categoriesApi.delete(id);
+                        loadData();
+                        toast.success("Category deleted");
+                    } catch (error) {
+                        console.error("Failed to delete category:", error);
+                        toast.error("Failed to delete category");
+                    }
+                },
+            },
+        });
     };
 
     const getCategoryProjects = (categoryId: string | null) => {

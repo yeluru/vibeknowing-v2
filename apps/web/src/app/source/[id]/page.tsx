@@ -269,12 +269,20 @@ export default function SourcePage() {
         }
     };
 
-    const handleDeleteProject = async () => {
-        if (!source?.project_id) return;
-        if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) return;
+    const executeDeleteProject = async (projectId: string) => {
+        // GUEST MODE HANDLER
+        if (!isAuthenticated) {
+            const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
+            const updated = current.filter((p: Project) => String(p.id) !== String(projectId));
+            localStorage.setItem('guest_projects', JSON.stringify(updated));
+            window.dispatchEvent(new Event('refresh-sidebar'));
+            toast.success("Project deleted successfully");
+            router.push('/');
+            return;
+        }
 
         try {
-            await projectsApi.delete(source.project_id);
+            await projectsApi.delete(projectId);
             toast.success("Project deleted successfully");
             window.dispatchEvent(new Event('refresh-sidebar'));
             router.push('/');
@@ -282,6 +290,18 @@ export default function SourcePage() {
             console.error("Failed to delete project:", error);
             toast.error("Failed to delete project");
         }
+    };
+
+    const handleDeleteProject = () => {
+        if (!source?.project_id) return;
+
+        toast("Are you sure you want to delete this project?", {
+            description: "This action cannot be undone.",
+            action: {
+                label: "Delete",
+                onClick: () => executeDeleteProject(source.project_id!),
+            },
+        });
     };
 
     // Check if user is authenticated for UI conditional rendering

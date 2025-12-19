@@ -9,6 +9,7 @@ import {
   Layers, PenTool, MoreHorizontal, Trash2, RefreshCcw,
   Twitter, Linkedin, Github, Instagram, Music, MessageCircle, File
 } from "lucide-react";
+import { toast } from "sonner";
 import { projectsApi, Project, categoriesApi, Category } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -81,9 +82,7 @@ export default function Home() {
     }
   };
 
-  const handleDeleteProject = async (projectId: string) => {
-    if (!confirm("Are you sure you want to delete this project?")) return;
-
+  const executeDeleteProject = async (projectId: string) => {
     // 1. Optimistic Update (Immediate Feedback)
     setProjects(prev => prev.filter(p => p.id !== projectId));
     setActiveDropdown(null);
@@ -94,12 +93,15 @@ export default function Home() {
       // Use loose comparison or string conversion to be safe
       const updated = current.filter((p: Project) => String(p.id) !== String(projectId));
       localStorage.setItem('guest_projects', JSON.stringify(updated));
-      return; // Stop here, no API call needed
+      window.dispatchEvent(new Event('refresh-sidebar'));
+      toast.success("Project deleted");
+      return;
     }
 
     try {
       // 2. API Call (Auth Users Only)
       await projectsApi.delete(projectId);
+      toast.success("Project deleted");
 
       // 3. Buffered Refresh
       setTimeout(() => {
@@ -108,8 +110,19 @@ export default function Home() {
       }, 300);
     } catch (error) {
       console.error("Failed to delete project:", error);
+      toast.error("Failed to delete project");
       loadData(); // Revert on error
     }
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    toast("Are you sure you want to delete this project?", {
+      description: "This action cannot be undone.",
+      action: {
+        label: "Delete",
+        onClick: () => executeDeleteProject(projectId),
+      },
+    });
   };
 
 
