@@ -116,20 +116,20 @@ class YtDlpService:
     def process_video(url: str) -> Dict[str, any]:
         """Process video URL using yt-dlp to get transcript or audio"""
         print(f"Starting yt-dlp processing for URL: {url}")
+        
+        # DEBUG: Check env var
+        worker_url = os.environ.get("WORKER_URL")
+        print(f"DEBUG: WORKER_URL env var = '{worker_url}'")
 
         # Check for WORKER_URL to offload processing
-        worker_url = os.environ.get("WORKER_URL")
         if worker_url:
-            print(f"Found WORKER_URL environment variable. Attempting to offload processing...")
-            print(f"Target Worker URL: {worker_url}")
+            print(f"Attempting to offload processing to worker...")
             try:
                 # Add headers to bypass ngrok warning
-                # NOTE: Do NOT spoof a browser User-Agent, as that triggers the warning page.
-                # Use a custom UA and the bypass header.
+                # Try a standard value for the skip header
                 headers = {
-                    "ngrok-skip-browser-warning": "true",
-                    "User-Agent": "VibeKnowing-API/1.0", 
-                    "Accept": "application/json",
+                    "ngrok-skip-browser-warning": "69420",
+                    "User-Agent": "vibeknowing-backend",
                     "Content-Type": "application/json"
                 }
                 response = requests.post(worker_url, json={"url": url}, headers=headers, timeout=300)
