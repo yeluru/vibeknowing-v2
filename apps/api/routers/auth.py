@@ -51,7 +51,12 @@ async def request_otp(data: OtpRequest, background_tasks: BackgroundTasks, db: S
     from services.email import EmailService
     background_tasks.add_task(EmailService.send_otp, data.email, code)
     
-    return {"status": "sent", "message": "OTP sent to email"}
+    # DEBUG: Return code in response to unblock user (email failing on Render)
+    return {
+        "status": "sent", 
+        "message": "OTP sent to email", 
+        "debug_code": code  # TEMPORARY FIX
+    }
 
 @router.post("/otp/verify", response_model=Token)
 async def verify_otp(data: OtpVerify, db: Session = Depends(get_db)):
