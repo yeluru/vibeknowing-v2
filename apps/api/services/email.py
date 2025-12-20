@@ -37,15 +37,18 @@ class EmailService:
 
         msg.attach(MIMEText(html_content, 'html'))
 
+        # Debug: Always print OTP to logs first (in case email fails/hangs)
+        print(f"🔒 [DEBUG] OTP for {to_email}: {code}")
+
         try:
             if settings.SMTP_PORT == 465:
                 # SSL connection
-                with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+                with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
                     server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
                     server.send_message(msg)
             else:
                 # TLS connection (587 or other)
-                with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+                with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
                     server.starttls()
                     server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
                     server.send_message(msg)
@@ -53,5 +56,3 @@ class EmailService:
             print(f"✅ OTP email sent to {to_email}")
         except Exception as e:
             print(f"❌ Failed to send email: {e}")
-            # Fallback to console for debugging
-            print(f"OTP for {to_email}: {code}")
