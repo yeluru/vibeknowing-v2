@@ -1,77 +1,95 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from pydantic import BaseModel, EmailStr, Field
 from database import get_db
 from models import User
 from services.auth import AuthService
-from datetime import timedelta
+from datetime import datetime, timedelta
 from config import settings
+from sqlalchemy import text, func
+import models
 
 router = APIRouter(
     prefix="/auth",
     tags=["auth"]
 )
 
-class UserSignup(BaseModel):
+class OtpRequest(BaseModel):
     email: EmailStr
-    password: str = Field(..., max_length=72)
-    full_name: str | None = None
+    type: str # 'login' or 'signup'
 
-class UserLogin(BaseModel):
+class OtpVerify(BaseModel):
     email: EmailStr
-    password: str = Field(..., max_length=72)
+    code: str
+    full_name: str | None = None
 
 class Token(BaseModel):
     access_token: str
     token_type: str
+    is_new_user: bool = False
 
-@router.post("/signup", response_model=Token)
-async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
-    # Check if user exists
-    db_user = db.query(User).filter(User.email == user_data.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+@router.post("/otp/request")
+async def request_otp(data: OtpRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Request a one-time password."""
+    # MVP: Generate simple 6-digit code
+    import random
+    code = "".join([str(random.randint(0, 9)) for _ in range(6)])
     
-    # Hash password
-    hashed_pw = AuthService.get_password_hash(user_data.password)
+    # Check rate limit (basic)
+    # In real app: check if recent OTP for this email exists < 1 min ago
     
-    # Create user
-    new_user = User(
-        email=user_data.email,
-        hashed_password=hashed_pw,
-        full_name=user_data.full_name
+    otp = models.OTP(
+        email=data.email,
+        code=code,
+        expires_at=datetime.utcnow() + timedelta(minutes=10)
     )
-    db.add(new_user)
+    db.add(otp)
     db.commit()
-    db.refresh(new_user)
     
-    # Generate token
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = AuthService.create_access_token(
-        data={"sub": new_user.email, "user_id": new_user.id},
-        expires_delta=access_token_expires
-    )
+    # Send Email in Background
+    from services.email import EmailService
+    background_tasks.add_task(EmailService.send_otp, data.email, code)
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"status": "sent", "message": "OTP sent to email"}
 
-@router.post("/login", response_model=Token)
-async def login(user_data: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == user_data.email).first()
-    if not user or not user.hashed_password:
-         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+@router.post("/otp/verify", response_model=Token)
+async def verify_otp(data: OtpVerify, db: Session = Depends(get_db)):
+    """Verify OTP and return token."""
+    # Find valid OTP
+    otp = db.query(models.OTP).filter(
+        models.OTP.email == data.email,
+        models.OTP.code == data.code,
+        models.OTP.expires_at > func.now()
+    ).first()
     
-    if not AuthService.verify_password(user_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    if not otp:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    
+    # OTP Valid - Process User
+    user = db.query(models.User).filter(models.User.email == data.email).first()
+    is_new_user = False
+    
+    if not user:
+        # Create new user
+        if not data.full_name:
+             # Basic fallback if they didn't provide name on 'login' flow but account doesn't exist
+             # Ideally frontend handles this by detecting 'signup' intent
+             data.full_name = data.email.split('@')[0]
+             
+        user = models.User(
+            email=data.email,
+            full_name=data.full_name
         )
-        
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        is_new_user = True
+    
+    # Delete used OTP
+    db.delete(otp)
+    db.commit()
+    
     # Generate token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = AuthService.create_access_token(
@@ -79,4 +97,9 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
         expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "is_new_user": is_new_user
+    }
+from sqlalchemy import text

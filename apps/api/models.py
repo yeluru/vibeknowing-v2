@@ -14,7 +14,6 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     full_name = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
-    hashed_password = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     projects = relationship("Project", back_populates="owner")
@@ -86,3 +85,13 @@ class ChatMessage(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     source = relationship("Source", backref="chat_messages")
+
+class OTP(Base):
+    __tablename__ = "otps"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    email = Column(String, index=True)
+    code = Column(String)
+    expires_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    attempts = Column(Integer, default=0)

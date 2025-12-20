@@ -11,24 +11,34 @@ from config import settings
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    # AUTH BYPASS: Always return or create local admin user
-    email = "admin@localhost"
-    
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+        
     user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        # Create default admin user if missing
-        from services.auth import AuthService
-        user = models.User(
-            email=email,
-            hashed_password=AuthService.get_password_hash("admin"),
-            full_name="Admin User"
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    if user is None:
+        raise credentials_exception
         
     return user
 
 async def get_optional_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[models.User]:
-    # Bypass: Always return the signed-in admin user
-    return await get_current_user(token or "dummy", db)
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+        user = db.query(models.User).filter(models.User.email == email).first()
+        return user
+    except JWTError:
+        return None

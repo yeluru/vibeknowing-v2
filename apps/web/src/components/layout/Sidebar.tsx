@@ -91,7 +91,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             window.removeEventListener('refresh-sidebar', handleRefresh);
             window.removeEventListener('click', handleClickOutside);
         };
-    }, []);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         const checkClaiming = async () => {
@@ -224,10 +224,16 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         }
 
         try {
-            const [cats, projs] = await Promise.all([
+            const [catsResult, projsResult] = await Promise.allSettled([
                 categoriesApi.list(),
                 projectsApi.list()
             ]);
+
+            const cats = catsResult.status === 'fulfilled' ? catsResult.value : [];
+            const projs = projsResult.status === 'fulfilled' ? projsResult.value : [];
+
+            if (catsResult.status === 'rejected') console.error("Failed to load categories:", catsResult.reason);
+            if (projsResult.status === 'rejected') console.error("Failed to load projects:", projsResult.reason);
             setCategories(cats);
 
             // Deduplicate authenticated projects

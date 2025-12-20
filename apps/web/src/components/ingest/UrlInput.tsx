@@ -6,6 +6,7 @@ import { Link2, Loader2, Paperclip, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { API_BASE } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export function UrlInput() {
     const [input, setInput] = useState("");
@@ -26,11 +27,11 @@ export function UrlInput() {
             const guestCount = parseInt(localStorage.getItem('guest_project_count') || '0');
             if (guestCount >= 1) {
                 // Trial Expired
-                // @ts-ignore
-                import("sonner").then(({ toast }) => {
-                    toast.error("Free trial limit reached. Please sign up to create more projects.");
-                });
-                router.push("/auth/signup");
+                toast.error("Free trial limit reached. Please sign up to create more projects.");
+                // Add a small delay for the toast to be seen, then redirect
+                setTimeout(() => {
+                    router.push("/auth/signup");
+                }, 1000);
                 return;
             }
             // Increment trial count (will be set to 1 on success)
@@ -39,6 +40,12 @@ export function UrlInput() {
         setIsLoading(true);
         try {
             const formData = new FormData();
+
+            const token = localStorage.getItem("token");
+            const headers: HeadersInit = {};
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
 
             // Handle file upload
             if (file) {
@@ -50,6 +57,7 @@ export function UrlInput() {
 
                 const response = await fetch(`${API_BASE}/ingest/file`, {
                     method: "POST",
+                    headers: headers,
                     body: formData,
                 });
 
@@ -84,7 +92,10 @@ export function UrlInput() {
                 // Send all URLs to the ingestion endpoint (backend handles async/sync decision)
                 const response = await fetch(`${API_BASE}/ingest/youtube`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...headers
+                    },
                     body: JSON.stringify({ url: input, project_id: "default" }),
                 });
 

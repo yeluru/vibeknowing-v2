@@ -16,11 +16,18 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     
-    # Supabase Settings
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+    WORKER_URL: str = os.getenv("WORKER_URL", "http://localhost:8001/transcribe")
+
+    # Email Settings
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 465
+    SMTP_USERNAME: str = os.getenv("EMAIL_ACCOUNT", "rkyeluru@gmail.com")
+    SMTP_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "duvh rabw ywui plpi")
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()

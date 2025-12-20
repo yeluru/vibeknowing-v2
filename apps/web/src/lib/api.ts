@@ -16,6 +16,7 @@ export const API_BASE = apiUrl;
 // Create axios instance
 const api = axios.create({
     baseURL: API_BASE,
+    timeout: 15000,
     headers: {
         "Content-Type": "application/json",
     },
@@ -117,6 +118,17 @@ export const projectsApi = {
 
     async claim(projectIds: string[]): Promise<void> {
         await api.post('/sources/projects/claim', { project_ids: projectIds });
+    },
+};
+
+export const authApi = {
+    async requestOtp(email: string, type: "login" | "signup"): Promise<void> {
+        await api.post('/auth/otp/request', { email, type });
+    },
+
+    async verifyOtp(email: string, code: string, fullName?: string): Promise<{ access_token: string; is_new_user: boolean }> {
+        const res = await api.post('/auth/otp/verify', { email, code, full_name: fullName });
+        return res.data;
     },
 };
 
