@@ -70,7 +70,7 @@ async def health_check():
 async def reset_db_secret():
     """
     Emergency endpoint to reset the database when shell access is not available.
-    WARNING: This drops all tables!
+    WARNING: This drops all tables and re-seeds!
     """
     try:
         force_reset_db.force_reset()
@@ -78,3 +78,21 @@ async def reset_db_secret():
         return {"status": "success", "message": "Database reset and seeded successfully."}
     except Exception as e:
         return {"status": "error", "message": f"Failed to reset DB: {str(e)}"}
+
+@app.post("/purge-db-secret")
+async def purge_db_secret(key: str):
+    """
+    Emergency endpoint to PURGE all data (delete rows) without dropping tables.
+    Requires 'key' query parameter matching SECRET_KEY (or 'supersecretkey' as fallback).
+    """
+    from config import settings
+    # Simple security check
+    if key != settings.SECRET_KEY and key != "supersecretkey":
+         return {"status": "error", "message": "Invalid secret key"}
+
+    import purge_db
+    try:
+        purge_db.purge_database()
+        return {"status": "success", "message": "Database successfully purged (all data deleted)."}
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to purge DB: {str(e)}"}

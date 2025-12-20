@@ -9,18 +9,23 @@ def purge_database():
         # Disable foreign key checks for SQLite
         db.execute(text("PRAGMA foreign_keys = OFF"))
         
-        # Delete data from tables
-        db.execute(text("DELETE FROM chat_messages"))
-        db.execute(text("DELETE FROM artifacts"))
-        db.execute(text("DELETE FROM sources"))
-        db.execute(text("DELETE FROM projects"))
-        db.execute(text("DELETE FROM categories"))
-        db.execute(text("DELETE FROM otps"))
-        db.execute(text("DELETE FROM users"))
-        
+        tables = [
+            "chat_messages", "artifacts", "sources", "projects", 
+            "categories", "otps", "users", "chunks", "summaries", "transcripts"
+        ]
+
+        for table in tables:
+            try:
+                db.execute(text(f"DELETE FROM {table}"))
+                print(f"Deleted rows from {table}")
+            except Exception as e:
+                # Ignore "no such table" errors
+                if "no such table" not in str(e):
+                    print(f"Error purging {table}: {e}")
+
         db.execute(text("PRAGMA foreign_keys = ON"))
         db.commit()
-        print("✅ Database purged successfully. All users and projects deleted.")
+        print("✅ Database purged successfully (skipped missing tables).")
         
     except Exception as e:
         print(f"❌ Error purging database: {e}")
