@@ -20,7 +20,11 @@ class Settings(BaseSettings):
     SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
     WORKER_URL: str = os.getenv("WORKER_URL", "http://localhost:8001/transcribe")
 
+    MAX_CONTENT_LENGTH: int = 10 * 1024 * 1024  # 10MB limit
+
     # Email Settings
+    EMAIL_PROVIDER: str = os.getenv("EMAIL_PROVIDER", "smtp") # 'smtp' or 'resend'
+    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
     SMTP_USERNAME: str = os.getenv("EMAIL_ACCOUNT", "rkyeluru@gmail.com")
