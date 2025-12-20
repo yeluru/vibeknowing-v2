@@ -24,15 +24,19 @@ def purge_database():
 
         for table in tables:
             try:
-                if is_postgres:
-                    # TRUNCATE is faster and handles cascades better in PG
-                    db.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
-                else:
-                    db.execute(text(f"DELETE FROM {table}"))
+                # Use a nested transaction (savepoint) for each iteration
+                # effectively isolating errors
+                with db.begin_nested():
+                    if is_postgres:
+                        db.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
+                    else:
+                        db.execute(text(f"DELETE FROM {table}"))
                 print(f"Purged {table}")
             except Exception as e:
-                 # Ignore "no such table" or "relation does not exist" errors
-                if "no such table" not in str(e) and "does not exist" not in str(e):
+                # If error occurs, the nested transaction rolls back automatically
+                # Check for "does not exist" errors to ignore them
+                error_str = str(e).lower()
+                if "no such table" not in error_str and "does not exist" not in error_str:
                     print(f"Error purging {table}: {e}")
 
         if is_sqlite:
