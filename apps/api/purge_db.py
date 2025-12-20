@@ -6,9 +6,17 @@ def purge_database():
     print("Purging database...")
     db = SessionLocal()
     try:
-        # Disable foreign key checks for SQLite
-        db.execute(text("PRAGMA foreign_keys = OFF"))
-        
+        engine_url = str(engine.url)
+        is_sqlite = "sqlite" in engine_url
+        is_postgres = "postgres" in engine_url
+
+        if is_sqlite:
+            db.execute(text("PRAGMA foreign_keys = OFF"))
+        elif is_postgres:
+            # Postgres specific: Disable triggers or just rely on CASCADE if defined,
+            # but safer to truncate with CASCADE in postgres
+            pass
+
         tables = [
             "chat_messages", "artifacts", "sources", "projects", 
             "categories", "otps", "users", "chunks", "summaries", "transcripts"
@@ -16,14 +24,20 @@ def purge_database():
 
         for table in tables:
             try:
-                db.execute(text(f"DELETE FROM {table}"))
-                print(f"Deleted rows from {table}")
+                if is_postgres:
+                    # TRUNCATE is faster and handles cascades better in PG
+                    db.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
+                else:
+                    db.execute(text(f"DELETE FROM {table}"))
+                print(f"Purged {table}")
             except Exception as e:
-                # Ignore "no such table" errors
-                if "no such table" not in str(e):
+                 # Ignore "no such table" or "relation does not exist" errors
+                if "no such table" not in str(e) and "does not exist" not in str(e):
                     print(f"Error purging {table}: {e}")
 
-        db.execute(text("PRAGMA foreign_keys = ON"))
+        if is_sqlite:
+            db.execute(text("PRAGMA foreign_keys = ON"))
+        
         db.commit()
         print("✅ Database purged successfully (skipped missing tables).")
         
