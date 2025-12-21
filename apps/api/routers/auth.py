@@ -102,4 +102,56 @@ async def verify_otp(data: OtpVerify, db: Session = Depends(get_db)):
         "token_type": "bearer",
         "is_new_user": is_new_user
     }
-from sqlalchemy import text
+@router.post("/debug-email")
+async def debug_email(email: EmailStr):
+    """
+    Synchronous email test to debug configuration and delivery.
+    Returns technical logs directly in response.
+    """
+    logs = []
+    logs.append(f"🔍 Checking Configuration...")
+    logs.append(f"EMAIL_PROVIDER: {settings.EMAIL_PROVIDER}")
+    logs.append(f"RESEND_API_KEY Configured: {'Yes' if settings.RESEND_API_KEY else 'No'}")
+    logs.append(f"SMTP Configuration: Host={settings.SMTP_HOST}, Port={settings.SMTP_PORT}, User={settings.SMTP_USERNAME}")
+    
+    status_code = 200
+    try:
+        from services.email import EmailService
+        
+        # 1. Try Resend explicitly if key exists
+        if settings.RESEND_API_KEY:
+            logs.append("🚀 Attempting Resend (Direct)...")
+            import httpx
+            html_content = EmailService.get_html_content("TEST-123")
+            resp = httpx.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+                json={
+                    "from": "VibeKnowing <onboarding@resend.dev>",
+                    "to": [email],
+                    "subject": "[Debug] VibeKnowing Test",
+                    "html": html_content
+                },
+                timeout=10.0
+            )
+            logs.append(f"Resend Response: {resp.status_code} - {resp.text}")
+        else:
+            logs.append("⚠️ Skipping Resend (No Key)")
+
+        # 2. Try configured provider via Service
+        logs.append(f"🚀 Calling EmailService.send_otp via provider '{settings.EMAIL_PROVIDER}'...")
+        # We can't easily capture stdout from the service here without redirecting stdout, 
+        # but the above Resend test is the most important part.
+        EmailService.send_otp(email, "TEST-CODE")
+        logs.append("EmailService.send_otp executed without raising exception.")
+        
+    except Exception as e:
+        import traceback
+        logs.append(f"❌ Exception: {str(e)}")
+        logs.append(traceback.format_exc())
+        status_code = 500
+
+    return {
+        "status": "completed",
+        "logs": logs
+    }
