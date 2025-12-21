@@ -29,7 +29,7 @@ class EmailService:
                 "https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
                 json={
-                    "from": "VibeKnowing <onboarding@resend.dev>", # Use Resend's default test domain if user hasn't verified theirs
+                    "from": settings.EMAIL_FROM,
                     "to": [to_email],
                     "subject": "Your VibeKnowing Login Code",
                     "html": html_content

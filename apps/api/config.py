@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # Email Settings
     EMAIL_PROVIDER: str = os.getenv("EMAIL_PROVIDER", "smtp") # 'smtp' or 'resend'
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "VibeKnowing <onboarding@resend.dev>")
     RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
