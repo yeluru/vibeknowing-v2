@@ -28,10 +28,10 @@ def purge_database():
                 # effectively isolating errors
                 with db.begin_nested():
                     if is_postgres:
-                        db.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
+                        db.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
                     else:
-                        db.execute(text(f"DELETE FROM {table}"))
-                print(f"Purged {table}")
+                        db.execute(text(f"DROP TABLE IF EXISTS {table}"))
+                print(f"Dropped {table}")
             except Exception as e:
                 # If error occurs, the nested transaction rolls back automatically
                 # Check for "does not exist" errors to ignore them
