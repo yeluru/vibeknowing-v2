@@ -16,23 +16,42 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
     const { otpRequest, otpVerify } = useAuth();
     const [step, setStep] = useState<"email" | "code">("email");
     const [loading, setLoading] = useState(false);
+
+    // Auth Data
     const [email, setEmail] = useState("");
-    const [fullName, setFullName] = useState("");
     const [code, setCode] = useState("");
+    const [fullName, setFullName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [role, setRole] = useState("");
+    const [consent, setConsent] = useState(false);
+
     const [mode, setMode] = useState<"login" | "signup">(defaultMode);
 
     const handleSendCode = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) return;
 
+        // Twilio Compliance: Enforce checkbox on signup
+        if (mode === "signup" && !consent) {
+            toast.error("Please agree to the messaging terms to continue.");
+            return;
+        }
+
         setLoading(true);
         try {
             await otpRequest(email, mode);
             setStep("code");
             toast.success("Code sent! Check your email.");
-        } catch (error) {
-            toast.error("Failed to request code. Please try again.");
+        } catch (error: any) {
             console.error(error);
+            // Handle "Account not found" specifically
+            if (error.response?.status === 404 && mode === "login") {
+                toast.error("Account not found. Please sign up.");
+                setMode("signup");
+                // Optional: clear loading so they can fill extra fields
+            } else {
+                toast.error("Failed to request code. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
@@ -44,7 +63,15 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
 
         setLoading(true);
         try {
-            await otpVerify(email, code, mode === "signup" ? fullName : undefined);
+            // Pass all new fields to verify
+            await otpVerify(
+                email,
+                code,
+                mode === "signup" ? fullName : undefined,
+                mode === "signup" ? phone : undefined,
+                mode === "signup" ? role : undefined,
+                mode === "signup" ? consent : undefined
+            );
             toast.success("Successfully logged in!");
             if (onSuccess) onSuccess();
         } catch (error) {
@@ -55,11 +82,16 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
         }
     };
 
+    const isFormValid = () => {
+        if (mode === "login") return email.length > 0;
+        return email.length > 0 && fullName.length > 0 && consent;
+    };
+
     return (
         <div className="w-full space-y-6">
             <div className="text-center space-y-2">
                 <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                    {mode === "login" ? "Welcome back" : "Create an account"}
+                    {mode === "login" ? "Welcome Back" : "Create Account"}
                 </h1>
                 <p className="text-base text-slate-600 dark:text-slate-300">
                     {step === "email"
@@ -76,34 +108,63 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         onSubmit={handleSendCode}
-                        className="space-y-5"
+                        className="space-y-4"
                     >
                         {mode === "signup" && (
-                            <div className="space-y-1.5">
-                                <label htmlFor="fullname" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                                    Full Name
-                                </label>
-                                <div className="relative">
+                            <>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                                        Full Name
+                                    </label>
                                     <input
-                                        id="fullname"
                                         type="text"
                                         placeholder="Jane Doe"
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
-                                        className="vk-input w-full pl-4 pr-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                                        className="vk-input w-full px-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
                                         required
                                     />
                                 </div>
-                            </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                                            Phone <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            placeholder="+1 (555) 000-0000"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            className="vk-input w-full px-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                                            Role <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                                        </label>
+                                        <select
+                                            value={role}
+                                            onChange={(e) => setRole(e.target.value)}
+                                            className="vk-input w-full px-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 dark:text-slate-300"
+                                        >
+                                            <option value="">Select Role...</option>
+                                            <option value="student">Student</option>
+                                            <option value="teacher">Teacher</option>
+                                            <option value="professional">Professional</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </>
                         )}
+
                         <div className="space-y-1.5">
-                            <label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
                                 Email Address
                             </label>
                             <div className="relative">
                                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                 <input
-                                    id="email"
                                     type="email"
                                     placeholder="name@example.com"
                                     value={email}
@@ -114,12 +175,30 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                             </div>
                         </div>
 
+                        {mode === "signup" && (
+                            <div className="flex items-start gap-3 p-3 bg-slate-50/50 dark:bg-slate-900/30 rounded-lg border border-slate-100 dark:border-slate-800">
+                                <input
+                                    id="sms-consent"
+                                    type="checkbox"
+                                    checked={consent}
+                                    onChange={(e) => setConsent(e.target.checked)}
+                                    className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded"
+                                    required
+                                />
+                                <label htmlFor="sms-consent" className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    I agree to receive messaging from VibeKnowing at the phone number provided above.
+                                    I understand I will receive messages about my account security or updates.
+                                    Reply STOP to opt out.
+                                </label>
+                            </div>
+                        )}
+
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !isFormValid()}
                             className={cn(
                                 "vk-btn vk-btn-primary w-full py-3.5 rounded-xl text-base font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]",
-                                loading && "opacity-70 cursor-not-allowed"
+                                (loading || !isFormValid()) && "opacity-70 cursor-not-allowed grayscale-[0.2]"
                             )}
                         >
                             {loading ? (
@@ -128,7 +207,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                                     Sending Code...
                                 </span>
                             ) : (
-                                "Continue with Email"
+                                "Continue"
                             )}
                         </button>
                     </motion.form>
@@ -201,21 +280,23 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
             </AnimatePresence>
 
             {/* Toggle Login/Signup */}
-            {
-                step === "email" && (
-                    <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60 text-center">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                            {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-                            <button
-                                onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                                className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
-                            >
-                                {mode === "login" ? "Sign up" : "Log in"}
-                            </button>
-                        </p>
-                    </div>
-                )
-            }
-        </div >
+            {step === "email" && (
+                <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60 text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+                        <button
+                            onClick={() => {
+                                setMode(mode === "login" ? "signup" : "login");
+                                // Reset fields when switching
+                                setConsent(false);
+                            }}
+                            className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                        >
+                            {mode === "login" ? "Sign up" : "Log in"}
+                        </button>
+                    </p>
+                </div>
+            )}
+        </div>
     );
 }

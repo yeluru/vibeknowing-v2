@@ -14,7 +14,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     otpRequest: (email: string, type: "login" | "signup") => Promise<void>;
-    otpVerify: (email: string, code: string, fullName?: string) => Promise<void>;
+    otpVerify: (email: string, code: string, fullName?: string, phone?: string, role?: string, consent?: boolean) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -64,8 +64,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await authApi.requestOtp(email, type);
     };
 
-    const otpVerify = async (email: string, code: string, fullName?: string) => {
-        const { access_token } = await authApi.verifyOtp(email, code, fullName);
+    const otpVerify = async (email: string, code: string, fullName?: string, phone?: string, role?: string, consent?: boolean) => {
+        const { access_token } = await authApi.verifyOtp(email, code, fullName, phone, role, consent);
         localStorage.setItem('token', access_token);
 
         const decoded: any = jwtDecode(access_token);

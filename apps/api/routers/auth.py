@@ -23,6 +23,9 @@ class OtpVerify(BaseModel):
     email: EmailStr
     code: str
     full_name: str | None = None
+    phone_number: str | None = None
+    role: str | None = None
+    accepted_sms_terms: bool = False
 
 class Token(BaseModel):
     access_token: str
@@ -32,6 +35,17 @@ class Token(BaseModel):
 @router.post("/otp/request")
 async def request_otp(data: OtpRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Request a one-time password."""
+    
+    # Strict separation: If logging in, user MUST exist.
+    if data.type == "login":
+        user_exists = db.query(models.User).filter(models.User.email == data.email).first()
+        if not user_exists:
+            # We explicitly want the frontend to know this so it can redirect to signup
+            raise HTTPException(
+                status_code=404, 
+                detail="Account not found. Please sign up first."
+            )
+
     # MVP: Generate simple 6-digit code
     import random
     code = "".join([str(random.randint(0, 9)) for _ in range(6)])
@@ -79,12 +93,24 @@ async def verify_otp(data: OtpVerify, db: Session = Depends(get_db)):
              
         user = models.User(
             email=data.email,
-            full_name=data.full_name
+            full_name=data.full_name,
+            phone_number=data.phone_number,
+            role=data.role,
+            accepted_sms_terms=data.accepted_sms_terms
         )
         db.add(user)
         db.commit()
         db.refresh(user)
         is_new_user = True
+    else:
+        # Update existing user data (e.g. they added a phone number later)
+        if data.phone_number:
+            user.phone_number = data.phone_number
+        if data.accepted_sms_terms:
+            user.accepted_sms_terms = data.accepted_sms_terms
+        if data.role and not user.role:
+             user.role = data.role
+        db.commit()
     
     # Delete used OTP
     db.delete(otp)

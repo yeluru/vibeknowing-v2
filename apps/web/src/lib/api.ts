@@ -126,8 +126,15 @@ export const authApi = {
         await api.post('/auth/otp/request', { email, type });
     },
 
-    async verifyOtp(email: string, code: string, fullName?: string): Promise<{ access_token: string; is_new_user: boolean }> {
-        const res = await api.post('/auth/otp/verify', { email, code, full_name: fullName });
+    async verifyOtp(email: string, code: string, fullName?: string, phone?: string, role?: string, consent?: boolean): Promise<{ access_token: string; is_new_user: boolean }> {
+        const res = await api.post('/auth/otp/verify', {
+            email,
+            code,
+            full_name: fullName,
+            phone_number: phone,
+            role,
+            accepted_sms_terms: consent
+        });
         return res.data;
     },
 };
