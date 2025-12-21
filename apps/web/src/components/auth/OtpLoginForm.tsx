@@ -161,6 +161,12 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                             </div>
                         </div>
 
+                        <div className="text-center">
+                            <p className="text-xs font-medium text-red-500/90 dark:text-red-400/90 bg-red-50 dark:bg-red-950/30 py-2 px-3 rounded-lg border border-red-100 dark:border-red-900/30">
+                                ⚠️ Note: For new users, the email may land in your <b>Spam/Junk</b> folder.
+                            </p>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={loading}
@@ -195,19 +201,21 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
             </AnimatePresence>
 
             {/* Toggle Login/Signup */}
-            {step === "email" && (
-                <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60 text-center">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-                        <button
-                            onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                            className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
-                        >
-                            {mode === "login" ? "Sign up" : "Log in"}
-                        </button>
-                    </p>
-                </div>
-            )}
-        </div>
+            {
+                step === "email" && (
+                    <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60 text-center">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+                            <button
+                                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                                className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                            >
+                                {mode === "login" ? "Sign up" : "Log in"}
+                            </button>
+                        </p>
+                    </div>
+                )
+            }
+        </div >
     );
 }
