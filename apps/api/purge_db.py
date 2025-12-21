@@ -43,7 +43,12 @@ def purge_database():
             db.execute(text("PRAGMA foreign_keys = ON"))
         
         db.commit()
-        print("✅ Database purged successfully (skipped missing tables).")
+        
+        # CRITICAL: Recreate tables because we dropped them!
+        print("Recreating tables...")
+        Base.metadata.create_all(bind=engine)
+        
+        print("✅ Database purged and schema recreated successfully.")
         
     except Exception as e:
         print(f"❌ Error purging database: {e}")
