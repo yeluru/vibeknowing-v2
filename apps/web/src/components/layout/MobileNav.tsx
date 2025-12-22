@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Sparkles, Folder, Menu, Plus } from "lucide-react";
+import { Home, Sparkles, Folder, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -39,14 +39,7 @@ export function MobileNav({ onMenuClick }: MobileNavProps) {
                     <span className="text-[10px] font-medium">Library</span>
                 </Link>
 
-                <div className="relative -top-5">
-                    <Link
-                        href="/source/new"
-                        className="flex items-center justify-center h-14 w-14 rounded-full bg-indigo-600 shadow-lg shadow-indigo-600/30 text-white hover:scale-105 active:scale-95 transition-all"
-                    >
-                        <Plus className="h-7 w-7" />
-                    </Link>
-                </div>
+
 
                 <Link
                     href="/studio"
