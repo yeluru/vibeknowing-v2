@@ -38,11 +38,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // Token is invalid or expired
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            // Token is invalid, expired, or forbidden
             const token = localStorage.getItem("token");
-            if (token) {
-                console.warn("Session expired or invalid token. Logging out...");
+            if (token || error.response.status === 403) {
+                console.warn("Session expired, invalid token, or forbidden. Logging out...");
                 localStorage.removeItem("token");
                 // Force reload to reset application state
                 if (typeof window !== "undefined") {

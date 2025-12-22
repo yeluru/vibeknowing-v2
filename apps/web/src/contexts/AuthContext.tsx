@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const logout = () => {
         localStorage.removeItem('token');
         setUser(null);
-        window.location.href = "/auth/login";
+        window.location.href = "/";
     };
 
     return (
