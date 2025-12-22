@@ -116,7 +116,11 @@ export default function SourcePage() {
         if (isInitialLoad) setLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE}/sources/${params.id}`);
+            const token = localStorage.getItem('token');
+            const headers: HeadersInit = {};
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const response = await fetch(`${API_BASE}/sources/${params.id}`, { headers });
             if (response.ok) {
                 const data = await response.json();
 
@@ -213,9 +217,13 @@ export default function SourcePage() {
     const handleUpdateTitle = async (newTitle: string) => {
         if (!source?.project_id) return;
         try {
+            const token = localStorage.getItem('token');
+            const headers: HeadersInit = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             const response = await fetch(`${API_BASE}/sources/projects/${source.project_id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ title: newTitle })
             });
 
@@ -314,9 +322,14 @@ export default function SourcePage() {
         try {
             // If summary already exists, we are regenerating, so force=true
             const force = !!summary;
+
+            const token = localStorage.getItem('token');
+            const headers: HeadersInit = { "Content-Type": "application/json" };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             const response = await fetch(`${API_BASE}/ai/summarize/${params.id}?force=${force}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
             });
 
             if (response.ok) {
@@ -361,9 +374,13 @@ export default function SourcePage() {
 
         setUploading(true);
         try {
+            const token = localStorage.getItem('token');
+            const headers: HeadersInit = { "Content-Type": "application/json" };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             const response = await fetch(`${API_BASE}/sources/${params.id}/transcript`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({ transcript: manualTranscript }),
             });
 
