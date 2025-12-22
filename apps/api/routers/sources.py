@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from dependencies import get_current_user
+import dependencies
 import models
 from pydantic import BaseModel
 
@@ -42,10 +43,19 @@ async def list_projects(
 
 
 @router.get("/{source_id}")
-async def get_source(source_id: str, db: Session = Depends(get_db)):
+async def get_source(
+    source_id: str, 
+    db: Session = Depends(get_db),
+    current_user: models.User | None = Depends(dependencies.get_optional_user)
+):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
+    
+    # Security: Check ownership if project has an owner
+    if source.project and source.project.owner_id:
+        if not current_user or source.project.owner_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this source")
     
     return {
         "id": source.id,
