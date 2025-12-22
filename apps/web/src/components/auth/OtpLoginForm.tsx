@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2, ArrowRight, Mail, KeyRound } from "lucide-react";
@@ -26,7 +26,15 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
     const [consent, setConsent] = useState(false);
 
     const [mode, setMode] = useState<"login" | "signup">(defaultMode);
-    const [loginError, setLoginError] = useState<string | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
+
+    // Auto-dismiss error
+    useEffect(() => {
+        if (formError) {
+            const timer = setTimeout(() => setFormError(null), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [formError]);
 
     const handleSendCode = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,7 +55,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
             console.error(error);
             // Handle "Account not found" specifically
             if (error.response?.status === 404 && mode === "login") {
-                setLoginError("Account not found. Please sign up.");
+                setFormError("Account not found. Please sign up.");
                 toast.error("Account not found. Please sign up.");
                 setMode("signup");
                 // Optional: clear loading so they can fill extra fields
@@ -77,6 +85,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
             toast.success("Successfully logged in!");
             if (onSuccess) onSuccess();
         } catch (error) {
+            setFormError("Invalid code. Please try again.");
             toast.error("Invalid code. Please try again.");
             console.error(error);
         } finally {
@@ -92,6 +101,16 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
     return (
         <div className="w-full space-y-6">
             <div className="text-center space-y-2">
+                {formError && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm font-medium mb-4"
+                    >
+                        {formError}
+                    </motion.div>
+                )}
                 <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                     {mode === "login" ? "Welcome Back" : "Create Account"}
                 </h1>
@@ -100,15 +119,6 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                         ? mode === "login" ? "Enter your email to sign in" : "Enter your details to get started"
                         : `We sent a code to ${email}`}
                 </p>
-                {loginError && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm font-medium"
-                    >
-                        {loginError}
-                    </motion.div>
-                )}
             </div>
 
             <AnimatePresence mode="wait">
@@ -299,7 +309,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                             onClick={() => {
                                 setMode(mode === "login" ? "signup" : "login");
                                 // Reset fields when switching
-                                setLoginError(null);
+                                setFormError(null);
                                 setConsent(false);
                             }}
                             className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
