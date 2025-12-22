@@ -79,7 +79,7 @@ export default function FlashcardsPage() {
                                 </div>
 
                                 <Link
-                                    href={project.first_source_id ? `/source/${project.first_source_id}?tab=flashcards` : '#'}
+                                    href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=flashcards` : '#'}
                                     className="w-full flex items-center justify-center px-4 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 font-medium shadow-sm hover:shadow-blue-500/25 group/btn"
                                 >
                                     <Play className="h-4 w-4 mr-2 fill-current" />

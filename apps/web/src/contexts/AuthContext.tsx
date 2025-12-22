@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 if (decoded.exp * 1000 < Date.now()) {
                     localStorage.removeItem('token');
                     setUser(null);
+                    router.push("/auth/login");
                 } else {
                     setUser({
                         id: decoded.user_id,

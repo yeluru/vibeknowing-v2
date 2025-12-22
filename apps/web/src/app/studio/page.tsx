@@ -173,7 +173,7 @@ export default function StudioPage() {
                                     <div className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Quick Actions</div>
                                     <div className="grid grid-cols-4 gap-2">
                                         <Link
-                                            href={project.first_source_id ? `/source/${project.first_source_id}?tab=flashcards` : '#'}
+                                            href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=flashcards` : '#'}
                                             className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-orange-50 dark:bg-orange-900/30 text-slate-600 dark:text-slate-300 hover:text-orange-600 transition-colors group/btn"
                                             title="Flashcards"
                                         >

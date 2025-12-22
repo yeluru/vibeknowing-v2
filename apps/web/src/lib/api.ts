@@ -46,7 +46,7 @@ api.interceptors.response.use(
                 localStorage.removeItem("token");
                 // Force reload to reset application state
                 if (typeof window !== "undefined") {
-                    window.location.href = "/";
+                    window.location.href = "/auth/login";
                 }
             }
         }
