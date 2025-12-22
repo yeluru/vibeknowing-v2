@@ -17,6 +17,11 @@ class User(Base):
     phone_number = Column(String, nullable=True)
     role = Column(String, nullable=True)
     accepted_sms_terms = Column(Boolean, default=False)
+    
+    # OAuth fields
+    provider = Column(String, default="email")  # email, google, github
+    provider_id = Column(String, nullable=True) # Unique ID from provider
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     projects = relationship("Project", back_populates="owner")

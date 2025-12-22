@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 import os
 import sys
 from pathlib import Path
@@ -10,7 +11,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from database import engine
 import models
-from routers import ingest, ai, create, sources, categories, auth
+from routers import ingest, ai, create, sources, categories, auth, oauth
+from config import settings
 import force_reset_db
 import seed_db
 
@@ -38,6 +40,11 @@ origins = [
 
 print("Starting API with CORS origins:", origins)
 
+# Session Middleware (Required for OAuth) - Must be added before CORS to ensure it handles requests first? 
+# Actually, Last added = First executed. We want CORS first (to handle OPTIONS).
+# So we add SessionMiddleware BEFORE adding CORSMiddleware?
+# Let's simple add it here.
+app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET)
 
 app.add_middleware(
     CORSMiddleware,
@@ -53,6 +60,7 @@ app.include_router(create.router)
 app.include_router(sources.router)
 app.include_router(categories.router)
 app.include_router(auth.router)
+app.include_router(oauth.router)
 
 @app.get("/")
 async def root():

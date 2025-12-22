@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str = os.getenv("EMAIL_ACCOUNT", "rkyeluru@gmail.com")
     SMTP_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "duvh rabw ywui plpi")
 
+    # OAuth Settings
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    GITHUB_CLIENT_ID: str = os.getenv("GITHUB_CLIENT_ID", "")
+    GITHUB_CLIENT_SECRET: str = os.getenv("GITHUB_CLIENT_SECRET", "")
+    SESSION_SECRET: str = os.getenv("SESSION_SECRET", os.getenv("SECRET_KEY", "supersecretkey"))
+
     class Config:
         env_file = ".env"
         extra = "ignore"
