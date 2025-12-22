@@ -190,7 +190,7 @@ export default function Home() {
 
   return (
     <div className="space-y-16 pb-20 relative">
-      <section className="vk-hero relative pt-6 pb-8 lg:pt-12 lg:pb-14 px-4 lg:px-8 overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] max-w-6xl mx-auto mt-0 lg:mt-4">
+      <section className="vk-hero relative pt-24 pb-12 lg:pt-12 lg:pb-14 px-4 lg:px-8 overflow-hidden rounded-[2rem] lg:rounded-[2.5rem] max-w-6xl mx-auto mt-0 lg:mt-4">
         {/* Brand Logo - Inside Top Right */}
         <Logo className="absolute top-3 left-3 md:top-8 md:left-8 z-50 pointer-events-none scale-75 md:scale-100 origin-top-left" />
 
@@ -213,7 +213,7 @@ export default function Home() {
         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="vk-shell">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-center">
             {/* Left: “product preview” panel (purely visual) */}
-            <motion.div variants={fadeInUp} className="order-2 md:order-1 md:col-span-5 md:justify-self-start md:self-start md:pt-14">
+            <motion.div variants={fadeInUp} className="hidden md:block order-2 md:order-1 md:col-span-5 md:justify-self-start md:self-start md:pt-14">
               <div className="vk-card w-full max-w-[420px] rounded-3xl p-6 lg:p-7 bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-bold text-slate-900 dark:text-slate-100">How it works</div>
@@ -268,17 +268,17 @@ export default function Home() {
             {/* Right: copy + CTA */}
             <div className="order-1 md:order-2 md:col-span-7 text-center md:text-left">
               {/* Mobile: keep eyebrow in-flow */}
-              <motion.div variants={fadeInUp} className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full vk-eyebrow text-slate-700 dark:text-slate-200 mt-8">
+              <motion.div variants={fadeInUp} className="md:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full vk-eyebrow text-slate-700 dark:text-slate-200 mt-2">
                 <Sparkles className="h-4 w-4 text-indigo-500" />
                 <span className="text-sm font-semibold">The OS for Learning</span>
               </motion.div>
 
-              <motion.h1 variants={fadeInUp} className="mt-5 text-4xl sm:text-6xl md:text-6xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.04] text-center md:text-center">
+              <motion.h1 variants={fadeInUp} className="mt-8 text-4xl sm:text-6xl md:text-6xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.04] text-center md:text-left">
                 Master any topic.
                 <span className="block mt-2 vk-gradient-text">In record time.</span>
               </motion.h1>
 
-              <motion.p variants={fadeInUp} className="mt-5 text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed text-center md:text-center">
+              <motion.p variants={fadeInUp} className="mt-5 text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto md:mx-0 leading-relaxed text-center md:text-left">
                 Turn YouTube videos, PDFs, and web pages into deep understanding. Generate flashcards, quizzes, and essays instantly.
               </motion.p>
 
@@ -287,7 +287,7 @@ export default function Home() {
                   <UrlInput />
                 </div>
 
-                <div className="mt-5 flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 text-sm text-slate-700 dark:text-slate-200 font-semibold">
+                <div className="mt-10 flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 text-sm text-slate-700 dark:text-slate-200 font-semibold">
                   <span className="inline-flex items-center gap-1.5"><Youtube className="h-4 w-4 text-indigo-600 dark:text-indigo-300" /> YouTube</span>
                   <span className="inline-flex items-center gap-1.5"><Globe className="h-4 w-4 text-sky-600 dark:text-sky-300" /> Websites</span>
                   <span className="inline-flex items-center gap-1.5"><FileText className="h-4 w-4 text-slate-600 dark:text-slate-300" /> PDFs & Docs</span>
@@ -301,13 +301,13 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Feature Grid (2x2 Equal Size) */}
+      {/* Feature Grid (2x2 Equal Size) - HIDDEN ON MOBILE */}
       <motion.section
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
         variants={staggerContainer}
-        className="max-w-6xl mx-auto px-4"
+        className="hidden md:block max-w-6xl mx-auto px-4"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 1: Deep Understanding */}
@@ -381,213 +381,217 @@ export default function Home() {
       </motion.section>
 
       {/* Learning Goals Section */}
-      {!loading && projects.length > 0 && (
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-6xl mx-auto px-4 pt-4 lg:pt-8"
-        >
-          <div className="vk-card bg-white/55 dark:bg-slate-950/20 backdrop-blur-xl border border-slate-200/70 dark:border-slate-800 rounded-3xl p-5 sm:p-6 mb-6 lg:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center justify-between w-full sm:w-auto">
-                <div>
-                  <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Your Learning Goals</h2>
-                  <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm lg:text-base">Pick up where you left off</p>
+      {
+        !loading && projects.length > 0 && (
+          <motion.section
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="max-w-6xl mx-auto px-4 pt-4 lg:pt-8"
+          >
+            <div className="vk-card bg-white/55 dark:bg-slate-950/20 backdrop-blur-xl border border-slate-200/70 dark:border-slate-800 rounded-3xl p-5 sm:p-6 mb-6 lg:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center justify-between w-full sm:w-auto">
+                  <div>
+                    <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Your Learning Goals</h2>
+                    <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm lg:text-base">Pick up where you left off</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      setIsRefreshing(true);
+                      await loadData();
+                      setIsRefreshing(false);
+                    }}
+                    className="p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all sm:hidden"
+                    title="Refresh Projects"
+                  >
+                    <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+                  </button>
                 </div>
-                <button
-                  onClick={async () => {
-                    setIsRefreshing(true);
-                    await loadData();
-                    setIsRefreshing(false);
-                  }}
-                  className="p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all sm:hidden"
-                  title="Refresh Projects"
-                >
-                  <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-                </button>
-              </div>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                {/* Desktop Refresh Button */}
-                <button
-                  onClick={async () => {
-                    setIsRefreshing(true);
-                    await loadData();
-                    setIsRefreshing(false);
-                  }}
-                  className="hidden sm:block p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all"
-                  title="Refresh Projects"
-                >
-                  <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-                </button>
-                <div className="relative flex-1 sm:flex-none">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search goals..."
-                    className="vk-input w-full sm:w-72 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  {/* Desktop Refresh Button */}
+                  <button
+                    onClick={async () => {
+                      setIsRefreshing(true);
+                      await loadData();
+                      setIsRefreshing(false);
+                    }}
+                    className="hidden sm:block p-2 rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 hover:bg-white text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all"
+                    title="Refresh Projects"
+                  >
+                    <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+                  </button>
+                  <div className="relative flex-1 sm:flex-none">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search goals..."
+                      className="vk-input w-full sm:w-72 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
 
-          <div className="space-y-12">
-            {projectGroups.map((group) => (
-              <div key={group.id}>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2 px-1">
-                  <Folder className="h-5 w-5 text-indigo-500" />
-                  {group.name}
-                  <span className="ml-2 text-sm font-medium text-slate-400">
-                    ({group.projects.length} / {group.totalCount})
-                  </span>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {group.projects.map((project, i) => {
-                    // Option A: neutral cards with indigo/sky accent
-                    const isIndigo = i % 2 === 0;
-                    const bgColorClass = "vk-card bg-white/70 dark:bg-slate-950/20 border border-slate-200/70 dark:border-slate-800";
-                    const themeColorClass = isIndigo ? 'text-indigo-700 dark:text-indigo-300' : 'text-sky-700 dark:text-sky-300';
-                    const categoryName = group.name;
+            <div className="space-y-12">
+              {projectGroups.map((group) => (
+                <div key={group.id}>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2 px-1">
+                    <Folder className="h-5 w-5 text-indigo-500" />
+                    {group.name}
+                    <span className="ml-2 text-sm font-medium text-slate-400">
+                      ({group.projects.length} / {group.totalCount})
+                    </span>
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {group.projects.map((project, i) => {
+                      // Option A: neutral cards with indigo/sky accent
+                      const isIndigo = i % 2 === 0;
+                      const bgColorClass = "vk-card bg-white/70 dark:bg-slate-950/20 border border-slate-200/70 dark:border-slate-800";
+                      const themeColorClass = isIndigo ? 'text-indigo-700 dark:text-indigo-300' : 'text-sky-700 dark:text-sky-300';
+                      const categoryName = group.name;
 
-                    return (
-                      <div key={project.id} className="relative group/card">
-                        <Link href={project.first_source_id ? `/source/${project.first_source_id}` : '#'}>
-                          <motion.div
-                            whileHover={{ y: -8, scale: 1.02 }}
-                            className={cn(
-                              "h-72 rounded-3xl p-6 relative overflow-visible group shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between z-0",
-                              bgColorClass
-                            )}
-                          >
-                            {/* Background Decor (subtle v2 glow) */}
-                            <div className={cn("absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none", isIndigo ? "bg-indigo-500/10" : "bg-sky-500/10")} />
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-500/5 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none" />
-
-                            {/* Valid Header Icon */}
-                            <div className="relative z-10 flex justify-end items-start pointer-events-none">
-                              {project.status === 'Ready' && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" title="Active"></div>
-                              )}
-                            </div>
-
-                            <div className="relative z-10 pointer-events-none">
-                              <div className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-1">
-                                <Folder className="h-3 w-3" />
-                                {categoryName}
-                              </div>
-                              <h3 className="text-slate-900 font-bold text-base leading-snug line-clamp-2 mb-2">
-                                {project.title}
-                              </h3>
-                              {/* Enhanced Details: URL & Preview */}
-                              {project.first_source_url && (
-                                <div className="text-xs font-mono text-indigo-600 dark:text-indigo-400 mb-2 truncate opacity-80">
-                                  {project.first_source_url.replace(/^https?:\/\/(www\.)?/, '')}
-                                </div>
-                              )}
-                              {project.first_source_preview && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
-                                  {project.first_source_preview}
-                                </p>
-                              )}
-                            </div>
-
-                            {/* Footer */}
-                            <div className="relative z-10 pt-4 border-t border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs pointer-events-none">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {new Date(project.created_at).toLocaleDateString()}
-                              </span>
-                              <ArrowRight className={cn("h-3.5 w-3.5 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300", themeColorClass)} />
-                            </div>
-                          </motion.div>
-                        </Link>
-
-                        {/* Move/Options Menu Button */}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setActiveDropdown(activeDropdown === project.id ? null : project.id);
-                          }}
-                          className="absolute top-4 right-4 z-20 p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-full transition-all opacity-0 group-hover/card:opacity-100"
-                        >
-                          <MoreHorizontal className="h-5 w-5" />
-                        </button>
-
-                        {/* Dropdown Menu */}
-                        {activeDropdown === project.id && (
-                          <div
-                            className="absolute right-4 top-12 z-50 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 animate-in fade-in zoom-in-95 duration-200"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 mb-1">
-                              Move to...
-                            </div>
-                            <button
-                              onClick={() => handleMoveProject(project.id, null)}
+                      return (
+                        <div key={project.id} className="relative group/card">
+                          <Link href={project.first_source_id ? `/source/${project.first_source_id}` : '#'}>
+                            <motion.div
+                              whileHover={{ y: -8, scale: 1.02 }}
                               className={cn(
-                                "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 transition-colors text-slate-700",
-                                !project.category_id && "text-purple-600 bg-purple-50"
+                                "h-72 rounded-3xl p-6 relative overflow-visible group shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between z-0",
+                                bgColorClass
                               )}
                             >
-                              <Folder className="h-3.5 w-3.5" />
-                              Uncategorized
-                            </button>
-                            {categories.map(cat => (
+                              {/* Background Decor (subtle v2 glow) */}
+                              <div className={cn("absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none", isIndigo ? "bg-indigo-500/10" : "bg-sky-500/10")} />
+                              <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-500/5 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none" />
+
+                              {/* Valid Header Icon */}
+                              <div className="relative z-10 flex justify-end items-start pointer-events-none">
+                                {project.status === 'Ready' && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" title="Active"></div>
+                                )}
+                              </div>
+
+                              <div className="relative z-10 pointer-events-none">
+                                <div className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-1">
+                                  <Folder className="h-3 w-3" />
+                                  {categoryName}
+                                </div>
+                                <h3 className="text-slate-900 font-bold text-base leading-snug line-clamp-2 mb-2">
+                                  {project.title}
+                                </h3>
+                                {/* Enhanced Details: URL & Preview */}
+                                {project.first_source_url && (
+                                  <div className="text-xs font-mono text-indigo-600 dark:text-indigo-400 mb-2 truncate opacity-80">
+                                    {project.first_source_url.replace(/^https?:\/\/(www\.)?/, '')}
+                                  </div>
+                                )}
+                                {project.first_source_preview && (
+                                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                                    {project.first_source_preview}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Footer */}
+                              <div className="relative z-10 pt-4 border-t border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs pointer-events-none">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(project.created_at).toLocaleDateString()}
+                                </span>
+                                <ArrowRight className={cn("h-3.5 w-3.5 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300", themeColorClass)} />
+                              </div>
+                            </motion.div>
+                          </Link>
+
+                          {/* Move/Options Menu Button */}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setActiveDropdown(activeDropdown === project.id ? null : project.id);
+                            }}
+                            className="absolute top-4 right-4 z-20 p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-full transition-all opacity-0 group-hover/card:opacity-100"
+                          >
+                            <MoreHorizontal className="h-5 w-5" />
+                          </button>
+
+                          {/* Dropdown Menu */}
+                          {activeDropdown === project.id && (
+                            <div
+                              className="absolute right-4 top-12 z-50 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 animate-in fade-in zoom-in-95 duration-200"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100 mb-1">
+                                Move to...
+                              </div>
                               <button
-                                key={cat.id}
-                                onClick={() => handleMoveProject(project.id, cat.id)}
+                                onClick={() => handleMoveProject(project.id, null)}
                                 className={cn(
                                   "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 transition-colors text-slate-700",
-                                  project.category_id === cat.id && "text-purple-600 bg-purple-50"
+                                  !project.category_id && "text-purple-600 bg-purple-50"
                                 )}
                               >
                                 <Folder className="h-3.5 w-3.5" />
-                                {cat.name}
+                                Uncategorized
                               </button>
-                            ))}
-                            <div className="border-t border-slate-100 mt-1 pt-1">
-                              <button
-                                onClick={() => handleDeleteProject(project.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                Delete
-                              </button>
+                              {categories.map(cat => (
+                                <button
+                                  key={cat.id}
+                                  onClick={() => handleMoveProject(project.id, cat.id)}
+                                  className={cn(
+                                    "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2 transition-colors text-slate-700",
+                                    project.category_id === cat.id && "text-purple-600 bg-purple-50"
+                                  )}
+                                >
+                                  <Folder className="h-3.5 w-3.5" />
+                                  {cat.name}
+                                </button>
+                              ))}
+                              <div className="border-t border-slate-100 mt-1 pt-1">
+                                <button
+                                  onClick={() => handleDeleteProject(project.id)}
+                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  Delete
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </motion.section>
-      )}
+              ))}
+            </div>
+          </motion.section>
+        )
+      }
 
       {/* Empty State / CTA */}
-      {!loading && projects.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="max-w-md mx-auto text-center py-20"
-        >
-          <div className="w-16 h-16 mx-auto bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
-            <Layers className="h-8 w-8 text-indigo-500" />
-          </div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Start Your First Goal</h3>
-          <p className="text-slate-500 dark:text-slate-400">
-            Paste a URL above to create your first Learning Goal. <br />
-            Your future self will thank you.
-          </p>
-        </motion.div>
-      )}
-    </div>
+      {
+        !loading && projects.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="max-w-md mx-auto text-center py-20"
+          >
+            <div className="w-16 h-16 mx-auto bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
+              <Layers className="h-8 w-8 text-indigo-500" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Start Your First Goal</h3>
+            <p className="text-slate-500 dark:text-slate-400">
+              Paste a URL above to create your first Learning Goal. <br />
+              Your future self will thank you.
+            </p>
+          </motion.div>
+        )
+      }
+    </div >
   );
 }

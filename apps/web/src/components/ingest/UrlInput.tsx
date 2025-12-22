@@ -237,7 +237,7 @@ export function UrlInput() {
                 </div>
 
                 {/* Helper Text and Options */}
-                <div className="mt-2 flex flex-col items-center gap-2">
+                <div className="mt-6 flex flex-col items-center gap-2">
                     <p className="text-xs text-gray-500 dark:text-slate-400 text-center">
                         Supports: YouTube, TED Talks, Websites, Audio/Video files (MP3, MP4, WAV), PDFs, Word (.docx), and Text files
                     </p>
