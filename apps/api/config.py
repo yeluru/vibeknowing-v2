@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
     SMTP_USERNAME: str = os.getenv("EMAIL_ACCOUNT", "rkyeluru@gmail.com")
-    SMTP_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "duvh rabw ywui plpi")
+    SMTP_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "")
 
     # OAuth Settings
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
