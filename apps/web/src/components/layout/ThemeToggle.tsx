@@ -6,34 +6,23 @@ import { cn } from "@/lib/utils";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
-
-  const handleToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Theme toggle clicked, current theme:', theme);
-    const newTheme = theme === "light" ? "dark" : "light";
-    console.log('Switching to theme:', newTheme);
-    toggleTheme();
-  };
-
   return (
     <button
-      onClick={handleToggle}
+      onClick={toggleTheme}
       className={cn(
-        "fixed top-4 right-4 z-50 p-3 rounded-full shadow-md transition-all duration-300 hover-lift",
-        "bg-white/80 backdrop-blur-xl border border-slate-200/70",
-        "dark:bg-slate-900/60 dark:border-slate-800",
-        "hover:bg-white dark:hover:bg-slate-900/75",
-        "text-slate-700 dark:text-slate-200"
+        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200",
+        "bg-slate-100 dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/60",
+        "hover:bg-slate-200 dark:hover:bg-slate-700",
+        "text-slate-600 dark:text-slate-300"
       )}
       aria-label="Toggle theme"
+      title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
     >
       {theme === "light" ? (
-        <Moon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+        <><Moon className="h-3.5 w-3.5 text-indigo-500" /><span className="hidden sm:inline">Dark</span></>
       ) : (
-        <Sun className="h-5 w-5 text-orange-500 dark:text-orange-300" />
+        <><Sun className="h-3.5 w-3.5 text-amber-400" /><span className="hidden sm:inline">Light</span></>
       )}
     </button>
   );
 }
-

@@ -1,64 +1,119 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from database import get_db
 import models
 from services.ai import AIService
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
+import json
 
 router = APIRouter(
     prefix="/ai",
     tags=["ai"]
 )
 
+
+def _get_ai_params(request: Request, task: str = "chat") -> dict:
+    """
+    Extract AI provider/model/key from request headers.
+    Headers set by the frontend interceptor in api.ts:
+      X-AI-Provider: "openai" | "anthropic" | "google"
+      X-OpenAI-Key: "sk-..."
+      X-Anthropic-Key: "sk-ant-..."
+      X-Google-Key: "AI..."
+      X-AI-Task-Models: '{"summary":"anthropic:claude-sonnet-4-20250514",...}'
+    """
+    provider = request.headers.get("X-AI-Provider", "openai")
+
+    # Get the key for the chosen provider
+    key_map = {
+        "openai": request.headers.get("X-OpenAI-Key", ""),
+        "anthropic": request.headers.get("X-Anthropic-Key", ""),
+        "google": request.headers.get("X-Google-Key", ""),
+    }
+    api_key = key_map.get(provider, "")
+
+    # Check for task-specific model override
+    model = None
+    task_models_header = request.headers.get("X-AI-Task-Models", "")
+    if task_models_header:
+        try:
+            task_models = json.loads(task_models_header)
+            override = task_models.get(task, "")
+            if override and ":" in override:
+                # Format is "provider:model_id"
+                parts = override.split(":", 1)
+                provider = parts[0]
+                model = parts[1]
+                api_key = key_map.get(provider, "")
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    return {"provider": provider, "model": model, "api_key": api_key}
+
+
 class ChatRequest(BaseModel):
     source_id: str
     message: str
 
 @router.post("/chat")
-async def chat(request: ChatRequest, db: Session = Depends(get_db)):
-    source = db.query(models.Source).filter(models.Source.id == request.source_id).first()
+async def chat(request_body: ChatRequest, request: Request, db: Session = Depends(get_db)):
+    source = db.query(models.Source).filter(models.Source.id == request_body.source_id).first()
     if not source or not source.content_text:
         raise HTTPException(status_code=404, detail="Source content not found")
 
     # Save user message
     user_message = models.ChatMessage(
-        source_id=request.source_id,
+        source_id=request_body.source_id,
         role="user",
-        content=request.message
+        content=request_body.message
     )
     db.add(user_message)
     db.commit()
 
-    # Simple RAG: Pass full text as context (for MVP)
-    # In production, we would use vector search here
-    
-    response_stream = AIService.chat_with_context(request.message, source.content_text)
-    
-    # Collect the full response to save it
+    ai_params = _get_ai_params(request, "chat")
+    result = AIService.chat_with_context(request_body.message, source.content_text, **ai_params)
+
+    if result is None:
+        raise HTTPException(status_code=500, detail="AI service error")
+
+    provider_type, response_stream = result
     full_response = []
-    
+
     async def iter_stream():
-        for chunk in response_stream:
-            if chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                full_response.append(content)
-                yield content
-        
-        # Save assistant message after streaming completes
-        # Create a new session for this operation
-        from database import SessionLocal
-        new_db = SessionLocal()
         try:
-            assistant_message = models.ChatMessage(
-                source_id=request.source_id,
-                role="assistant",
-                content=''.join(full_response)
-            )
-            new_db.add(assistant_message)
-            new_db.commit()
+            if provider_type == "openai":
+                for chunk in response_stream:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        full_response.append(content)
+                        yield content
+
+            elif provider_type == "anthropic":
+                with response_stream as stream:
+                    for text in stream.text_stream:
+                        full_response.append(text)
+                        yield text
+
+            elif provider_type == "google":
+                for chunk in response_stream:
+                    if chunk.text:
+                        full_response.append(chunk.text)
+                        yield chunk.text
         finally:
-            new_db.close()
+            # Save assistant message after streaming completes
+            from database import SessionLocal
+            new_db = SessionLocal()
+            try:
+                assistant_message = models.ChatMessage(
+                    source_id=request_body.source_id,
+                    role="assistant",
+                    content=''.join(full_response)
+                )
+                new_db.add(assistant_message)
+                new_db.commit()
+            finally:
+                new_db.close()
 
     return StreamingResponse(iter_stream(), media_type="text/event-stream")
 
@@ -73,26 +128,20 @@ async def get_chat_history(source_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/summarize/{source_id}")
-async def summarize(source_id: str, style: str = "article", force: bool = False, db: Session = Depends(get_db)):
-    """Generate or retrieve summary. Set force=true to regenerate existing summary."""
+async def summarize(source_id: str, request: Request, style: str = "article", force: bool = False, db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source or not source.content_text:
         raise HTTPException(status_code=404, detail="Source content not found")
 
-    # Return existing summary if available (unless force regenerate)
     if source.summary and not force:
-        print(f"Returning cached summary for source {source_id}")
         return {"summary": source.summary, "cached": True}
 
-    # Generate new summary
-    print(f"Generating new summary for source {source_id}")
-    summary = AIService.generate_summary(source.content_text, style)
+    ai_params = _get_ai_params(request, "summary")
+    summary = AIService.generate_summary(source.content_text, style, **ai_params)
     
-    # Save summary to source
     source.summary = summary
     db.commit()
     
-    # Also save as artifact for history
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
@@ -107,32 +156,19 @@ async def summarize(source_id: str, style: str = "article", force: bool = False,
 
 
 @router.post("/quiz/{source_id}")
-async def generate_quiz(source_id: str, force: bool = False, db: Session = Depends(get_db)):
-    """Generate or retrieve quiz."""
+async def generate_quiz(source_id: str, request: Request, force: bool = False, db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source or not source.content_text:
         raise HTTPException(status_code=404, detail="Source content not found")
 
-    # Check for existing quiz artifact
-    # In a real app, we might want to support multiple quizzes. For now, we'll just check for the latest one.
-    # Check for existing quiz artifact
-    existing_quiz = db.query(models.Artifact).filter(
-        models.Artifact.source_id == source_id,
-        models.Artifact.type == "quiz"
-    ).order_by(models.Artifact.created_at.desc()).first()
-
-    # If we wanted caching, we'd check here. But quizzes are often dynamic. Let's allow regeneration.
+    ai_params = _get_ai_params(request, "quiz")
+    quiz_json_str = AIService.generate_quiz(source.content_text, **ai_params)
     
-    print(f"Generating quiz for source {source_id}")
-    quiz_json_str = AIService.generate_quiz(source.content_text)
-    
-    import json
     try:
         quiz_data = json.loads(quiz_json_str)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
 
-    # Save as artifact
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
@@ -148,12 +184,10 @@ async def generate_quiz(source_id: str, force: bool = False, db: Session = Depen
 
 @router.get("/quiz/{source_id}")
 async def get_quiz(source_id: str, db: Session = Depends(get_db)):
-    """Retrieve existing quiz for a source."""
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
     
-    # Find the latest quiz artifact for this project
     artifact = db.query(models.Artifact).filter(
         models.Artifact.project_id == source.project_id,
         models.Artifact.type == "quiz"
@@ -166,15 +200,11 @@ async def get_quiz(source_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/flashcards/{source_id}")
-async def generate_flashcards(source_id: str, force: bool = False, db: Session = Depends(get_db)):
-    """Generate or retrieve flashcards."""
+async def generate_flashcards(source_id: str, request: Request, force: bool = False, db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source or not source.content_text:
         raise HTTPException(status_code=404, detail="Source content not found")
 
-    print(f"Generating flashcards for source {source_id}")
-    
-    # Check for existing flashcards artifact
     if not force:
         existing_artifact = db.query(models.Artifact).filter(
             models.Artifact.source_id == source_id,
@@ -182,18 +212,16 @@ async def generate_flashcards(source_id: str, force: bool = False, db: Session =
         ).order_by(models.Artifact.created_at.desc()).first()
         
         if existing_artifact:
-            print(f"Returning cached flashcards for source {source_id}")
             return existing_artifact.content
 
-    flashcards_json_str = AIService.generate_flashcards(source.content_text)
+    ai_params = _get_ai_params(request, "flashcard")
+    flashcards_json_str = AIService.generate_flashcards(source.content_text, **ai_params)
     
-    import json
     try:
         flashcards_data = json.loads(flashcards_json_str)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
 
-    # Save as artifact
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
@@ -209,7 +237,6 @@ async def generate_flashcards(source_id: str, force: bool = False, db: Session =
 
 @router.get("/flashcards/{source_id}")
 async def get_flashcards(source_id: str, db: Session = Depends(get_db)):
-    """Retrieve existing flashcards for a source."""
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -226,22 +253,19 @@ async def get_flashcards(source_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/social-media/{source_id}")
-async def generate_social_media(source_id: str, platform: str = "twitter", db: Session = Depends(get_db)):
-    """Generate social media post from source content."""
+async def generate_social_media(source_id: str, request: Request, platform: str = "twitter", db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source or not source.content_text:
         raise HTTPException(status_code=404, detail="Source content not found")
 
-    print(f"Generating {platform} post for source {source_id}")
-    social_json_str = AIService.generate_social_media(source.content_text, platform)
+    ai_params = _get_ai_params(request, "social")
+    social_json_str = AIService.generate_social_media(source.content_text, platform, **ai_params)
     
-    import json
     try:
         social_data = json.loads(social_json_str)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
 
-    # Save as artifact
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
@@ -257,12 +281,10 @@ async def generate_social_media(source_id: str, platform: str = "twitter", db: S
 
 @router.get("/social-media/{source_id}")
 async def get_social_media(source_id: str, platform: str = "twitter", db: Session = Depends(get_db)):
-    """Retrieve existing social media post for a source."""
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
     
-    # Find latest social media artifact for this platform
     artifact = db.query(models.Artifact).filter(
         models.Artifact.source_id == source_id,
         models.Artifact.type == "social_media",
@@ -276,22 +298,19 @@ async def get_social_media(source_id: str, platform: str = "twitter", db: Sessio
 
 
 @router.post("/diagram/{source_id}")
-async def generate_diagram(source_id: str, concept: str = "", db: Session = Depends(get_db)):
-    """Generate diagram from source content."""
+async def generate_diagram(source_id: str, request: Request, concept: str = "", db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source or not source.content_text:
         raise HTTPException(status_code=404, detail="Source content not found")
 
-    print(f"Generating diagram for source {source_id}")
-    diagram_json_str = AIService.generate_diagram(source.content_text, concept)
+    ai_params = _get_ai_params(request, "diagram")
+    diagram_json_str = AIService.generate_diagram(source.content_text, concept, **ai_params)
     
-    import json
     try:
         diagram_data = json.loads(diagram_json_str)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
 
-    # Save as artifact
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
@@ -307,7 +326,6 @@ async def generate_diagram(source_id: str, concept: str = "", db: Session = Depe
 
 @router.get("/diagram/{source_id}")
 async def get_diagram(source_id: str, db: Session = Depends(get_db)):
-    """Retrieve existing diagram for a source."""
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -324,22 +342,19 @@ async def get_diagram(source_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/article/{source_id}")
-async def generate_article(source_id: str, style: str = "blog", db: Session = Depends(get_db)):
-    """Generate article from source content."""
+async def generate_article(source_id: str, request: Request, style: str = "blog", db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source or not source.content_text:
         raise HTTPException(status_code=404, detail="Source content not found")
 
-    print(f"Generating {style} article for source {source_id}")
-    article_json_str = AIService.generate_article(source.content_text, style)
+    ai_params = _get_ai_params(request, "article")
+    article_json_str = AIService.generate_article(source.content_text, style, **ai_params)
     
-    import json
     try:
         article_data = json.loads(article_json_str)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Failed to parse AI response")
 
-    # Save as artifact
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
@@ -355,7 +370,6 @@ async def generate_article(source_id: str, style: str = "blog", db: Session = De
 
 @router.get("/article/{source_id}")
 async def get_article(source_id: str, db: Session = Depends(get_db)):
-    """Retrieve existing article for a source."""
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -377,12 +391,10 @@ class ArticleUpdate(BaseModel):
 
 @router.put("/article/{source_id}")
 async def update_article(source_id: str, update: ArticleUpdate, db: Session = Depends(get_db)):
-    """Update (save) article content."""
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
     
-    # Try to find latest artifact to preserve metadata
     latest_artifact = db.query(models.Artifact).filter(
         models.Artifact.source_id == source_id,
         models.Artifact.type == "article"
@@ -399,7 +411,6 @@ async def update_article(source_id: str, update: ArticleUpdate, db: Session = De
         article_data = latest_artifact.content.copy()
         article_data["content"] = update.content
         
-    # Save as new artifact
     artifact = models.Artifact(
         project_id=source.project_id,
         source_id=source.id,
@@ -411,11 +422,10 @@ async def update_article(source_id: str, update: ArticleUpdate, db: Session = De
     db.commit()
     
     return article_data
+
+
 @router.get("/debug/{source_id}")
 async def debug_artifacts(source_id: str, db: Session = Depends(get_db)):
-    """Debug endpoint to list artifacts and check environment."""
-    
-    # Check scraper environment in a thread to verify Playwright installation safely
     def check_playwright():
         try:
             from playwright.sync_api import sync_playwright
@@ -439,7 +449,6 @@ async def debug_artifacts(source_id: str, db: Session = Depends(get_db)):
         },
         "count": len(artifacts),
         "artifacts": [
-             # ... existing artifact fields
             {
                 "id": a.id,
                 "type": a.type,

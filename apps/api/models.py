@@ -103,3 +103,15 @@ class OTP(Base):
     expires_at = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     attempts = Column(Integer, default=0)
+
+class UserSetting(Base):
+    __tablename__ = "user_settings"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id"), index=True)
+    key = Column(String, index=True)
+    value = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", backref="settings")

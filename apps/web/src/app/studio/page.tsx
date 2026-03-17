@@ -1,12 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Palette, Share2, GitGraph, FilePenLine, Layers, Trash2, Folder, ChevronLeft } from "lucide-react";
+import { Loader2, Palette, Share2, GitGraph, FilePenLine, Layers, Trash2, Folder, ChevronLeft, Search, ArrowRight, Sparkles } from "lucide-react";
 import { projectsApi, categoriesApi, Project, Category } from "@/lib/api";
 import Link from "next/link";
 import { toast } from "sonner";
-
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+
+const QUICK_ACTIONS = [
+    { tool: "flashcards", icon: <Layers className="h-4 w-4" />,      label: "Flashcards", color: "hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-600 dark:hover:text-indigo-400" },
+    { tool: "social",     icon: <Share2 className="h-4 w-4" />,       label: "Social",     color: "hover:bg-sky-50 dark:hover:bg-sky-900/25 hover:text-sky-600 dark:hover:text-sky-400" },
+    { tool: "diagram",    icon: <GitGraph className="h-4 w-4" />,     label: "Diagram",    color: "hover:bg-violet-50 dark:hover:bg-violet-900/25 hover:text-violet-600 dark:hover:text-violet-400" },
+    { tool: "article",    icon: <FilePenLine className="h-4 w-4" />,  label: "Article",    color: "hover:bg-emerald-50 dark:hover:bg-emerald-900/25 hover:text-emerald-600 dark:hover:text-emerald-400" },
+];
+
+const CATEGORY_ACCENTS = [
+    "from-indigo-500/10 to-violet-500/5 border-indigo-200/60 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400 bg-indigo-500/10",
+    "from-sky-500/10 to-cyan-500/5 border-sky-200/60 dark:border-sky-800/40 text-sky-600 dark:text-sky-400 bg-sky-500/10",
+    "from-violet-500/10 to-purple-500/5 border-violet-200/60 dark:border-violet-800/40 text-violet-600 dark:text-violet-400 bg-violet-500/10",
+    "from-emerald-500/10 to-teal-500/5 border-emerald-200/60 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10",
+    "from-amber-500/10 to-orange-500/5 border-amber-200/60 dark:border-amber-800/40 text-amber-600 dark:text-amber-400 bg-amber-500/10",
+];
 
 export default function StudioPage() {
     const { isAuthenticated } = useAuth();
@@ -16,272 +32,197 @@ export default function StudioPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        loadData();
-    }, [isAuthenticated]);
+    useEffect(() => { loadData(); }, [isAuthenticated]);
 
     const loadData = async () => {
-        // GUEST MODE HANDLER
         if (!isAuthenticated) {
-            const guestProjects = JSON.parse(localStorage.getItem('guest_projects') || '[]');
-            setProjects(guestProjects);
-            setCategories([]);
-            setLoading(false);
-            return;
+            const gp = JSON.parse(localStorage.getItem("guest_projects") || "[]");
+            setProjects(gp); setCategories([]); setLoading(false); return;
         }
-
         try {
-            const [projs, cats] = await Promise.all([
-                projectsApi.list(),
-                categoriesApi.list()
-            ]);
-            setProjects(projs);
-            setCategories(cats);
-        } catch (error) {
-            console.error("Failed to load data:", error);
-        } finally {
-            setLoading(false);
-        }
+            const [projs, cats] = await Promise.all([projectsApi.list(), categoriesApi.list()]);
+            setProjects(projs); setCategories(cats);
+        } catch (e) { console.error(e); } finally { setLoading(false); }
     };
 
     const executeDelete = async (projectId: string) => {
-        // GUEST MODE HANDLER
         if (!isAuthenticated) {
-            const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
-            const updated = current.filter((p: Project) => String(p.id) !== String(projectId));
-            localStorage.setItem('guest_projects', JSON.stringify(updated));
+            const cur = JSON.parse(localStorage.getItem("guest_projects") || "[]");
+            localStorage.setItem("guest_projects", JSON.stringify(cur.filter((p: Project) => String(p.id) !== String(projectId))));
             setProjects(prev => prev.filter(p => p.id !== projectId));
-            window.dispatchEvent(new Event('refresh-sidebar'));
-            toast.success("Project deleted successfully");
-            return;
+            window.dispatchEvent(new Event("refresh-sidebar"));
+            toast.success("Project deleted"); return;
         }
-
         try {
             await projectsApi.delete(projectId);
-            setProjects(projects.filter(p => p.id !== projectId));
-            window.dispatchEvent(new Event('refresh-sidebar'));
-            toast.success("Project deleted successfully");
-        } catch (error) {
-            console.error("Failed to delete project:", error);
-            toast.error("Failed to delete project");
-        }
+            setProjects(prev => prev.filter(p => p.id !== projectId));
+            window.dispatchEvent(new Event("refresh-sidebar"));
+            toast.success("Project deleted");
+        } catch { toast.error("Failed to delete project"); }
     };
 
     const handleDelete = (e: React.MouseEvent, projectId: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        toast("Are you sure you want to delete this project?", {
-            description: "This action cannot be undone.",
-            action: {
-                label: "Delete",
-                onClick: () => executeDelete(projectId),
-            },
-        });
+        e.preventDefault(); e.stopPropagation();
+        toast("Delete this project?", { description: "Cannot be undone.", action: { label: "Delete", onClick: () => executeDelete(projectId) } });
     };
 
     const getCategoryProjects = (categoryId: string | null) => {
-        let filtered = projects.filter(p => {
-            if (categoryId === "uncategorized") {
-                return !p.category_id;
-            }
-            return p.category_id === categoryId;
-        });
-
-        // Apply search filter if query exists
-        if (searchQuery.trim()) {
-            filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
-        }
-
+        let filtered = projects.filter(p => categoryId === "uncategorized" ? !p.category_id : p.category_id === categoryId);
+        if (searchQuery.trim()) filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
         return filtered;
     };
 
     const uncategorizedCount = projects.filter(p => !p.category_id).length;
 
-    // If a category is selected, show projects in that category
+    // ── Project card ──────────────────────────────────────────────────────────
+    const ProjectCard = ({ project, i }: { project: Project; i: number }) => (
+        <div className="group relative">
+            <Link href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}>
+                <motion.div whileHover={{ y: -4, scale: 1.01 }}
+                    className="relative rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                    <div className={cn("absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none", i % 2 === 0 ? "bg-indigo-500/8" : "bg-sky-500/8")} />
+                    <div className="relative">
+                        <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-snug line-clamp-2 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors pr-6">
+                            {project.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                            {project.description || "No description."}
+                        </p>
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
+                            <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Quick Actions</div>
+                            <div className="grid grid-cols-4 gap-1.5">
+                                {QUICK_ACTIONS.map(action => (
+                                    <Link key={action.tool}
+                                        href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=${action.tool}` : "#"}
+                                        className={cn("flex flex-col items-center gap-1 p-1.5 rounded-lg text-slate-500 dark:text-slate-400 transition-all text-center", action.color)}
+                                        onClick={e => e.stopPropagation()}>
+                                        {action.icon}
+                                        <span className="text-[9px] font-medium">{action.label}</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </Link>
+            <button onClick={e => handleDelete(e, project.id)}
+                className="absolute top-3 right-3 z-20 p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+                <Trash2 className="h-3.5 w-3.5" />
+            </button>
+        </div>
+    );
+
+    // ── Project list view ─────────────────────────────────────────────────────
     if (selectedCategory !== null) {
-        const categoryProjects = getCategoryProjects(selectedCategory);
-        const categoryName = selectedCategory === "uncategorized"
+        const catProjects = getCategoryProjects(selectedCategory);
+        const catName = selectedCategory === "uncategorized"
             ? "Uncategorized"
             : categories.find(c => c.id === selectedCategory)?.name || "Category";
 
         return (
-            <div className="space-y-8">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => setSelectedCategory(null)}
-                        className="p-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900/30 rounded-lg transition-colors"
-                        title="Back to categories"
-                    >
-                        <ChevronLeft className="h-5 w-5" />
+            <div className="space-y-6 pb-10">
+                <div className="flex items-center gap-3">
+                    <button onClick={() => setSelectedCategory(null)}
+                        className="p-2 rounded-xl bg-white/80 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 transition-all shadow-sm">
+                        <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <div className="flex-1 flex flex-col space-y-2">
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{categoryName}</h1>
-                        <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">{categoryProjects.length} project{categoryProjects.length !== 1 ? 's' : ''}</p>
+                    <div>
+                        <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{catName}</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{catProjects.length} project{catProjects.length !== 1 ? "s" : ""}</p>
                     </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative max-w-xl">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search projects in this category..."
-                        className="w-full px-4 py-2.5 pl-10 text-gray-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors duration-300"
-                    />
-                    <svg
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                <div className="relative max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                        placeholder="Search projects..."
+                        className="w-full pl-9 pr-4 py-2 text-sm bg-white/80 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400" />
                 </div>
 
-                {categoryProjects.length === 0 ? (
-                    <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
-                        <Palette className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-                        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No projects in this category</h3>
-                        <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">Create a project to get started.</p>
+                {catProjects.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/30 text-center">
+                        <Sparkles className="h-10 w-10 text-slate-300 mb-3" />
+                        <p className="text-sm text-slate-500 dark:text-slate-400">No projects in this category.</p>
                     </div>
                 ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {categoryProjects.map((project) => (
-                            <div key={project.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 group flex flex-col relative">
-                                <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={(e) => handleDelete(e, project.id)}
-                                        className="p-2 bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900/30 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-200"
-                                        title="Delete Project"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
-
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 transition-colors">
-                                        {project.title}
-                                    </h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500 mb-6 line-clamp-2">
-                                        {project.description || "No description available"}
-                                    </p>
-                                </div>
-
-                                <div className="pt-4 border-t border-slate-100">
-                                    <div className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Quick Actions</div>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        <Link
-                                            href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=flashcards` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-orange-50 dark:bg-orange-900/30 text-slate-600 dark:text-slate-300 hover:text-orange-600 transition-colors group/btn"
-                                            title="Flashcards"
-                                        >
-                                            <Layers className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-medium">Flashcards</span>
-                                        </Link>
-                                        <Link
-                                            href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=social` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:bg-blue-900/30 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 transition-colors group/btn"
-                                            title="Social Media"
-                                        >
-                                            <Share2 className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-medium">Social</span>
-                                        </Link>
-                                        <Link
-                                            href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=diagram` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 dark:bg-purple-900/30 text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 dark:text-purple-400 transition-colors group/btn"
-                                            title="Diagrams"
-                                        >
-                                            <GitGraph className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-medium">Diagrams</span>
-                                        </Link>
-                                        <Link
-                                            href={project.first_source_id ? `/source/${project.first_source_id}?tab=studio&tool=article` : '#'}
-                                            className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:bg-emerald-900/30 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:text-emerald-400 transition-colors group/btn"
-                                            title="Article Writer"
-                                        >
-                                            <FilePenLine className="h-5 w-5 mb-1 group-hover/btn:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-medium">Article</span>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {catProjects.map((p, i) => <ProjectCard key={p.id} project={p} i={i} />)}
                     </div>
                 )}
             </div>
         );
     }
 
-    // Category selection view
+    // ── Category grid ─────────────────────────────────────────────────────────
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col space-y-2">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Content Studio</h1>
-                <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">Select a category to view your projects.</p>
+        <div className="space-y-8 pb-10">
+            <div>
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                    <div className="h-9 w-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                        <Palette className="h-5 w-5 text-indigo-500" />
+                    </div>
+                    Content Studio
+                </h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Turn your knowledge base into publishable content.</p>
             </div>
 
             {loading ? (
-                <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
-                </div>
+                <div className="flex justify-center py-24"><Loader2 className="h-7 w-7 animate-spin text-indigo-500" /></div>
             ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {/* Uncategorized Category */}
-                    {/* Uncategorized Category */}
-                    <button
+                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {/* Uncategorized */}
+                    <motion.button
+                        whileHover={{ y: -4, scale: 1.02 }}
                         onClick={() => setSelectedCategory("uncategorized")}
-                        className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-lg hover:border-slate-300 dark:border-slate-600 transition-all duration-200 group text-left"
+                        className="group relative text-left rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden"
                     >
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 dark:text-slate-500 group-hover:bg-slate-100 dark:hover:bg-slate-700 dark:bg-slate-700 transition-colors">
-                                <Folder className="h-8 w-8" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-transparent pointer-events-none" />
+                        <div className="relative flex items-center gap-3 mb-3">
+                            <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <Folder className="h-5 w-5 text-slate-500 dark:text-slate-400" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-slate-700 dark:text-slate-300 transition-colors">
-                                    Uncategorized
-                                </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
-                                    {uncategorizedCount} project{uncategorizedCount !== 1 ? 's' : ''}
-                                </p>
+                            <div>
+                                <h3 className="font-bold text-slate-900 dark:text-white text-sm">Uncategorized</h3>
+                                <p className="text-xs text-slate-400">{uncategorizedCount} project{uncategorizedCount !== 1 ? "s" : ""}</p>
                             </div>
                         </div>
-                    </button>
+                        <div className="flex items-center justify-end text-slate-400 group-hover:text-indigo-500 transition-colors">
+                            <ArrowRight className="h-4 w-4" />
+                        </div>
+                    </motion.button>
 
-                    {/* Regular Categories */}
-                    {categories.map((category) => {
-                        const count = getCategoryProjects(category.id).length;
-
+                    {categories.map((cat, i) => {
+                        const count = getCategoryProjects(cat.id).length;
+                        const accent = CATEGORY_ACCENTS[i % CATEGORY_ACCENTS.length].split(" ");
+                        const [glow, , border, , iconColor, iconBg] = accent;
                         return (
-                            <button
-                                key={category.id}
-                                onClick={() => setSelectedCategory(category.id)}
-                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 group text-left"
-                            >
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 transition-colors">
-                                        <Folder className="h-8 w-8" />
+                            <motion.button key={cat.id} whileHover={{ y: -4, scale: 1.02 }}
+                                onClick={() => setSelectedCategory(cat.id)}
+                                className={cn("group relative text-left rounded-2xl border bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden", border)}>
+                                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-70 pointer-events-none", glow)} />
+                                <div className="relative flex items-center gap-3 mb-3">
+                                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300", iconBg)}>
+                                        <Folder className={cn("h-5 w-5", iconColor)} />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:hover:text-blue-400 dark:text-blue-400 transition-colors">
-                                            {category.name}
-                                        </h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
-                                            {count} project{count !== 1 ? 's' : ''}
-                                        </p>
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 dark:text-white text-sm truncate">{cat.name}</h3>
+                                        <p className="text-xs text-slate-400">{count} project{count !== 1 ? "s" : ""}</p>
                                     </div>
                                 </div>
-                            </button>
+                                <div className={cn("flex items-center justify-end transition-colors", iconColor)}>
+                                    <ArrowRight className="h-4 w-4" />
+                                </div>
+                            </motion.button>
                         );
                     })}
 
-                    {/* Empty state */}
                     {categories.length === 0 && uncategorizedCount === 0 && (
-                        <div className="col-span-full text-center py-16 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
-                            <Palette className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-                            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No projects yet</h3>
-                            <p className="text-slate-500 dark:text-slate-400 dark:text-slate-500">Create a project to start using the Content Studio.</p>
+                        <div className="col-span-full flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/30 text-center">
+                            <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
+                                <Palette className="h-7 w-7 text-indigo-400" />
+                            </div>
+                            <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">No projects yet</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Ingest a source from the home page to get started.</p>
                         </div>
                     )}
                 </div>

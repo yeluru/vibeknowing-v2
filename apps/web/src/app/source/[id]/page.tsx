@@ -412,446 +412,288 @@ export default function SourcePage() {
         }
     };
 
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400" />
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="h-7 w-7 animate-spin text-indigo-500" />
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Loading workspace…</p>
+                </div>
             </div>
         );
     }
 
     if (!source) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <p className="text-gray-500 dark:text-slate-400">Source not found</p>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <p className="text-slate-500 dark:text-slate-400">Source not found</p>
             </div>
         );
     }
 
+    // Tab definitions — matches original exactly: Transcript, Summary, Chat, [Studio dropdown], View
+    const TABS = [
+        { id: 'transcript' as const, icon: <FileText className="h-4 w-4" />,      label: 'Transcript' },
+        { id: 'summary'    as const, icon: <Sparkles className="h-4 w-4" />,       label: 'Summary' },
+        { id: 'chat'       as const, icon: <MessageCircle className="h-4 w-4" />,  label: 'Chat' },
+    ] as const;
+
     return (
-        <div className="h-full flex flex-col space-y-4 sm:space-y-6">
-            {/* Header - Enhanced */}
-            <div className="flex-none relative z-10 bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/60 p-5 sm:p-6 shadow-lg hover-lift transition-colors duration-300">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
-                        <div className="min-w-0 flex-1">
-                            <EditableTitle
-                                initialValue={source.project?.title || source.title}
-                                onSave={handleUpdateTitle}
-                                isHeader={true}
-                                className="mb-2"
-                            />
-                            <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500 truncate font-medium">{source.url}</p>
-                        </div>
+        <div className="h-full flex flex-col gap-4">
+
+            {/* ── Workspace header ─────────────────────────────────────── */}
+            <div className="flex-none bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm relative z-10">
+
+                {/* Title + actions */}
+                <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-3">
+                    <div className="min-w-0 flex-1">
+                        <EditableTitle
+                            initialValue={source.project?.title || source.title}
+                            onSave={handleUpdateTitle}
+                            isHeader={true}
+                            className="mb-0.5"
+                        />
+                        {source.url && (
+                            <a href={source.url} target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-indigo-500 dark:text-indigo-400 hover:underline truncate block max-w-xl font-mono opacity-75 mt-0.5">
+                                {source.url}
+                            </a>
+                        )}
                     </div>
-
-                    {isAuthenticated && (
-                        <button
-                            onClick={handleDeleteProject}
-                            className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 dark:bg-red-900/30 rounded-lg transition-colors"
-                            title="Delete Project"
-                        >
-                            <Trash2 className="h-5 w-5" />
-                        </button>
-                    )}
+                    <div className="flex items-center gap-1 pt-0.5 flex-shrink-0">
+                        {isAuthenticated && prevProject && (
+                            <a href={`/source/${prevProject}`}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all" title="Previous">
+                                <ChevronLeft className="h-4 w-4" />
+                            </a>
+                        )}
+                        {isAuthenticated && nextProject && (
+                            <a href={`/source/${nextProject}`}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all" title="Next">
+                                <ChevronRight className="h-4 w-4" />
+                            </a>
+                        )}
+                        {isAuthenticated && (
+                            <button onClick={handleDeleteProject}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" title="Delete project">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
-                {/* Action Buttons - Enhanced */}
-                <div className="mt-6 flex flex-wrap gap-2 sm:gap-3">
-                    <button
-                        onClick={() => handleTabChange('transcript')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'transcript'
-                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400'
-                            }`}
-                    >
-                        <FileText className="h-4 w-4" />
-                        <span className="hidden sm:inline">Transcript</span>
-                    </button>
-                    <button
-                        onClick={() => handleTabChange('summary')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'summary'
-                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400'
-                            }`}
-                    >
-                        <Sparkles className="h-4 w-4" />
-                        <span className="hidden sm:inline">Summary</span>
-                    </button>
-                    <button
-                        onClick={() => handleTabChange('chat')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'chat'
-                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400'
-                            }`}
-                    >
-                        <MessageCircle className="h-4 w-4" />
-                        <span className="hidden sm:inline">Chat</span>
-                    </button>
 
+                {/* ── Tab strip — underline style ── */}
+                <div className="flex items-end border-t border-slate-100 dark:border-slate-800/80 px-2 relative">
 
-                    {/* Studio Dropdown */}
-                    <div
-                        className="relative"
-                        ref={dropdownRef}
+                    {/* Static tabs */}
+                    {TABS.map(tab => (
+                        <button key={tab.id} onClick={() => handleTabChange(tab.id)}
+                            className={cn(
+                                "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
+                                activeTab === tab.id
+                                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
+                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                            )}>
+                            {tab.icon}
+                            <span>{tab.label}</span>
+                        </button>
+                    ))}
+
+                    {/* Studio dropdown — hover to open, same behaviour as original */}
+                    <div className="relative" ref={dropdownRef}
                         onMouseEnter={() => setStudioDropdownOpen(true)}
-                        onMouseLeave={() => {
-                            setStudioDropdownOpen(false);
-                            setSocialMediaExpanded(false);
-                        }}
-                    >
+                        onMouseLeave={() => { setStudioDropdownOpen(false); setSocialMediaExpanded(false); }}>
                         <button
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'studio' || studioDropdownOpen
-                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400'
-                                }`}
-                        >
+                            className={cn(
+                                "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
+                                activeTab === 'studio' || studioDropdownOpen
+                                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
+                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                            )}>
                             <Palette className="h-4 w-4" />
-                            <span className="hidden sm:inline">Studio</span>
-                            <ChevronRight className="h-3 w-3 rotate-90 opacity-50" />
+                            <span>Studio</span>
+                            <ChevronRight className="h-3 w-3 rotate-90 opacity-40" />
                         </button>
 
-                        {/* Dropdown Menu */}
                         {studioDropdownOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 before:absolute before:-top-2 before:left-0 before:w-full before:h-2 before:content-['']">
-                                <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-700 mb-1">
-                                    Create & Learn
+                            <div className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200/70 dark:border-slate-700/60 py-1.5 z-[200] before:absolute before:-top-2 before:left-0 before:w-full before:h-2 before:content-['']">
+                                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1">
+                                    Content Studio
                                 </div>
+                                {[
+                                    { tool: 'diagram',    icon: <Sparkles className="h-3.5 w-3.5" />,    label: 'Diagrams' },
+                                    { tool: 'article',    icon: <FileText className="h-3.5 w-3.5" />,     label: 'Articles' },
+                                    { tool: 'quiz',       icon: <Trophy className="h-3.5 w-3.5" />,       label: 'Quiz' },
+                                    { tool: 'flashcards', icon: <Layers className="h-3.5 w-3.5" />,       label: 'Flashcards' },
+                                ].map(item => (
+                                    <button key={item.tool}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleTabChange('studio');
+                                            window.history.replaceState(null, '', `?tab=studio&tool=${item.tool}`);
+                                            window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: item.tool }));
+                                        }}
+                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                        <span className="text-slate-400 dark:text-slate-500">{item.icon}</span>
+                                        {item.label}
+                                    </button>
+                                ))}
 
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleTabChange('studio');
-                                        window.history.replaceState(null, '', `?tab=studio&tool=diagram`);
-                                        window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'diagram' }));
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                                >
-                                    <Sparkles className="h-4 w-4" />
-                                    Diagrams
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleTabChange('studio');
-                                        window.history.replaceState(null, '', `?tab=studio&tool=article`);
-                                        window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'article' }));
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                                >
-                                    <FileText className="h-4 w-4" />
-                                    Articles
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleTabChange('studio');
-                                        window.history.replaceState(null, '', `?tab=studio&tool=quiz`);
-                                        window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'quiz' }));
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                                >
-                                    <Trophy className="h-4 w-4" />
-                                    Quiz
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleTabChange('studio');
-                                        window.history.replaceState(null, '', `?tab=studio&tool=flashcards`);
-                                        window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'flashcards' }));
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                                >
-                                    <Layers className="h-4 w-4" />
-                                    Flashcards
-                                </button>
-
-                                {/* Social Media with Submenu - Moved to bottom */}
-                                <div
-                                    onMouseEnter={() => setSocialMediaExpanded(true)}
-                                    onMouseLeave={() => setSocialMediaExpanded(false)}
-                                >
-                                    <button
-                                        className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <MessageCircle className="h-4 w-4" />
+                                {/* Social media submenu */}
+                                <div onMouseEnter={() => setSocialMediaExpanded(true)}
+                                    onMouseLeave={() => setSocialMediaExpanded(false)}>
+                                    <button className="w-full flex items-center justify-between gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="text-slate-400 dark:text-slate-500"><MessageCircle className="h-3.5 w-3.5" /></span>
                                             Social Media
                                         </div>
-                                        <ChevronRight className={`h-4 w-4 transition-transform ${socialMediaExpanded ? 'rotate-90' : ''}`} />
+                                        <ChevronRight className={cn("h-3.5 w-3.5 opacity-40 transition-transform", socialMediaExpanded && "rotate-90")} />
                                     </button>
-
                                     {socialMediaExpanded && (
-                                        <div className="pl-4 py-1">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSocialMediaExpanded(false);
-                                                    handleTabChange('studio');
-                                                    window.history.replaceState(null, '', `?tab=studio&tool=social&platform=twitter`);
-                                                    window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'social' }));
-                                                    window.dispatchEvent(new CustomEvent('social-platform-change', { detail: 'twitter' }));
-                                                }}
-                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded-lg"
-                                            >
-                                                <span className="w-4"></span>
-                                                Twitter Thread
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSocialMediaExpanded(false);
-                                                    handleTabChange('studio');
-                                                    window.history.replaceState(null, '', `?tab=studio&tool=social&platform=linkedin`);
-                                                    window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'social' }));
-                                                    window.dispatchEvent(new CustomEvent('social-platform-change', { detail: 'linkedin' }));
-                                                }}
-                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded-lg"
-                                            >
-                                                <span className="w-4"></span>
-                                                LinkedIn Post
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSocialMediaExpanded(false);
-                                                    handleTabChange('studio');
-                                                    window.history.replaceState(null, '', `?tab=studio&tool=social&platform=instagram`);
-                                                    window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'social' }));
-                                                    window.dispatchEvent(new CustomEvent('social-platform-change', { detail: 'instagram' }));
-                                                }}
-                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded-lg"
-                                            >
-                                                <span className="w-4"></span>
-                                                Instagram Caption
-                                            </button>
+                                        <div className="pl-3 pb-1">
+                                            {[
+                                                { platform: 'twitter',   label: 'Twitter Thread' },
+                                                { platform: 'linkedin',  label: 'LinkedIn Post' },
+                                                { platform: 'instagram', label: 'Instagram Caption' },
+                                            ].map(s => (
+                                                <button key={s.platform}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSocialMediaExpanded(false);
+                                                        handleTabChange('studio');
+                                                        window.history.replaceState(null, '', `?tab=studio&tool=social&platform=${s.platform}`);
+                                                        window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'social' }));
+                                                        window.dispatchEvent(new CustomEvent('social-platform-change', { detail: s.platform }));
+                                                    }}
+                                                    className="w-full text-left px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                                                    {s.label}
+                                                </button>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
                             </div>
                         )}
                     </div>
-                    <button
-                        onClick={() => handleTabChange('view')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 hover-lift ${activeTab === 'view'
-                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400'
-                            }`}
-                    >
+
+                    {/* View tab */}
+                    <button onClick={() => handleTabChange('view')}
+                        className={cn(
+                            "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
+                            activeTab === 'view'
+                                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
+                                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                        )}>
                         <Eye className="h-4 w-4" />
-                        <span className="hidden sm:inline">View</span>
+                        <span>View</span>
                     </button>
                 </div>
-                {isAuthenticated && (
-                    <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-gray-100 dark:bg-slate-700 rounded-lg p-1 shadow-md">
-                        <a
-                            href={prevProject ? `/source/${prevProject}` : '#'}
-                            className={`p-1.5 rounded-md transition-colors ${prevProject
-                                ? 'text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-sm'
-                                : 'text-gray-300 dark:text-slate-600 cursor-default opacity-50'
-                                }`}
-                            title="Previous Project"
-                            onClick={e => !prevProject && e.preventDefault()}
-                        >
-                            <ChevronLeft className="h-5 w-5" />
-                        </a>
-                        <a
-                            href={nextProject ? `/source/${nextProject}` : '#'}
-                            className={`p-1.5 rounded-md transition-colors ${nextProject
-                                ? 'text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-sm'
-                                : 'text-gray-300 dark:text-slate-600 cursor-default opacity-50'
-                                }`}
-                            title="Next Project"
-                            onClick={e => !nextProject && e.preventDefault()}
-                        >
-                            <ChevronRight className="h-5 w-5" />
-                        </a>
+            </div>
+
+            {/* ── Tab content ─────────────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+
+                {/* Transcript */}
+                {activeTab === 'transcript' && (
+                    <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <FileText className="h-4.5 w-4.5 text-indigo-400" />Transcript
+                            </h2>
+                            {!isProcessing && source.content_text && (
+                                <button onClick={() => { navigator.clipboard.writeText(source.content_text); setCopiedTranscript(true); setTimeout(() => setCopiedTranscript(false), 2000); }}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
+                                    {copiedTranscript ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
+                                </button>
+                            )}
+                        </div>
+                        {isProcessing ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
+                                    <Loader2 className="h-7 w-7 animate-spin text-indigo-500" />
+                                </div>
+                                <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-1">Processing your content</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">This usually takes under 30 seconds.</p>
+                                <button onClick={fetchSource}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all">
+                                    <RefreshCw className="h-3.5 w-3.5" />Check status
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <p className="whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed text-sm">{source.content_text}</p>
+                            </div>
+                        )}
                     </div>
                 )}
-            </div >
 
-            {/* Content Area - Scrollable */}
-            < div className="flex-1 overflow-y-auto mt-6" >
-                {/* Transcript Tab */}
-                {
-                    activeTab === 'transcript' && (
-                        <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/60 p-6 sm:p-8 shadow-xl transition-colors duration-300">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                                <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">Transcript</h2>
-                                {!isProcessing && (
-                                    <button
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(source.content_text);
-                                            setCopiedTranscript(true);
-                                            setTimeout(() => setCopiedTranscript(false), 2000);
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 hover-lift"
-                                    >
-                                        {copiedTranscript ? (
-                                            <>
-                                                <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="h-4 w-4" />
-                                                Copy
-                                            </>
-                                        )}
+                {/* Summary */}
+                {activeTab === 'summary' && (
+                    <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Sparkles className="h-4.5 w-4.5 text-indigo-400" />AI Summary
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                {source.summary && (
+                                    <button onClick={() => { navigator.clipboard.writeText(source.summary || ''); setCopiedSummary(true); setTimeout(() => setCopiedSummary(false), 2000); }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
+                                        {copiedSummary ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
                                     </button>
                                 )}
+                                <button onClick={handleGenerateSummary} disabled={generating}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                                    {generating ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generating…</> : <><RefreshCw className="h-3.5 w-3.5" />{source.summary ? 'Regenerate' : 'Generate'}</>}
+                                </button>
                             </div>
-                            {isProcessing ? (
-                                <div className="flex flex-col items-center justify-center py-16 text-center">
-                                    <Loader2 className="h-12 w-12 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Processing your file...</h3>
-                                    <p className="text-sm text-gray-500 dark:text-slate-400">This may take a few moments. Please don't close this page.</p>
-                                    <button
-                                        onClick={fetchSource}
-                                        className="mt-6 flex items-center gap-2 px-4 py-2 text-sm font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-all"
-                                    >
-                                        <RefreshCw className="h-4 w-4" />
-                                        Check Status
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="prose prose-sm max-w-none">
-                                    <p className="whitespace-pre-wrap text-gray-900 dark:text-white leading-relaxed text-base">
-                                        {source.content_text}
-                                    </p>
-                                </div>
-                            )}
                         </div>
-                    )
-                }
-
-                {/* Summary Tab */}
-                {
-                    activeTab === 'summary' && (
-                        <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700/60 p-6 sm:p-8 shadow-xl transition-colors duration-300">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                                <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">AI Summary</h2>
-                                <div className="flex items-center gap-2">
-                                    {source.summary && (
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(source.summary || '');
-                                                setCopiedSummary(true);
-                                                setTimeout(() => setCopiedSummary(false), 2000);
-                                            }}
-                                            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 hover-lift"
-                                        >
-                                            {copiedSummary ? (
-                                                <>
-                                                    <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                                    Copied!
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Copy className="h-4 w-4" />
-                                                    Copy
-                                                </>
-                                            )}
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={handleGenerateSummary}
-                                        disabled={generating}
-                                        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {generating ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                Generating...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <RefreshCw className="h-4 w-4" />
-                                                {source.summary ? 'Regenerate' : 'Generate'}
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                        {source.summary ? (
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm, remarkMath]}
+                                    rehypePlugins={[rehypeKatex]}
+                                    components={{
+                                        h1: ({ node, ...props }) => <h1 className="!text-xl !font-bold !mt-6 !mb-3 !text-slate-900 dark:!text-white" {...props} />,
+                                        h2: ({ node, ...props }) => <h2 className="!text-lg !font-bold !mt-5 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
+                                        h3: ({ node, ...props }) => <h3 className="!text-base !font-semibold !mt-4 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
+                                        p:  ({ node, ...props }) => <p  className="!mb-3 !text-slate-700 dark:!text-slate-300 !leading-relaxed" {...props} />,
+                                        ul: ({ node, ...props }) => <ul className="!list-disc !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                        ol: ({ node, ...props }) => <ol className="!list-decimal !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                        li: ({ node, ...props }) => <li className="!ml-4 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                        strong: ({ node, ...props }) => <strong className="!font-semibold !text-slate-900 dark:!text-white" {...props} />,
+                                        blockquote: ({ node, ...props }) => <blockquote className="!border-l-4 !border-indigo-400 !pl-4 !italic !text-slate-600 dark:!text-slate-400 !my-4" {...props} />,
+                                        pre: ({ node, ...props }) => <pre className="not-prose bg-slate-50 dark:bg-slate-900 rounded-xl overflow-x-auto border border-slate-200 dark:border-slate-700 my-4" {...props} />,
+                                        code: ({ node, inline, className, children, ...props }: any) => !inline
+                                            ? <code className={cn("!block !p-4 !text-sm !font-mono !text-slate-800 dark:!text-slate-200 whitespace-pre", className)} {...props}>{children}</code>
+                                            : <code className="!px-1.5 !py-0.5 !bg-indigo-50 dark:!bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400 !rounded !text-xs !font-mono" {...props}>{children}</code>,
+                                        img: ({ node, ...props }) => <img className="rounded-xl border border-slate-200 dark:border-slate-700 my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />,
+                                    }}
+                                >
+                                    {source.summary}
+                                </ReactMarkdown>
                             </div>
-                            {source.summary ? (
-                                <div className="prose prose-sm dark:prose-invert max-w-none">
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm, remarkMath]}
-                                        rehypePlugins={[rehypeKatex]}
-                                        components={{
-                                            h1: ({ node, ...props }) => <h1 className="!text-2xl !font-bold !mt-6 !mb-4 !text-gray-900 dark:!text-white" {...props} />,
-                                            h2: ({ node, ...props }) => <h2 className="!text-xl !font-bold !mt-5 !mb-3 !text-gray-900 dark:!text-white" {...props} />,
-                                            h3: ({ node, ...props }) => <h3 className="!text-lg !font-semibold !mt-4 !mb-2 !text-gray-900 dark:!text-white" {...props} />,
-                                            h4: ({ node, ...props }) => <h4 className="!text-base !font-semibold !mt-3 !mb-2 !text-gray-900 dark:!text-white" {...props} />,
-                                            h5: ({ node, ...props }) => <h5 className="!text-sm !font-semibold !mt-2 !mb-1 !text-gray-900 dark:!text-white" {...props} />,
-                                            h6: ({ node, ...props }) => <h6 className="!text-xs !font-semibold !mt-2 !mb-1 !text-gray-900 dark:!text-white" {...props} />,
-                                            p: ({ node, ...props }) => <p className="!mb-4 !text-gray-900 dark:!text-white !leading-relaxed" {...props} />,
-                                            ul: ({ node, ...props }) => <ul className="!list-disc !list-inside !mb-4 !space-y-2 !text-gray-900 dark:!text-white" {...props} />,
-                                            ol: ({ node, ...props }) => <ol className="!list-decimal !list-inside !mb-4 !space-y-2 !text-gray-900 dark:!text-white" {...props} />,
-                                            li: ({ node, ...props }) => <li className="!ml-4 !text-gray-900 dark:!text-white" {...props} />,
-                                            strong: ({ node, ...props }) => <strong className="!font-semibold !text-gray-900 dark:!text-white" {...props} />,
-                                            em: ({ node, ...props }) => <em className="!italic !text-gray-900 dark:!text-white" {...props} />,
-                                            pre: ({ node, ...props }) => (
-                                                <pre className="not-prose bg-gray-50 dark:bg-slate-900 rounded-lg overflow-x-auto border border-gray-200 dark:border-slate-700 my-4" {...props} />
-                                            ),
-                                            code: ({ node, inline, className, children, ...props }: any) => {
-                                                const match = /language-(\w+)/.exec(className || '');
-                                                return !inline ? (
-                                                    <code className={cn("!block !p-4 !text-sm !font-mono !text-gray-800 dark:!text-slate-200 whitespace-pre", className)} {...props}>
-                                                        {children}
-                                                    </code>
-                                                ) : (
-                                                    <code className={cn("!px-1.5 !py-0.5 !bg-gray-100 dark:!bg-slate-700 !text-purple-600 dark:!text-purple-400 rounded !text-sm !font-mono", className)} {...props}>
-                                                        {children}
-                                                    </code>
-                                                );
-                                            },
-                                            img: ({ node, ...props }) => (
-                                                <img className="rounded-lg border border-gray-200 dark:border-slate-700 my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />
-                                            ),
-                                            blockquote: ({ node, ...props }) => (
-                                                <blockquote className="!border-l-4 !border-purple-500 dark:!border-purple-600 !pl-4 !italic !text-gray-700 dark:!text-slate-300 !my-4" {...props} />
-                                            ),
-                                        }}
-                                    >
-                                        {source.summary}
-                                    </ReactMarkdown>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
+                                    <Sparkles className="h-7 w-7 text-indigo-400" />
                                 </div>
-                            ) : (
-                                <div className="text-center py-12 text-gray-500 dark:text-slate-400">
-                                    <Sparkles className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                                    <p>No summary generated yet. Click "Generate" to create one.</p>
-                                </div>
-                            )}
-                        </div>
-                    )
-                }
+                                <p className="text-slate-500 dark:text-slate-400 text-sm">No summary yet — click Generate above.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
 
-                {/* Chat Tab */}
-                {
-                    activeTab === 'chat' && (
-                        <ChatInterface sourceId={source.id} />
-                    )
-                }
+                {/* Chat */}
+                {activeTab === 'chat' && <ChatInterface sourceId={source.id} />}
 
+                {/* Studio — handles Diagrams, Articles, Quiz, Flashcards, Social internally */}
+                {activeTab === 'studio' && <StudioInterface sourceId={source.id} />}
 
+                {/* View */}
+                {activeTab === 'view' && <ContentViewer url={source.url || ''} title={source.title || 'Untitled'} />}
 
-
-
-                {/* Studio Tab */}
-                {
-                    activeTab === 'studio' && (
-                        <StudioInterface sourceId={source.id} />
-                    )
-                }
-
-                {/* View Tab */}
-                {
-                    activeTab === 'view' && (
-                        <ContentViewer url={source.url || ''} title={source.title || 'Untitled'} />
-                    )
-                }
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

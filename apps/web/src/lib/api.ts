@@ -16,19 +16,45 @@ export const API_BASE = apiUrl;
 // Create axios instance
 const api = axios.create({
     baseURL: API_BASE,
-    timeout: 15000,
+    timeout: 120000,
     headers: {
         "Content-Type": "application/json",
     },
 });
 
-// Add a request interceptor to include the token
+// Add a request interceptor to include auth token + AI provider keys
 api.interceptors.request.use(
     (config) => {
+        // Auth token
         const token = localStorage.getItem("token");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // AI provider keys from browser localStorage
+        // Sent on every request; backend uses them only for AI calls
+        try {
+            const keys = JSON.parse(localStorage.getItem("vk_provider_keys") || "{}");
+            const prefs = JSON.parse(localStorage.getItem("vk_ai_prefs") || "{}");
+
+            // Send all configured keys so the backend can pick the right one
+            if (keys.openai) config.headers["X-OpenAI-Key"] = keys.openai;
+            if (keys.anthropic) config.headers["X-Anthropic-Key"] = keys.anthropic;
+            if (keys.google) config.headers["X-Google-Key"] = keys.google;
+
+            // Send preferred provider
+            if (prefs.defaultProvider) {
+                config.headers["X-AI-Provider"] = prefs.defaultProvider;
+            }
+
+            // Send task-specific model overrides as JSON
+            if (prefs.taskModels && Object.keys(prefs.taskModels).length > 0) {
+                config.headers["X-AI-Task-Models"] = JSON.stringify(prefs.taskModels);
+            }
+        } catch (e) {
+            // localStorage not available or parse error, skip
+        }
+
         return config;
     },
     (error) => Promise.reject(error)

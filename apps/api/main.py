@@ -11,8 +11,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from database import engine
 import models
-from routers import ingest, ai, create, sources, categories, auth, oauth
-from config import settings
+from routers import ingest, ai, create, sources, categories, auth, oauth, settings
+from config import settings as app_settings
 import force_reset_db
 import seed_db
 
@@ -40,11 +40,8 @@ origins = [
 
 print("Starting API with CORS origins:", origins)
 
-# Session Middleware (Required for OAuth) - Must be added before CORS to ensure it handles requests first? 
-# Actually, Last added = First executed. We want CORS first (to handle OPTIONS).
-# So we add SessionMiddleware BEFORE adding CORSMiddleware?
-# Let's simple add it here.
-app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET)
+# Session Middleware (Required for OAuth)
+app.add_middleware(SessionMiddleware, secret_key=app_settings.SESSION_SECRET)
 
 app.add_middleware(
     CORSMiddleware,
@@ -61,6 +58,7 @@ app.include_router(sources.router)
 app.include_router(categories.router)
 app.include_router(auth.router)
 app.include_router(oauth.router)
+app.include_router(settings.router)
 
 @app.get("/")
 async def root():
@@ -93,9 +91,9 @@ async def purge_db_secret(key: str):
     Emergency endpoint to PURGE all data (delete rows) without dropping tables.
     Requires 'key' query parameter matching SECRET_KEY (or 'supersecretkey' as fallback).
     """
-    from config import settings
+    from config import settings as cfg
     # Simple security check
-    if key != settings.SECRET_KEY and key != "supersecretkey":
+    if key != cfg.SECRET_KEY and key != "supersecretkey":
          return {"status": "error", "message": "Invalid secret key"}
 
     import purge_db
