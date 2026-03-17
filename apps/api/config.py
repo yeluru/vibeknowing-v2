@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
-    SMTP_USERNAME: str = os.getenv("EMAIL_ACCOUNT", "rkyeluru@gmail.com")
+    SMTP_USERNAME: str = os.getenv("EMAIL_ACCOUNT", "")
     SMTP_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "")
 
     # OAuth Settings
