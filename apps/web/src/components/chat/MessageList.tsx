@@ -26,12 +26,12 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
 
     if (messages.length === 0) {
         return (
-            <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-gray-500 dark:text-slate-400">
-                <div className="mb-4 rounded-full bg-purple-100 p-4">
-                    <Bot className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+            <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-slate-500">
+                <div className="mb-4 rounded-full bg-slate-50 border border-slate-200 p-4 shadow-sm">
+                    <Bot className="h-8 w-8 text-indigo-500" />
                 </div>
-                <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Ask anything!</h3>
-                <p className="max-w-sm text-sm">
+                <h3 className="mb-2 text-xl font-bold tracking-tight text-slate-900">Ask anything!</h3>
+                <p className="max-w-sm text-sm leading-relaxed text-slate-500">
                     I can answer questions about this content, summarize key points, or help you understand complex topics.
                 </p>
             </div>
@@ -50,10 +50,10 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                 >
                     <div
                         className={cn(
-                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm",
                             message.role === "user"
-                                ? "bg-purple-100 border-purple-200 text-purple-700"
-                                : "bg-white border-gray-200 text-gray-600"
+                                ? "bg-emerald-100 border-emerald-200 text-emerald-700"
+                                : "bg-white border-slate-200 text-slate-600"
                         )}
                     >
                         {message.role === "user" ? (
@@ -65,16 +65,16 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
 
                     <div
                         className={cn(
-                            "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+                            "max-w-[80%] rounded-2xl px-5 py-3 text-[15px] shadow-sm leading-relaxed",
                             message.role === "user"
-                                ? "bg-purple-600 text-white"
-                                : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white shadow-sm"
+                                ? "bg-emerald-100 text-emerald-900 rounded-tr-sm"
+                                : "bg-white border border-slate-200 text-slate-900 rounded-tl-sm"
                         )}
                     >
                         {message.role === "user" ? (
-                            <p className="whitespace-pre-wrap">{message.content}</p>
+                            <p className="whitespace-pre-wrap tracking-wide font-medium">{message.content}</p>
                         ) : (
-                            <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-gray-900 dark:prose-p:text-white prose-pre:bg-gray-50 dark:prose-pre:bg-slate-700 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-slate-700 prose-code:text-gray-900 dark:prose-code:text-white">
+                            <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:text-slate-800 prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-code:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight">
                                 <ReactMarkdown>{message.content}</ReactMarkdown>
                             </div>
                         )}
@@ -84,13 +84,13 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
 
             {isLoading && (
                 <div className="flex gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm">
                         <Bot className="h-5 w-5" />
                     </div>
-                    <div className="flex items-center gap-1 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm">
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]" />
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]" />
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" />
+                    <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
                     </div>
                 </div>
             )}

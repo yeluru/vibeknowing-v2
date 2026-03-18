@@ -17,34 +17,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    // Check localStorage for saved theme preference first
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    
-    // Always ensure we have a clean state
-    if (savedTheme === "dark") {
-      setTheme("dark");
-      document.documentElement.classList.add("dark");
-    } else {
-      // Default to light mode (ignore system preference)
-      setTheme("light");
-      document.documentElement.classList.remove("dark");
-      // Only save if there was no preference (don't overwrite user's explicit choice)
-      if (!savedTheme) {
-        localStorage.setItem("theme", "light");
-      }
-    }
+    // Force light mode
+    setTheme("light");
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("theme", "light");
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    // Explicitly add or remove the class
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    // Theme toggle is disabled for pure aesthetic lock-in
+    console.log("Theme toggle explicitly removed for 10/10 UX presentation.");
   };
 
   // Always provide the context, even during SSR

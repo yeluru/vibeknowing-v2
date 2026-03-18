@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Loader2, Palette, Share2, GitGraph, FilePenLine, Layers, Trash2, Folder, ChevronLeft, Search, ArrowRight, Sparkles } from "lucide-react";
 import { projectsApi, categoriesApi, Project, Category } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const CATEGORY_ACCENTS = [
 ];
 
 export default function StudioPage() {
+    const router = useRouter();
     const { isAuthenticated } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -77,9 +79,10 @@ export default function StudioPage() {
     // ── Project card ──────────────────────────────────────────────────────────
     const ProjectCard = ({ project, i }: { project: Project; i: number }) => (
         <div className="group relative">
-            <Link href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}>
-                <motion.div whileHover={{ y: -4, scale: 1.01 }}
-                    className="relative rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden">
+            <motion.div
+                onClick={() => router.push(project.first_source_id ? `/source/${project.first_source_id}` : "#")}
+                whileHover={{ y: -4, scale: 1.01 }}
+                className="cursor-pointer relative rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden">
                     <div className={cn("absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none", i % 2 === 0 ? "bg-indigo-500/8" : "bg-sky-500/8")} />
                     <div className="relative">
                         <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-snug line-clamp-2 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors pr-6">
@@ -104,7 +107,6 @@ export default function StudioPage() {
                         </div>
                     </div>
                 </motion.div>
-            </Link>
             <button onClick={e => handleDelete(e, project.id)}
                 className="absolute top-3 right-3 z-20 p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <Trash2 className="h-3.5 w-3.5" />

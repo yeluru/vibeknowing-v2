@@ -23,48 +23,40 @@
 
 /* UI v2 token overrides (scoped, reversible) */
 body.vk-ui-v2 {
-  /* Typography: use a more premium UI font (still fully reversible) */
-  font-family: var(--font-plus-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-
-  /* More decisive “industry SaaS” palette */
-  /* Option A: Slate neutrals + Indigo primary + Cyan accent */
-  --background: #f7f8fc;
-  --background-light: #ffffff;
-  --background-elevated: #ffffff;
-  --foreground: #0b1220;
-  --foreground-muted: #58657a;
-  --card: #ffffff;
-  --card-border: #e3e8f3;
-  --border: #e3e8f3;
-  --ring: #4f46e5; /* indigo */
-
-  /* Keep existing primary/secondary variables but bias accent usage */
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --secondary: #0ea5e9; /* cyan/sky */
-  --secondary-hover: #0284c7;
-  --accent: #22d3ee;
-  --accent-hover: #06b6d4;
-
-  /* Radius/shadows: calmer, more modern */
-  --radius-sm: 0.625rem; /* 10px */
-  --radius-md: 0.875rem; /* 14px */
-  --radius-lg: 1.125rem; /* 18px */
-  --radius-xl: 1.5rem;   /* 24px */
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 8px 20px rgba(16, 24, 40, 0.10);
-
-  background-color: var(--background);
-  color: var(--vk-text);
-  /* Rich mesh — glassmorphism needs vivid colour behind the glass */
+  background-color: #fcfcfd;
+  color: #0d0d12;
   background-image:
-    radial-gradient(ellipse 80% 60% at 65% -15%, rgba(99, 102, 241, 0.42), transparent),
-    radial-gradient(ellipse 55% 45% at -8%  45%, rgba(139, 92, 246, 0.22), transparent),
-    radial-gradient(ellipse 60% 50% at 108% 35%, rgba(14, 165, 233, 0.20), transparent),
-    radial-gradient(ellipse 50% 40% at 48% 110%, rgba(34, 211, 238, 0.14), transparent);
+    radial-gradient(circle at 50% 0%, rgba(200, 200, 255, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.08), transparent);
   background-attachment: fixed;
 }
+
+.dark body.vk-ui-v2 {
+  background-color: #000000;
+  color: #f8fafc;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.15), transparent);
+}
+
+@keyframes textShine {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
 
 
 
@@ -193,44 +185,45 @@ body.vk-ui-v2::before {
   .vk-ui-v2 * {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
-    scroll-behavior: auto !important;
   }
 }
 
-/* Light component primitives (opt-in via wrapper classes; no behavior changes) */
 .vk-ui-v2 .vk-card {
-  background: color-mix(in srgb, var(--vk-surface) 78%, transparent);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid color-mix(in srgb, white 55%, transparent);
+  background: color-mix(in srgb, var(--vk-surface) 95%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid color-mix(in srgb, white 20%, transparent);
   border-radius: var(--vk-radius-lg);
-  box-shadow: 0 4px 24px rgba(79, 70, 229, 0.07), 0 1px 3px rgba(0,0,0,0.07);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.05) inset, 0 4px 24px rgba(0,0,0,0.04);
 }
 
-
-
 .vk-ui-v2 .vk-panel {
-  background: color-mix(in srgb, var(--vk-surface-elevated) 88%, transparent);
+  background: color-mix(in srgb, var(--vk-surface-elevated) 95%, transparent);
   border: 1px solid var(--vk-border);
   border-radius: var(--vk-radius-lg);
-  box-shadow: var(--vk-shadow-2);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.05) inset, var(--vk-shadow-2);
 }
 
 .vk-ui-v2 .vk-input {
-  background: color-mix(in srgb, var(--vk-surface) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--vk-text) 15%, transparent);
   border-radius: var(--vk-radius-md);
   color: var(--vk-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05) inset;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.vk-ui-v2 .vk-input::placeholder {
-  color: color-mix(in srgb, var(--vk-text-muted) 90%, transparent);
+.vk-ui-v2 .vk-input:focus-within {
+  border-color: color-mix(in srgb, var(--vk-text) 50%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--vk-text) 50%, transparent) inset;
 }
 
 .vk-ui-v2 .vk-btn {
   border-radius: var(--vk-radius-md);
-  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
-  box-shadow: var(--vk-shadow-1);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .vk-ui-v2 .vk-btn:disabled {
@@ -239,13 +232,15 @@ body.vk-ui-v2::before {
 }
 
 .vk-ui-v2 .vk-btn-primary {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 92%, black), var(--secondary));
-  color: white;
-  border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+  background: var(--vk-text);
+  color: var(--background);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.2) inset, 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .vk-ui-v2 .vk-btn-primary:hover {
-  filter: brightness(1.03);
+  transform: translateY(-1px);
+  filter: brightness(1.1);
 }
 
 .vk-ui-v2 .vk-btn-secondary {

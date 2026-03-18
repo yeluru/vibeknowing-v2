@@ -45,7 +45,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                             key={i}
                             onClick={() => onSend(suggestion)}
                             disabled={disabled}
-                            className="vk-pill px-3 py-1.5 text-sm text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 bg-purple-50/70 dark:bg-purple-900/20 hover:bg-purple-100/80 disabled:opacity-50 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium text-slate-700 border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 transition-colors"
                         >
                             <Sparkles className="h-3.5 w-3.5" />
                             {suggestion}
@@ -62,7 +62,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a question about this content..."
                     disabled={disabled}
-                    className="vk-input max-h-32 min-h-[44px] w-full resize-none rounded-xl px-4 py-3 pr-12 text-sm placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50"
+                    className="vk-input max-h-32 min-h-[44px] w-full resize-none rounded-xl px-4 py-3 pr-12 text-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:bg-white disabled:opacity-50"
                     rows={1}
                     aria-label="Chat message"
                 />

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@custom-variant dark (&:is(.dark *));
 
 :root {
   /* Enhanced Modern Theme - Premium Design System (Light) */
@@ -94,12 +95,17 @@
 
 
 body {
-  background-color: #f4f5fb; /* very slight indigo tint — makes orbs visible */
+  background-color: #f4f5fb; /* very slight indigo tint */
   background-attachment: fixed;
   color: #0f172a;
   font-family: var(--font-inter), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dark body {
+  background-color: #000000;
+  color: #f8fafc;
 }
 
 /* Glassmorphism Utility */
