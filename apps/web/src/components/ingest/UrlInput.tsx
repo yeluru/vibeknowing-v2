@@ -22,19 +22,14 @@ export function UrlInput() {
         e.preventDefault();
         if ((!input.trim() && !file) || isLoading) return;
 
-        // Access Control Logic
+        // Require login before ingesting anything
         if (!isAuthenticated) {
-            const guestCount = parseInt(localStorage.getItem('guest_project_count') || '0');
-            if (guestCount >= 1) {
-                // Trial Expired
-                toast.error("Free trial limit reached. Please sign up to create more projects.");
-                // Add a small delay for the toast to be seen, then redirect
-                setTimeout(() => {
-                    router.push("/auth/signup");
-                }, 1000);
-                return;
-            }
-            // Increment trial count (will be set to 1 on success)
+            toast("Sign in to get started", {
+                description: "Create a free account to analyze URLs and upload files.",
+                action: { label: "Sign up", onClick: () => router.push("/auth/signup") },
+            });
+            router.push("/auth/signup");
+            return;
         }
 
         setIsLoading(true);
