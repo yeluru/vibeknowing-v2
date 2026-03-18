@@ -26,6 +26,12 @@ function getTaskForPath(pathname: string): string {
   return "summary"; // default fallback
 }
 
+const PROVIDER_LABELS: Record<string, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  google: "Google",
+};
+
 function getModelForTask(task: string): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -33,14 +39,16 @@ function getModelForTask(task: string): string | null {
       localStorage.getItem("vk_ai_prefs") ||
         '{"defaultProvider":"openai","taskModels":{}}'
     );
-    // Task-specific model takes priority: stored as "provider:modelId"
+    const defaultProvider: string = prefs.defaultProvider || "openai";
+
+    // Task-specific model takes priority
     const taskEntry: string | undefined = prefs.taskModels?.[task];
     if (taskEntry) {
       const modelId = taskEntry.split(":")[1];
       return modelId ? (MODEL_LABELS[modelId] ?? modelId) : null;
     }
-    // Fall back to default provider — find any model configured for it
-    const defaultProvider: string = prefs.defaultProvider || "openai";
+
+    // Any model for the default provider
     const fallbackEntry = Object.values(prefs.taskModels as Record<string, string>).find(
       (v) => v.startsWith(defaultProvider + ":")
     );
@@ -48,7 +56,9 @@ function getModelForTask(task: string): string | null {
       const modelId = fallbackEntry.split(":")[1];
       return modelId ? (MODEL_LABELS[modelId] ?? modelId) : null;
     }
-    return null;
+
+    // Always show something — at minimum the provider name
+    return PROVIDER_LABELS[defaultProvider] ?? defaultProvider;
   } catch {
     return null;
   }
