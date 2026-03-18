@@ -17,10 +17,10 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
 
     // Default suggestions
     const suggestions = [
-        "Summarize the key points",
-        "What are the main takeaways?",
-        "Explain the technical concepts",
-        "Create a quiz from this"
+        "What is the single most important idea here?",
+        "What would someone commonly misunderstand about this?",
+        "Give me a real-world example of the main concept",
+        "What should I look up to go deeper on this?"
     ];
 
     useEffect(() => {

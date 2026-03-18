@@ -203,83 +203,93 @@ class AIService:
 
     @staticmethod
     def cleanup_content(text: str, provider: str = "openai", model: str = None, api_key: str = None) -> str:
-        prompt = """You are an expert content editor.
-Your task is to extract ONLY the main content/article/post from the raw webpage text below and format it as a clean Markdown transcript.
+        prompt = """Extract the main readable content from the raw text below and return it as clean, readable plain text (not Markdown).
 
-CRITICAL CLEANUP RULES:
-1. SOCIAL MEDIA POSTS: If this is a social media post (LinkedIn, Twitter, etc.), keep ONLY the main post text.
-   - REMOVE all comments, replies, and reactions.
-   - REMOVE interactions like "Like", "Comment", "Share", "Repost".
-   - REMOVE relative timestamps (e.g., "17h", "2d").
-   - REMOVE author bios, follower counts, and "You might also like" sections.
-2. ARTICLES: Keep the headline and body text. Remove headers, footers, sidebars, and "Read more" links.
-3. FORMATTING: Use clean Markdown. No extra horizontal rules or clutter.
-4. ACCURACY: Do NOT summarize. Keep the exact wording of the main content.
-5. LANGUAGE: Preserve the original language.
+Rules:
+- Keep the exact original wording of the main content. Do not summarize, rephrase, or reorder.
+- For social media posts: keep only the post body. Remove comments, reactions, like/share buttons, timestamps, follower counts, and "You might also like" sections.
+- For articles and blog posts: keep the headline and body. Remove navigation menus, footers, sidebars, cookie banners, subscription prompts, and "Read more" links.
+- For YouTube transcripts: keep the spoken words. Remove [Music], [Applause], and other bracketed annotations unless they are part of a spoken phrase.
+- Preserve the original language.
+- Do not add headings, bullet points, or formatting that was not in the original.
+- Return only the cleaned content. No preamble, no explanation.
 
-The output should look like a clean document, ready for reading, without any UI noise.
-
-Return ONLY the cleaned main content."""
+Raw Content:
+"""
 
         input_text = text[:50000]
         result = _generate(
-            prompt=f"{prompt}\n\nRaw Content:\n{input_text}",
+            prompt=f"{prompt}{input_text}",
             provider=provider, model=model, api_key=api_key,
-            system_prompt="You are a helpful content cleaner.",
-            max_tokens=16000, temperature=0.3, task="cleanup",
+            system_prompt="You are a precise content extractor. Return only the requested content, nothing else.",
+            max_tokens=16000, temperature=0.1, task="cleanup",
         )
         return result if not result.startswith("Error:") and not result.startswith("Failed") else text
 
     @staticmethod
     def generate_summary(text: str, style: str = "article", provider: str = "openai", model: str = None, api_key: str = None):
         if style == "article":
-            prompt = f"""You are an expert AI technical educator and explainer.
+            prompt = f"""You are a teacher writing an educational guide based on the content below. Your goal is to help the reader genuinely understand the subject — not just know what was said, but understand why it matters and how it works.
 
-Turn the transcript below into a clear, engaging educational blog for the same audience as the transcript. Write in simple, plain English, like you're patiently teaching a smart friend. Do not sound like a transcript or a generic summary. Reorganize ideas into a logical teaching flow.
+Write in plain, confident English. Imagine you are explaining this to a smart colleague who is new to the topic. No jargon without explanation. No hype. No filler phrases like "In conclusion" or "It's important to note."
 
-Output Format
-- Use Markdown headings: `##` for main sections, `###` for subsections.
-- Write concise paragraphs (3-5 sentences each).
-- Use lists only when they truly improve clarity.
+Structure your response in Markdown:
+- Start with a single sentence that captures the core idea of the entire piece (no heading, just the sentence).
+- Use ## for major sections (2–5 depending on content depth).
+- Use ### for subsections only when a major section has more than one distinct concept.
+- Write paragraphs of 3–5 sentences. Each paragraph makes exactly one point.
+- Use bullet lists sparingly — only when listing genuinely parallel items. Never use bullets just to break up text.
 
-Teaching Style
-- Teach one idea per section.
-- For each key idea:
-    - Explain what it means in everyday words.
-    - Explain the common misunderstanding (only if it exists).
-    - Give a concrete real-world example or analogy.
-- Remove repeated phrases and filler. Keep only the best, unique content.
+For every key concept:
+1. State it plainly in one sentence.
+2. Explain why it works that way (the reasoning, not just the definition).
+3. Give one concrete real-world example or analogy. Make it specific — "like a spreadsheet" is weak; "like a restaurant keeping a running tab per table" is strong.
+4. If there is a common mistake or misconception people have about this concept, address it in one sentence.
 
-Visuals (only when helpful)
-- Include at most 1-3 simple text diagrams using ASCII inside code blocks only if they genuinely clarify a relationship, workflow, or framework in the transcript.
-- Keep diagrams small and readable.
+Only include the following if they genuinely appear in the source content:
+- Code: show real snippets with brief inline comments. Do not invent code.
+- Math: use LaTeX ($...$ inline, $$...$$ for blocks). Show the reasoning step by step.
+- ASCII diagrams: only for relationships or flows that are genuinely hard to explain in text. Keep them under 20 lines.
 
-Technical Extras (conditional)
-- Only include code references if actual code is provided in the input.
-- If no code is provided, do not invent code, file paths, or links.
-- Only include math formulas and worked examples if the transcript contains real math or quantitative reasoning.
-- If included, use LaTeX: $...$ inline, $$...$$ for blocks, and show steps clearly.
+End with a short section titled "## The one thing to remember" — one paragraph, maximum 3 sentences, that captures the single most important insight from the content.
 
-Tone
-- Professional, approachable, slightly conversational.
-- Avoid motivational filler and hype. No "like and subscribe" language.
-
-Quality Check (before final answer)
-- Would a beginner understand this?
-- Does each paragraph teach one thing?
-- Did you avoid copying transcript wording?
-
-Transcript:
-{text[:12000]}"""
+Source content:
+{text[:30000]}"""
             max_tokens = 16000
         elif style == "concise":
-            prompt = "Provide a concise summary of the key points in bullet format using Markdown.\n\n" + text[:10000]
+            prompt = f"""Read the content below and write a concise summary that captures the essential points a reader needs to walk away with.
+
+Format:
+- Start with one sentence (no heading) that captures the single most important idea.
+- Then list 5–8 key points as bullet points. Each bullet is one complete sentence. No sub-bullets.
+- End with one sentence: "In short: [restate the core idea in different words]."
+
+Tone: Direct and informative. Write as if briefing a busy professional.
+
+Content:
+{text[:15000]}"""
             max_tokens = 4000
         elif style == "eli5":
-            prompt = "Explain this like I'm 5 years old, using simple analogies and Markdown formatting.\n\n" + text[:10000]
+            prompt = f"""Explain the content below to someone who has never heard of this topic before. Assume they are intelligent but completely unfamiliar with the field.
+
+Rules:
+- Never use jargon without immediately explaining it in parentheses.
+- Use one concrete, relatable analogy for each major concept. Pick analogies from everyday life (cooking, sports, driving, shopping — not tech).
+- Use short paragraphs. Maximum 3 sentences each.
+- Use simple Markdown: ## for sections, bold for key terms when first introduced.
+- Do not talk down to the reader. Explain simply, not condescendingly.
+- Do not use the phrase "imagine" more than once.
+
+Content:
+{text[:15000]}"""
             max_tokens = 8000
         else:
-            prompt = "Summarize this content clearly.\n\n" + text[:10000]
+            prompt = f"""Summarize the content below clearly and accurately.
+
+Write 3–5 paragraphs. Each paragraph covers one theme or aspect of the content. Use plain language. Do not add opinions or information not present in the source.
+
+Content:
+{text[:15000]}"""
             max_tokens = 8000
 
         print(f"Generating summary with style: {style} [{provider}]")
@@ -290,45 +300,80 @@ Transcript:
 
     @staticmethod
     def generate_quiz(text: str, provider: str = "openai", model: str = None, api_key: str = None):
-        prompt = """You are an expert AI tutor creating a quiz for a student.
-Based on the provided content, generate 5 multiple-choice questions.
+        prompt = """Create 6 multiple-choice questions that test genuine understanding of the content below.
 
-Output must be a JSON object with a "questions" key, containing an array of objects.
-Each object must have:
-- "question": The question text.
-- "options": An array of 4 possible answers (strings).
-- "correctAnswer": The index (0-3) of the correct option.
-- "explanation": A brief explanation of why the answer is correct.
+Question writing rules:
+- Test reasoning and comprehension, not memory of specific words or trivia.
+- Each question should have one clearly correct answer and three plausible wrong answers.
+- Wrong answers should represent real misconceptions or common confusions — not obviously silly distractors.
+- Questions should vary in type: some test definitions, some test application, some test comparison or cause-and-effect.
+- Write questions in plain language. Avoid double negatives.
 
-Focus on key concepts and understanding, not just trivia."""
+IMPORTANT — answer position:
+- The correct answer must NOT always be at index 0. Distribute correct answers across all four positions (0, 1, 2, 3) across the question set. No more than 2 questions should share the same correctAnswer index. Deliberately vary the position.
+
+Output a JSON object with this exact structure:
+{
+  "questions": [
+    {
+      "question": "Question text here?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": 2,
+      "explanation": "One or two sentences explaining why this answer is correct and why the others are not."
+    }
+  ]
+}
+
+Explanations must be written in plain English. They should teach, not just confirm. Example of a good explanation: "The correct answer is C because [reason]. A is wrong because [reason]."
+
+Content:
+"""
 
         return _generate_json(
-            prompt=f"{prompt}\n\nContent:\n{text[:15000]}",
+            prompt=f"{prompt}{text[:20000]}",
             provider=provider, model=model, api_key=api_key,
-            system_prompt="You are a helpful educational AI.",
-            max_tokens=4096, temperature=0.7, task="quiz",
+            system_prompt="You are an expert educator. Return only valid JSON. No markdown, no backticks.",
+            max_tokens=6000, temperature=0.5, task="quiz",
         )
 
     @staticmethod
     def generate_flashcards(text: str, provider: str = "openai", model: str = None, api_key: str = None):
-        prompt = """You are an expert in spaced repetition learning.
-Create 10 high-quality flashcards from the provided content.
+        prompt = """Create 12 flashcards from the content below that are genuinely useful for learning and retention.
 
-Output must be a JSON object with a "flashcards" key, containing an array of objects.
-Each object must have:
-- "front": The concept, question, or term.
-- "back": The definition, answer, or explanation.
+Flashcard writing rules:
+- Front: A focused question or prompt. Maximum 15 words. Should not contain the answer.
+- Back: A clear, complete answer. 1–3 sentences. Should explain the concept, not just name it.
+- Cover a mix of: key terms and definitions, cause-and-effect relationships, comparisons between concepts, and "why does this matter" questions.
+- Do not create trivial cards (e.g., "What year was X?" unless the date is genuinely important).
+- Write fronts as questions, not phrases. "What is X?" is better than "X definition".
+- Backs should be self-contained — the reader should understand the answer without reading the front again.
 
-Guidelines:
-- Keep the "front" concise.
-- Ensure the "back" is clear and comprehensive but not overwhelming.
-- Focus on the most important information for long-term retention."""
+Good example:
+  Front: "Why does HTTP/2 use multiplexing instead of multiple TCP connections?"
+  Back: "HTTP/2 multiplexing sends multiple requests over one TCP connection simultaneously, avoiding the overhead of establishing separate connections and eliminating head-of-line blocking at the HTTP layer."
+
+Bad example:
+  Front: "HTTP/2"
+  Back: "A protocol"
+
+Output a JSON object with this exact structure:
+{
+  "flashcards": [
+    {
+      "front": "Question or prompt here?",
+      "back": "Clear, complete answer here."
+    }
+  ]
+}
+
+Content:
+"""
 
         return _generate_json(
-            prompt=f"{prompt}\n\nContent:\n{text[:15000]}",
+            prompt=f"{prompt}{text[:20000]}",
             provider=provider, model=model, api_key=api_key,
-            system_prompt="You are a helpful educational AI.",
-            max_tokens=4096, temperature=0.7, task="flashcard",
+            system_prompt="You are an expert educator creating spaced-repetition flashcards. Return only valid JSON.",
+            max_tokens=6000, temperature=0.5, task="flashcard",
         )
 
     @staticmethod
@@ -340,76 +385,121 @@ Guidelines:
         }
         guide = platform_guides.get(platform.lower(), platform_guides["twitter"])
 
-        prompt = f"""You are a social media content creator.
-Create an engaging {platform} post based on the provided content.
+        prompt = f"""Write a {platform} post based on the content below that a real person would actually share.
 
-Guidelines for {platform}:
+Platform guidelines for {platform}:
 {guide}
 
-Output must be a JSON object with:
-- "post": The social media post text
-- "hashtags": Array of relevant hashtags (3-5)
-- "hook": A compelling opening line
+Writing rules (apply to all platforms):
+- Lead with the most surprising or valuable insight — not a setup or teaser.
+- Write like a human sharing something they found genuinely useful, not like a brand.
+- Be specific. "RAG retrieval improves answer accuracy by grounding responses in real data" is better than "AI can be improved."
+- No empty superlatives: avoid "game-changing," "revolutionary," "powerful," "incredible."
+- One idea per post. Do not try to cover everything.
 
-Make it engaging, valuable, and shareable."""
+Output a JSON object with this exact structure:
+{{
+  "post": "The complete post text, ready to copy and paste",
+  "hook": "Just the opening line — the sentence that makes someone stop scrolling",
+  "hashtags": ["hashtag1", "hashtag2", "hashtag3"]
+}}
+
+Hashtag rules: 3-4 max. Specific over generic. #MachineLearning beats #Tech. #RAG beats #AI.
+
+Content:
+{text[:12000]}"""
 
         return _generate_json(
-            prompt=f"{prompt}\n\nContent:\n{text[:10000]}",
+            prompt=prompt,
             provider=provider, model=model, api_key=api_key,
-            system_prompt="You are a social media expert.",
-            max_tokens=2048, temperature=0.8, task="social",
+            system_prompt="You are a skilled writer who creates authentic social media content. Return only valid JSON.",
+            max_tokens=2048, temperature=0.75, task="social",
         )
 
     @staticmethod
     def generate_diagram(text: str, concept: str = "", provider: str = "openai", model: str = None, api_key: str = None):
         concept_hint = f" Focus on visualizing: {concept}." if concept else ""
-        prompt = f"""You are an expert at creating clear, educational ASCII diagrams.
-Create a text-based diagram to visualize the key concepts from this content.{concept_hint}
+        prompt = f"""Create a text-based diagram that makes the key relationships or processes in the content visually clear.{concept_hint}
 
-Output must be a JSON object with:
-- "diagram": The ASCII diagram (use box-drawing characters)
-- "type": "ascii"
-- "title": A descriptive title for the diagram
-- "description": Brief explanation of what the diagram shows
+Diagram rules:
+- Use ASCII box-drawing characters: ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼ ╔ ╗ ╚ ╝ ║ ═
+- Use arrows to show direction: → ← ↑ ↓ ⟶
+- Keep the diagram under 30 lines wide and 25 lines tall.
+- Label every box and arrow clearly.
+- Choose the diagram type that best fits the content:
+  - Flowchart: for processes and decision trees
+  - Hierarchy: for systems with layers or levels  
+  - Timeline: for sequences of events
+  - Comparison table: for contrasting two or more things
+  - Network: for showing connections between components
 
-Keep it clean, readable, and educational."""
+Output a JSON object with this exact structure:
+{{
+  "diagram": "The ASCII diagram here",
+  "type": "flowchart|hierarchy|timeline|comparison|network",
+  "title": "Specific descriptive title (e.g., 'How HTTP Request-Response Works', not 'Process Flow')",
+  "description": "One sentence explaining what the diagram shows and why this structure was chosen."
+}}
+
+Content:
+{text[:15000]}"""
 
         return _generate_json(
-            prompt=f"{prompt}\n\nContent:\n{text[:10000]}",
+            prompt=prompt,
             provider=provider, model=model, api_key=api_key,
-            system_prompt="You are a visualization expert who creates clear ASCII diagrams.",
-            max_tokens=4096, temperature=0.7, task="diagram",
+            system_prompt="You are a technical illustrator. Return only valid JSON. Use proper ASCII box-drawing characters.",
+            max_tokens=4096, temperature=0.4, task="diagram",
         )
 
     @staticmethod
     def generate_article(text: str, style: str = "blog", provider: str = "openai", model: str = None, api_key: str = None):
         style_guides = {
-            "blog": "Conversational, engaging, 800-1200 words, use headings and examples",
-            "technical": "Detailed, precise, 1000-1500 words, include code examples if relevant",
-            "tutorial": "Step-by-step, actionable, 1000-1500 words, numbered steps with explanations"
+            "blog": """Write in a confident, conversational voice. Use short paragraphs (2-4 sentences). 
+Target length: 900-1300 words. Include 3-5 sections with ## headings.
+Open with a hook — a question, a surprising fact, or a bold statement. Do not open with "In today's world" or "Have you ever wondered."
+Close with one concrete takeaway the reader can act on or remember.""",
+
+            "technical": """Write with precision. Define every technical term on first use.
+Target length: 1200-1800 words. Use ## for major sections, ### for subsections.
+Include code examples only if they appear in the source material — show real snippets, not pseudocode.
+Structure: Problem → Why it's hard → The solution → How it works → When to use it.""",
+
+            "tutorial": """Write as step-by-step instructions. Number each step.
+Target length: 1000-1500 words.
+Each step: what to do (one sentence) + why you're doing it (one sentence) + what success looks like (one sentence).
+Include a "Before you start" section listing prerequisites.
+End with a "You've now..." summary of what the reader accomplished.""",
         }
         guide = style_guides.get(style.lower(), style_guides["blog"])
 
-        prompt = f"""You are a professional content writer.
-Transform the provided content into a well-structured {style} article.
+        prompt = f"""Transform the source content below into a publishable {style} article.
 
-Guidelines for {style} style:
+Style guide for {style}:
 {guide}
 
-Output must be a JSON object with:
-- "title": Compelling article title
-- "content": Full article in Markdown format
-- "excerpt": 2-3 sentence summary
-- "readTime": Estimated read time in minutes
+Writing quality standards (apply to all styles):
+- Every sentence must earn its place. Delete any sentence that could be removed without losing meaning.
+- Use active voice. "The system processes requests" not "Requests are processed by the system."
+- Use specific nouns. "Redis cache" not "caching solution."
+- No filler openers: never start a paragraph with "It is important to note that," "Basically," or "In essence."
+- Write as a human expert, not as an AI assistant.
 
-Use proper Markdown formatting with headings, lists, and emphasis.
-Make it valuable, well-structured, and ready to publish."""
+Output a JSON object with this exact structure:
+{{
+  "title": "A specific, concrete title (not generic — it should describe exactly what this article covers)",
+  "content": "Full article in Markdown",
+  "excerpt": "2 sentences that would make someone want to read the full article",
+  "readTime": estimated_minutes_as_integer
+}}
+
+Source content:
+{text[:25000]}"""
 
         return _generate_json(
-            prompt=f"{prompt}\n\nContent:\n{text[:15000]}",
+            prompt=prompt,
             provider=provider, model=model, api_key=api_key,
-            system_prompt="You are a professional writer.",
-            max_tokens=8192, temperature=0.7, task="article",
+            system_prompt="You are a professional writer and editor. Return only valid JSON. No markdown code fences.",
+            max_tokens=8192, temperature=0.65, task="article",
         )
 
     @staticmethod
@@ -418,18 +508,24 @@ Make it valuable, well-structured, and ready to publish."""
         key = _resolve_key(provider, api_key)
         mdl = _resolve_model(provider, model, "chat")
 
-        system_prompt = """You are a knowledgeable and helpful tutor. Your primary goal is to help the user understand and learn.
+        system_prompt = """You are a knowledgeable study partner helping someone understand and learn from a specific piece of content.
 
-When answering questions:
-1. PRIORITIZE information from the provided content/transcript when it's relevant
-2. If the question is directly about the content, answer based on it
-3. If the question is RELATED but goes beyond the content, feel free to provide helpful additional information
-4. If asked about something completely unrelated, politely acknowledge it's outside the scope but still provide a brief, helpful answer
-5. Always be educational, clear, and encouraging
+How to answer:
+- Ground your answers in the provided content. Quote or paraphrase specific parts when relevant.
+- If the question is directly answered in the content, answer it clearly and explain the reasoning behind it, not just the fact.
+- If the question goes beyond the content but is clearly related, answer from your knowledge and say so: "The content doesn't cover this directly, but..."
+- If the question is completely unrelated to the content, say so briefly and offer to refocus.
+- Never refuse to engage with a genuine learning question.
 
-Use the content as your foundation, but don't refuse to help with related questions."""
+How to write your answers:
+- Be direct. Answer the question in the first sentence, then explain.
+- Use plain language. If you use a technical term, define it immediately.
+- Keep answers focused. 150-300 words for most questions. Longer only if the question genuinely requires it.
+- Use bullet points only when listing 3+ parallel items. Never bullet-ize a single continuous thought.
+- Do not start answers with "Great question!", "Certainly!", or "Of course!" — just answer.
+- End complex answers with one sentence that captures the key takeaway."""
 
-        user_content = f"Content/Transcript:\n{context[:20000]}\n\nQuestion: {query}"
+        user_content = f"Content:\n{context[:30000]}\n\nQuestion: {query}"
 
         try:
             if provider == "anthropic":
