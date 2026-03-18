@@ -157,7 +157,7 @@ export default function SourcePage() {
                     setSummary(data.summary);
                 }
 
-                // Auto-show paste panel only on clear extraction failure messages
+                // Auto-show paste panel only on explicit extraction failure strings
                 const failedPhrases = [
                     "Transcript extraction failed",
                     "[Content extraction failed",
@@ -166,11 +166,13 @@ export default function SourcePage() {
                     "does not contain any main content",
                     "unable to extract",
                 ];
-                const looksLikeFailed = !data.content_text || failedPhrases.some(p =>
-                    data.content_text?.includes(p)
-                );
-                if (looksLikeFailed) {
+                const hasRealContent = data.content_text && data.content_text.trim().length > 100;
+                const hasErrorPhrase = failedPhrases.some(p => data.content_text?.includes(p));
+                if (hasErrorPhrase) {
                     setShowTranscriptUpload(true);
+                } else if (hasRealContent) {
+                    // Good content arrived — make sure paste panel is hidden
+                    setShowTranscriptUpload(false);
                 }
 
             }
