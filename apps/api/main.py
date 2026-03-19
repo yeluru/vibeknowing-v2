@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
 import os
 import sys
 from pathlib import Path
@@ -26,6 +27,14 @@ app = FastAPI(
     description="Backend API for VibeKnowing V2 - The Knowledge & Content Creation Suite",
     version="2.0.0"
 )
+
+# Mount podcast dir if it exists
+# main.py is in apps/api/main.py, so parent.parent is apps/
+current_dir = Path(__file__).parent
+podcasts_path = current_dir.parent / "web" / "public" / "podcasts"
+os.makedirs(podcasts_path, exist_ok=True)
+app.mount("/podcasts", StaticFiles(directory=str(podcasts_path)), name="podcasts")
+
 
 # Configure CORS
 origins = [

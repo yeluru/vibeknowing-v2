@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import Optional
 from database import get_db
@@ -8,11 +8,56 @@ from dependencies import get_optional_user
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 import json
+import os
+import asyncio
 
 router = APIRouter(
     prefix="/ai",
     tags=["ai"]
 )
+
+# Background task to generate audio without blocking the request
+def background_generate_podcast_audio(artifact_id: str, script_data: dict, api_key: str):
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        # 1. Generate Binary Audio
+        audio_bytes = AIService.generate_podcast_audio(script_data["segments"], api_key=api_key)
+        
+        # 2. Save to local disk
+        # ai.py is in apps/api/routers/ai.py, so parent.parent.parent is apps/
+        from pathlib import Path
+        base_dir = Path(__file__).parent.parent.parent
+        podcasts_path = base_dir / "web" / "public" / "podcasts"
+        os.makedirs(podcasts_path, exist_ok=True)
+        
+        file_path = podcasts_path / f"{artifact_id}.mp3"
+        with open(file_path, "wb") as f:
+            f.write(audio_bytes)
+            
+        # 3. Update Artifact status
+        artifact = db.query(models.Artifact).filter(models.Artifact.id == artifact_id).first()
+        if artifact:
+            new_content = artifact.content.copy()
+            new_content["status"] = "ready"
+            # The URL will be relative since we mount /podcasts in API and the web app also has it
+            new_content["audio_url"] = f"/podcasts/{artifact_id}.mp3"
+            artifact.content = new_content
+            db.commit()
+            print(f"[Podcast] Finished generating audio for {artifact_id}")
+            
+    except Exception as e:
+        print(f"[Podcast] Background Error: {e}")
+        artifact = db.query(models.Artifact).filter(models.Artifact.id == artifact_id).first()
+        if artifact:
+            new_content = artifact.content.copy()
+            new_content["status"] = "error"
+            new_content["error"] = str(e)
+            artifact.content = new_content
+            db.commit()
+    finally:
+        db.close()
+
 
 
 def _get_ai_params(request: Request, task: str = "chat") -> dict:
@@ -140,10 +185,10 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
         top_chunks = [c for score, c in scored_chunks[:7]]
         
+        system_memory = "Relevant Context Fragments:\n\n"
         for idx, chunk in enumerate(top_chunks):
-            # Always include document name for global chat
-            doc_context = f"Document: {chunk.source.title}\n" if request_body.scope == "all" else ""
-            system_memory += f"[Relevant Context Chunk {idx+1}]\n{doc_context}{chunk.content_text}\n\n"
+            # Label by ID for citation
+            system_memory += f"[ID: {idx+1} | Source: {chunk.source.title}]\n{chunk.content_text}\n\n"
             
     if not system_memory:
         # Fallback to whole document(s) if no chunks
@@ -158,17 +203,23 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
                 ).all()
             else:
                 all_sources = []
-            for s in all_sources:
+            for idx, s in enumerate(all_sources):
                 if s.content_text:
-                    system_memory += f"--- Document: {s.title} ---\n{s.content_text}\n\n"
+                    system_memory += f"[ID: {idx+1} | Source: {s.title}]\n{s.content_text}\n\n"
             system_memory = system_memory[:50000]
         elif source:
-            system_memory = source.content_text[:30000]
+            system_memory = f"[ID: 1 | Source: {source.title}]\n{source.content_text[:30000]}"
         else:
             system_memory = "No documents found. Please upload some content first."
 
-    # Add instruction that they must use the context
-    rag_context = f"{system_memory}\n\nStrictly utilize the context chunks above to answer the user's question accurately."
+    # Add instruction that they must use the context and CITE IT
+    rag_context = f"{system_memory}\n\n" + \
+        "STRICT INSTRUCTIONS:\n" + \
+        "1. Answer based ONLY on the provided Context Fragments above.\n" + \
+        "2. You MUST cite your sources using markers like [1], [2], etc., corresponding to the fragment IDs.\n" + \
+        "3. If a claim comes from multiple sources, use multiple markers like [1][2].\n" + \
+        "4. If the answer is not in the context, say you don't know based on these documents.\n" + \
+        "5. Keep citations at the end of sentences for better flow."
 
     result = AIService.chat_with_context(request_body.message, rag_context, **ai_params)
 
@@ -571,3 +622,84 @@ async def debug_artifacts(source_id: str, db: Session = Depends(get_db)):
             } for a in artifacts
         ]
     }
+
+
+@router.post("/podcast/{source_id}")
+async def generate_podcast(source_id: str, request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """
+    Generate a 2-host podcast audio overview for a specific source.
+    1. Generate script via AI.
+    2. Save as artifact with status 'processing'.
+    3. Start background task for TTS audio generation.
+    """
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source or not source.content_text:
+        raise HTTPException(status_code=404, detail="Source content not found")
+
+    # Check for existing processing/ready podcast
+    # Type 'podcast' is new
+    existing = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "podcast"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    # Optional: If force=True we regenerate, otherwise return existing
+    if existing and existing.content.get("status") in ["processing", "ready"]:
+        return existing
+
+    ai_params = _get_ai_params(request, "podcast")
+    
+    # Generate the script first (Blocking, but usually < 10s)
+    script_json = AIService.generate_podcast_script(source.content_text, **ai_params)
+    try:
+        script_data = json.loads(script_json)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate podcast script: {e}")
+
+    # Create artifact in 'processing' state
+    artifact = models.Artifact(
+        project_id=source.project_id,
+        source_id=source.id,
+        type="podcast",
+        title=f"Podcast: {script_data.get('title', 'Audio Overview')}",
+        content={
+            "status": "processing",
+            "title": script_data.get("title", f"Podcast Overview: {source.title}"),
+            "segments": script_data.get("segments", []),
+            "audio_url": None
+        }
+    )
+    db.add(artifact)
+    db.commit()
+    db.refresh(artifact)
+
+    # Trigger TTS in background (uses OpenAI Key from headers)
+    background_tasks.add_task(
+        background_generate_podcast_audio,
+        artifact_id=artifact.id,
+        script_data=script_data,
+        api_key=ai_params.get("api_key")
+    )
+
+    return artifact
+
+
+@router.get("/podcast/{source_id}/status")
+async def get_podcast_status(source_id: str, db: Session = Depends(get_db)):
+    """Check the status of the latest podcast artifact"""
+    artifact = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "podcast"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    if not artifact:
+        return {"status": "not_found"}
+    
+    return {
+        "id": artifact.id,
+        "title": artifact.title,
+        "status": artifact.content.get("status"),
+        "audio_url": artifact.content.get("audio_url"),
+        "segments": artifact.content.get("segments")
+    }
+

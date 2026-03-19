@@ -74,8 +74,43 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                         {message.role === "user" ? (
                             <p className="whitespace-pre-wrap tracking-wide font-medium">{message.content}</p>
                         ) : (
-                            <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:text-slate-800 prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-code:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight">
-                                <ReactMarkdown>{message.content}</ReactMarkdown>
+                            <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:text-slate-800 prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-code:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight citation-content">
+                                <ReactMarkdown
+                                    components={{
+                                        // Custom component to handle text and find [1], [2] patterns
+                                        p: ({ children }) => {
+                                            const processPart = (part: any) => {
+                                                if (typeof part === 'string') {
+                                                    const subParts = part.split(/(\[\d+\])/g);
+                                                    return subParts.map((sub, i) => {
+                                                        const match = sub.match(/\[(\d+)\]/);
+                                                        if (match) {
+                                                            return (
+                                                                <span 
+                                                                    key={i}
+                                                                    className="inline-flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-black min-w-4 h-4 rounded-sm mx-0.5 cursor-help hover:bg-indigo-300 dark:hover:bg-indigo-700/60 transition-colors shadow-sm align-top mt-0.5"
+                                                                    title={`Source Fragment ${match[1]}`}
+                                                                >
+                                                                    {match[1]}
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return sub;
+                                                    });
+                                                }
+                                                return part;
+                                            };
+
+                                            const processed = Array.isArray(children) 
+                                                ? children.map(processPart) 
+                                                : processPart(children);
+                                            
+                                            return <p>{processed}</p>;
+                                        }
+                                    }}
+                                >
+                                    {message.content}
+                                </ReactMarkdown>
                             </div>
                         )}
                     </div>

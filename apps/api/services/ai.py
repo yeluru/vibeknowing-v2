@@ -609,3 +609,92 @@ How to write your answers:
         except Exception as e:
             print(f"Chat Error [{provider}/{mdl}]: {e}")
             return None
+
+    @staticmethod
+    def generate_podcast_script(text: str, provider: str = "openai", model: str = None, api_key: str = None):
+        prompt = """Create a high-density, professional podcast script between two hosts, Alex and Sam, based on the content below.
+
+Podcast Style Rules (The "Cut the Crap" Edition):
+- DIVE IN IMMEDIATELY: Skip the cheesy "Welcome to the show," "How are you doing today," and long setup banter. First two lines should state the core insight.
+- Alex: Professional, curious, and direct. Asks high-level strategic questions. No repetitive filler.
+- Sam: Expert and efficient. Breaks down the technical 'why' with deep analogies, skipping the 'intro' for each point.
+- Dialogue style: Rapid-fire insights. Each segment should contain exactly one major technical or conceptual 'aha!' moment.
+- Tone: Think "Masterclass for Experts" rather than "Intro for Beginners."
+- No "Next up," "Let's move on," or "Transitioning to..." — let the insights flow naturally.
+- Language: Professional, spoken-word English. Focused.
+
+Output a JSON object with this exact structure:
+{
+  "title": "Topic-focused title",
+  "segments": [
+    {
+      "speaker": "Alex",
+      "text": "The core problem/insight statement."
+    },
+    {
+      "speaker": "Sam",
+      "text": "The expert decomposition."
+    }
+  ]
+}
+
+Content:
+"""
+
+        return _generate_json(
+            prompt=f"{prompt}{text[:30000]}",
+            provider=provider, model=model, api_key=api_key,
+            system_prompt="You are an award-winning podcast producer and scriptwriter. Return only valid JSON. No markdown code fences.",
+            max_tokens=8192, temperature=0.8, task="podcast",
+        )
+
+    @staticmethod
+    def generate_podcast_audio(segments: list, api_key: str = None) -> bytes:
+        """
+        Generate audio for each segment using OpenAI TTS and stitch them together.
+        Alex = alloy, Sam = shimmer
+        """
+        from openai import OpenAI
+        from io import BytesIO
+        from pydub import AudioSegment
+        
+        key = _resolve_key("openai", api_key)
+        client = OpenAI(api_key=key)
+        
+        # We need a dummy starting segment to initialize combined_audio properly
+        # Or just use silent first. 
+        # Actually initializing with an empty AudioSegment is fine.
+        combined_audio = AudioSegment.silent(duration=10) # start with a tiny bit of silence
+        
+        # We'll use a 250ms silence between segments for natural pacing
+        pause = AudioSegment.silent(duration=250)
+        
+        for i, seg in enumerate(segments):
+            speaker = seg.get("speaker", "Alex")
+            voice = "alloy" if speaker == "Alex" else "shimmer"
+            text = seg.get("text", "")
+            
+            if not text:
+                continue
+                
+            print(f"[Podcast] Generating TTS for {speaker}: {text[:30]}...")
+            
+            # Use tts-1 for speed/cost (hd is better but overkill for podcast host voices)
+            response = client.audio.speech.create(
+                model="tts-1",
+                voice=voice,
+                input=text
+            )
+            
+            # Load the mp3 bytes into an AudioSegment
+            seg_audio = AudioSegment.from_file(BytesIO(response.content), format="mp3")
+            
+            if i > 0:
+                combined_audio += pause
+            
+            combined_audio += seg_audio
+            
+        # Export the final combined audio as mp3 bytes
+        out_buffer = BytesIO()
+        combined_audio.export(out_buffer, format="mp3")
+        return out_buffer.getvalue()

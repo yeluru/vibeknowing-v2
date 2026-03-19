@@ -23,6 +23,31 @@ const stagger: Variants = { visible: { transition: { staggerChildren: 0.09 } } }
 const fadeInUp = fadeUp;
 const staggerContainer = stagger;
 
+function SpotlightCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const [mouseX, setMouseX] = useState(0);
+  const [mouseY, setMouseY] = useState(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
+    let { left, top } = currentTarget.getBoundingClientRect();
+    setMouseX(clientX - left);
+    setMouseY(clientY - top);
+  }
+
+  return (
+    <motion.div
+      variants={fadeUp}
+      onMouseMove={handleMouseMove}
+      className={cn("group relative", className)}
+    >
+      <div 
+        className="vk-spotlight" 
+        style={{ "--x": `${mouseX}px`, "--y": `${mouseY}px` } as any} 
+      />
+      {children}
+    </motion.div>
+  );
+}
+
 // ─── live demo card data ──────────────────────────────────────────────────────
 const DEMO_CARDS = [
   {
@@ -259,12 +284,18 @@ export default function Home() {
     <div className="space-y-20 pb-24 relative">
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden w-full max-w-[1200px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden w-full max-w-[1400px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
         {/* Deep background & spotlight */}
         <div className="absolute inset-0 -z-10 bg-transparent">
           <div className="absolute inset-0 bg-[#fdfcfb] dark:bg-black" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200/40 via-white/0 to-white/0 dark:from-white/10 dark:via-[#09090b]/0 dark:to-transparent opacity-80 pointer-events-none" />
-          <div className="absolute inset-0 opacity-[0.02]"
+          
+          {/* Animated Blobs */}
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-[120px] animate-blob mix-blend-multiply dark:mix-blend-normal" />
+          <div className="absolute top-[20%] right-[-5%] w-[35%] h-[35%] rounded-full bg-cyan-500/10 dark:bg-cyan-500/5 blur-[120px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-normal" />
+          <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] rounded-full bg-violet-500/10 dark:bg-violet-500/5 blur-[120px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-normal" />
+
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200/40 via-white/0 to-white/0 dark:from-white/10 dark:via-[#09090b]/0 dark:to-transparent opacity-80 pointer-events-none" />
+          <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]"
             style={{ backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)", backgroundSize: "32px 32px" }}
           />
         </div>
@@ -358,19 +389,18 @@ export default function Home() {
               body: "Go from source to publishable blog posts, social threads, and study guides in one click.",
             },
           ].map(card => (
-            <motion.div
+            <SpotlightCard
               key={card.title}
-              variants={fadeUp}
-              className="group relative px-6 py-8 rounded-2xl bg-white dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors"
+              className="px-6 py-8 rounded-2xl bg-white/50 dark:bg-[#0c0c0e]/50 border border-slate-200 dark:border-white/5 backdrop-blur-sm shadow-sm transition-all duration-300"
             >
               <div className="relative z-10">
-                <div className="h-10 w-10 flex items-center justify-center mb-4 text-zinc-600 dark:text-white">
+                <div className="h-10 w-10 flex items-center justify-center mb-4 text-zinc-600 dark:text-white bg-slate-100 dark:bg-white/5 rounded-xl">
                   {card.icon}
                 </div>
                 <h3 className="font-semibold tracking-tight text-slate-900 dark:text-zinc-100 mb-2">{card.title}</h3>
                 <p className="text-sm text-slate-500 dark:text-zinc-500 leading-relaxed">{card.body}</p>
               </div>
-            </motion.div>
+            </SpotlightCard>
           ))}
         </div>
       </motion.section>
@@ -410,19 +440,18 @@ export default function Home() {
               body: "Turn your knowledge base into blog posts, social threads, and study guides. From learner to creator instantly.",
             },
           ].map(f => (
-            <motion.div
+            <SpotlightCard
               key={f.title}
-              variants={fadeUp}
-              className="group flex flex-col justify-between p-8 rounded-2xl bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200/60 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors"
+              className="flex flex-col justify-between p-8 rounded-2xl bg-slate-50/50 dark:bg-[#0c0c0e]/50 border border-slate-200/60 dark:border-white/5 backdrop-blur-sm transition-all duration-300"
             >
-              <div className="h-10 w-10 text-slate-900 dark:text-zinc-200 mb-6">
+              <div className="h-10 w-10 text-slate-900 dark:text-zinc-200 mb-6 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm">
                 {f.icon}
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 mb-2 tracking-tight">{f.title}</h3>
                 <p className="text-sm text-slate-600 dark:text-zinc-500 leading-relaxed">{f.body}</p>
               </div>
-            </motion.div>
+            </SpotlightCard>
           ))}
         </div>
       </motion.section>
@@ -472,31 +501,30 @@ export default function Home() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {group.projects.map((project, i) => (
                     <div key={project.id} className="relative group/card">
-                      <Link href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}>
-                        <motion.div
-                          whileHover={{ y: -4, scale: 1.01 }}
-                          className="h-56 rounded-2xl p-5 relative group border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0c0c0e] hover:border-slate-300 dark:hover:border-white/20 hover:shadow-lg dark:hover:shadow-2xl dark:hover:shadow-white/5 transition-all duration-300 flex flex-col justify-between"
-                        >
-                          <div className="relative z-10">
-                            <div className="flex items-start justify-between mb-3">
-                              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1 opacity-70">
-                                <Folder className="h-3 w-3" />{group.name}
-                              </span>
-                              {project.status === "Ready" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
-                            </div>
-                            <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-[15px] tracking-tight leading-snug line-clamp-2 mb-2">{project.title}</h3>
-                            {project.first_source_url && (
-                              <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 truncate mb-1">
-                                {project.first_source_url.replace(/^https?:\/\/(www\.)?/, "")}
+                      <SpotlightCard className="h-56 rounded-2xl overflow-hidden shadow-sm">
+                        <Link href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}>
+                          <div className="h-full p-5 flex flex-col justify-between bg-white dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300">
+                            <div className="relative z-10">
+                              <div className="flex items-start justify-between mb-3">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1 opacity-70">
+                                  <Folder className="h-3 w-3" />{group.name}
+                                </span>
+                                {project.status === "Ready" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
                               </div>
-                            )}
+                              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-[15px] tracking-tight leading-snug line-clamp-2 mb-2">{project.title}</h3>
+                              {project.first_source_url && (
+                                <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 truncate mb-1">
+                                  {project.first_source_url.replace(/^https?:\/\/(www\.)?/, "")}
+                                </div>
+                              )}
+                            </div>
+                            <div className="relative z-10 pt-4 flex items-center justify-between text-xs text-slate-400">
+                              <span className="flex items-center gap-1.5"><Clock className="h-3 w-3 opacity-60" />{new Date(project.created_at).toLocaleDateString()}</span>
+                              <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-slate-900 dark:text-white" />
+                            </div>
                           </div>
-                          <div className="relative z-10 pt-4 flex items-center justify-between text-xs text-slate-400">
-                            <span className="flex items-center gap-1.5"><Clock className="h-3 w-3 opacity-60" />{new Date(project.created_at).toLocaleDateString()}</span>
-                            <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-slate-900 dark:text-white" />
-                          </div>
-                        </motion.div>
-                      </Link>
+                        </Link>
+                      </SpotlightCard>
                       {/* Options */}
                       <button
                         onClick={e => { e.preventDefault(); e.stopPropagation(); setActiveDropdown(activeDropdown === project.id ? null : project.id); }}

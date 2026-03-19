@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { Loader2, FileText, Sparkles, MessageCircle, Upload, Copy, Check, RefreshCw, ChevronLeft, ChevronRight, Trophy, Layers, Palette, Eye, Trash2 } from "lucide-react";
+import { Loader2, FileText, Sparkles, MessageCircle, Upload, Copy, Check, RefreshCw, ChevronLeft, ChevronRight, Trophy, Layers, Palette, Eye, Trash2, Headphones } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -14,6 +14,7 @@ import { QuizInterface } from "@/components/quiz/QuizInterface";
 import { ReviewSession } from "@/components/flashcards/ReviewSession";
 import { StudioInterface } from "@/components/studio/StudioInterface";
 import { ContentViewer } from "@/components/content/ContentViewer";
+import { PodcastInterface } from "@/components/podcast/PodcastInterface";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { API_BASE } from "@/lib/api";
@@ -48,9 +49,9 @@ export default function SourcePage() {
     const [loading, setLoading] = useState(true);
 
     // Initialize tab from URL or localStorage
-    const getInitialTab = (): 'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' => {
+    const getInitialTab = (): 'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast' => {
         const urlTab = searchParams.get('tab');
-        if (urlTab && ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view'].includes(urlTab)) {
+        if (urlTab && ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view', 'podcast'].includes(urlTab)) {
             return urlTab as any;
         }
 
@@ -65,20 +66,20 @@ export default function SourcePage() {
         return 'transcript';
     };
 
-    const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view'>(getInitialTab());
+    const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast'>(getInitialTab());
     const [studioDropdownOpen, setStudioDropdownOpen] = useState(false);
     const [socialMediaExpanded, setSocialMediaExpanded] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const tab = searchParams.get('tab');
-        if (tab && ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view'].includes(tab)) {
+        if (tab && ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view', 'podcast'].includes(tab)) {
             setActiveTab(tab as any);
         }
     }, [searchParams]);
 
     // Handler to change tabs and persist selection
-    const handleTabChange = (tab: 'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view') => {
+    const handleTabChange = (tab: 'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast') => {
         setActiveTab(tab);
         setStudioDropdownOpen(false); // Close dropdown when changing tabs
         if (typeof window !== 'undefined') {
@@ -449,6 +450,7 @@ export default function SourcePage() {
     const TABS = [
         { id: 'transcript' as const, icon: <FileText className="h-4 w-4" />,      label: 'Transcript' },
         { id: 'summary'    as const, icon: <Sparkles className="h-4 w-4" />,       label: 'Summary' },
+        { id: 'podcast'    as const, icon: <Headphones className="h-4 w-4" />,     label: 'Podcast' },
         { id: 'chat'       as const, icon: <MessageCircle className="h-4 w-4" />,  label: 'Chat' },
     ] as const;
 
@@ -744,6 +746,9 @@ export default function SourcePage() {
 
                 {/* Chat */}
                 {activeTab === 'chat' && <ChatInterface sourceId={source.id} />}
+
+                {/* Podcast */}
+                {activeTab === 'podcast' && <PodcastInterface sourceId={source.id} />}
 
                 {/* Studio — handles Diagrams, Articles, Quiz, Flashcards, Social internally */}
                 {activeTab === 'studio' && <StudioInterface sourceId={source.id} />}
