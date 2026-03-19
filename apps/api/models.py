@@ -68,6 +68,19 @@ class Source(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     project = relationship("Project", back_populates="sources")
+    chunks = relationship("SourceChunk", back_populates="source", cascade="all, delete-orphan")
+
+class SourceChunk(Base):
+    __tablename__ = "source_chunks"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    source_id = Column(String, ForeignKey("sources.id", ondelete="CASCADE"), index=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), index=True) # For cross-source filtering
+    content_text = Column(Text, nullable=False)
+    embedding = Column(JSON, nullable=True) # Stores List[float]
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    source = relationship("Source", back_populates="chunks")
 
 class Artifact(Base):
     __tablename__ = "artifacts"
@@ -87,7 +100,7 @@ class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    source_id = Column(String, ForeignKey("sources.id"))
+    source_id = Column(String, ForeignKey("sources.id"), nullable=True)  # NULL for global chat
     role = Column(String)  # 'user' or 'assistant'
     content = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

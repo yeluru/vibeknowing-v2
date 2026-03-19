@@ -200,6 +200,42 @@ def _generate_json(
 
 
 class AIService:
+    @staticmethod
+    def generate_embedding(text: str, provider: str = "openai", api_key: str = None) -> list[float]:
+        """Generate a dense vector embedding for the given text."""
+        key = _resolve_key(provider, api_key)
+        if not key:
+            return []
+        
+        try:
+            if provider == "openai":
+                from openai import OpenAI
+                client = OpenAI(api_key=key)
+                # OpenAI uses text-embedding-3-small by default (1536 dims)
+                res = client.embeddings.create(input=[text], model="text-embedding-3-small")
+                return res.data[0].embedding
+            elif provider == "google":
+                import google.generativeai as genai
+                genai.configure(api_key=key)
+                res = genai.embed_content(
+                    model="models/text-embedding-004",
+                    content=text,
+                    task_type="retrieval_document"
+                )
+                return res['embedding']
+            elif provider == "anthropic":
+                # Anthropic doesn't have native embeddings on their standard API, normally uses Voyage.
+                # Fallback to OpenAI if key available, else just empty for now.
+                fallback_key = _resolve_key("openai")
+                if fallback_key:
+                    from openai import OpenAI
+                    client = OpenAI(api_key=fallback_key)
+                    res = client.embeddings.create(input=[text], model="text-embedding-3-small")
+                    return res.data[0].embedding
+                return []
+        except Exception as e:
+            print(f"Embedding Error [{provider}]: {e}")
+            return []
 
     @staticmethod
     def cleanup_content(text: str, provider: str = "openai", model: str = None, api_key: str = None) -> str:

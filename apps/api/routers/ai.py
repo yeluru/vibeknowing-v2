@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from typing import Optional
 from database import get_db
 import models
 from services.ai import AIService
+from dependencies import get_optional_user
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 import json
@@ -53,16 +55,24 @@ def _get_ai_params(request: Request, task: str = "chat") -> dict:
 
 
 class ChatRequest(BaseModel):
-    source_id: str
+    source_id: Optional[str] = None
     message: str
+    scope: str = "source" # "source" or "all"
+
 
 @router.post("/chat")
-async def chat(request_body: ChatRequest, request: Request, db: Session = Depends(get_db)):
-    source = db.query(models.Source).filter(models.Source.id == request_body.source_id).first()
-    if not source or not source.content_text:
-        raise HTTPException(status_code=404, detail="Source content not found")
+async def chat(request_body: ChatRequest, request: Request, db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_user)):
+    source = None
+    if request_body.source_id:
+        source = db.query(models.Source).filter(models.Source.id == request_body.source_id).first()
+        if not source or not source.content_text:
+            raise HTTPException(status_code=404, detail="Source content not found")
 
-    # Save user message
+    # If no source_id, force scope to "all" (global chat)
+    if not request_body.source_id:
+        request_body.scope = "all"
+
+    # Save user message (source_id can be NULL for global chat)
     user_message = models.ChatMessage(
         source_id=request_body.source_id,
         role="user",
@@ -72,7 +82,94 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
     db.commit()
 
     ai_params = _get_ai_params(request, "chat")
-    result = AIService.chat_with_context(request_body.message, source.content_text, **ai_params)
+    print(f"[RAG] User: {current_user.email if current_user else 'ANONYMOUS'} | Scope: {request_body.scope} | Provider: {ai_params.get('provider')} | Has API Key: {bool(ai_params.get('api_key'))}")
+
+    # ----- RAG PIPELINE START -----
+    # Determine the search boundaries
+    import math
+    
+    def cosine_similarity(v1, v2):
+        if not v1 or not v2: return 0.0
+        dot = sum(a * b for a, b in zip(v1, v2))
+        n1 = math.sqrt(sum(a * a for a in v1))
+        n2 = math.sqrt(sum(b * b for b in v2))
+        return dot / (n1 * n2) if n1 and n2 else 0.0
+
+    system_memory = ""
+    query_vector = AIService.generate_embedding(
+        request_body.message, 
+        provider=ai_params.get("provider", "openai"),
+        api_key=ai_params.get("api_key")
+    )
+    print(f"[RAG] Embedding generated: {bool(query_vector)} | Vector length: {len(query_vector) if query_vector else 0}")
+    
+    if query_vector:
+        # Fetch chunks depending on scope
+        if request_body.scope == "all":
+            if current_user:
+                chunks = db.query(models.SourceChunk)\
+                    .join(models.Source, models.SourceChunk.source_id == models.Source.id)\
+                    .join(models.Project, models.Source.project_id == models.Project.id)\
+                    .filter(models.Project.owner_id == current_user.id).all()
+            elif source:
+                chunks = db.query(models.SourceChunk).filter(
+                    models.SourceChunk.project_id == source.project_id
+                ).all()
+            else:
+                chunks = []
+        else:
+            # scope == "source" — requires a valid source
+            if source:
+                chunks = db.query(models.SourceChunk).filter(
+                    models.SourceChunk.source_id == source.id
+                ).all()
+            else:
+                chunks = []
+            
+        print(f"RAG: Found {len(chunks)} possible chunks for scope '{request_body.scope}'")
+        
+        # Rank by cosine similarity
+        scored_chunks = []
+        for c in chunks:
+            if c.embedding:
+                score = cosine_similarity(query_vector, c.embedding)
+                scored_chunks.append((score, c))
+                
+        # Get Top 7 chunks
+        scored_chunks.sort(key=lambda x: x[0], reverse=True)
+        top_chunks = [c for score, c in scored_chunks[:7]]
+        
+        for idx, chunk in enumerate(top_chunks):
+            # Always include document name for global chat
+            doc_context = f"Document: {chunk.source.title}\n" if request_body.scope == "all" else ""
+            system_memory += f"[Relevant Context Chunk {idx+1}]\n{doc_context}{chunk.content_text}\n\n"
+            
+    if not system_memory:
+        # Fallback to whole document(s) if no chunks
+        if request_body.scope == "all":
+            if current_user:
+                all_sources = db.query(models.Source)\
+                    .join(models.Project, models.Source.project_id == models.Project.id)\
+                    .filter(models.Project.owner_id == current_user.id).all()
+            elif source:
+                all_sources = db.query(models.Source).filter(
+                    models.Source.project_id == source.project_id
+                ).all()
+            else:
+                all_sources = []
+            for s in all_sources:
+                if s.content_text:
+                    system_memory += f"--- Document: {s.title} ---\n{s.content_text}\n\n"
+            system_memory = system_memory[:50000]
+        elif source:
+            system_memory = source.content_text[:30000]
+        else:
+            system_memory = "No documents found. Please upload some content first."
+
+    # Add instruction that they must use the context
+    rag_context = f"{system_memory}\n\nStrictly utilize the context chunks above to answer the user's question accurately."
+
+    result = AIService.chat_with_context(request_body.message, rag_context, **ai_params)
 
     if result is None:
         raise HTTPException(status_code=500, detail="AI service error")
@@ -124,7 +221,17 @@ async def get_chat_history(source_id: str, db: Session = Depends(get_db)):
         models.ChatMessage.source_id == source_id
     ).order_by(models.ChatMessage.created_at).all()
     
-    return [{"role": msg.role, "content": msg.content} for msg in messages]
+    return [{"role": msg.role, "content": msg.content, "created_at": msg.created_at.isoformat() if msg.created_at else None} for msg in messages]
+
+
+@router.get("/chat/history-global")
+async def get_global_chat_history(db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_user)):
+    """Retrieve global chat history (messages with no source_id)"""
+    messages = db.query(models.ChatMessage).filter(
+        models.ChatMessage.source_id == None
+    ).order_by(models.ChatMessage.created_at).all()
+    
+    return [{"role": msg.role, "content": msg.content, "created_at": msg.created_at.isoformat() if msg.created_at else None} for msg in messages]
 
 
 @router.post("/summarize/{source_id}")

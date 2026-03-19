@@ -35,21 +35,47 @@ class ProcessingAgent(AgentBase):
             # EAGER GENERATION DISABLED FOR TOKEN SAVINGS
             # The frontend will trigger these generations on-demand.
             
-            # 1. Generate Summary (Disabled)
-            # if not source.summary:
-            #     self.add_memory("system", "Generating summary...")
-            #     summary = AIService.generate_summary(source.content_text, style="article")
-            #     source.summary = summary
-            #     db.commit()
-            #     self.add_memory("system", "Summary generated and saved.")
-            # else:
-            #     self.add_memory("system", "Summary already exists. Skipping.")
+            # 1. RAG CHUNKING PIPELINE (Multi-Source Vector Generation)
+            from models import SourceChunk
+            existing_chunks = db.query(SourceChunk).filter(SourceChunk.source_id == self.source_id).first()
+            if not existing_chunks:
+                self.add_memory("system", "Generating RAG vector embeddings...")
+                import re
+                
+                # Split roughly by double newlines or single newlines
+                chunks_raw = [c.strip() for c in re.split(r'\n+', source.content_text) if len(c.strip()) > 50]
+                
+                # Group them to roughly ~1000-1500 characters per chunk
+                chunk_groups = []
+                current_group = ""
+                for section in chunks_raw:
+                    if len(current_group) + len(section) > 1500:
+                        if len(current_group) > 50:
+                            chunk_groups.append(current_group.strip())
+                        current_group = section
+                    else:
+                        current_group += " " + section if current_group else section
+                if len(current_group.strip()) > 50:
+                    chunk_groups.append(current_group.strip())
 
-            # 2. Generate Quiz (Disabled)
-            # existing_quiz = db.query(Artifact).filter(...)
-            
-            # 3. Generate Flashcards (Disabled)
-            # existing_fc = db.query(Artifact).filter(...)
+                # Generate Math Vectors
+                chunks_created = 0
+                for chunk_text in chunk_groups:
+                    # Provide empty kwargs to let AI service use fallback keys from env
+                    emb = AIService.generate_embedding(chunk_text, provider="openai") 
+                    new_chunk = SourceChunk(
+                        source_id=source.id,
+                        project_id=source.project_id,
+                        content_text=chunk_text,
+                        embedding=emb if emb else [] # Persist as JSON
+                    )
+                    db.add(new_chunk)
+                    chunks_created += 1
+                
+                db.commit()
+                self.add_memory("system", f"Generated {chunks_created} vector chunks for multi-document RAG.")
+            else:
+                self.add_memory("system", "Vector embeddings already exist.")
 
             self.add_memory("system", "Ingestion complete. Artifacts will be generated on-demand.")
 

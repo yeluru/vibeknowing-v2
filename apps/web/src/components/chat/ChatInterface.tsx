@@ -36,7 +36,7 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
                     id: uuidv4(),
                     role: msg.role,
                     content: msg.content,
-                    timestamp: new Date() // Backend doesn't return timestamp yet, use current
+                    timestamp: new Date()
                 })));
             }
         } catch (error) {
@@ -45,7 +45,6 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
     };
 
     const handleSend = async (content: string) => {
-        // Add user message
         const userMessage: Message = {
             id: uuidv4(),
             role: "user",
@@ -57,12 +56,30 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
         setIsLoading(true);
 
         try {
+            // Build headers matching the axios interceptor in api.ts
+            const headers: Record<string, string> = { "Content-Type": "application/json" };
+            const token = localStorage.getItem("token");
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+
+            try {
+                const keys = JSON.parse(localStorage.getItem("vk_provider_keys") || "{}");
+                const prefs = JSON.parse(localStorage.getItem("vk_ai_prefs") || "{}");
+                if (keys.openai) headers["X-OpenAI-Key"] = keys.openai;
+                if (keys.anthropic) headers["X-Anthropic-Key"] = keys.anthropic;
+                if (keys.google) headers["X-Google-Key"] = keys.google;
+                if (prefs.defaultProvider) headers["X-AI-Provider"] = prefs.defaultProvider;
+                if (prefs.taskModels && Object.keys(prefs.taskModels).length > 0) {
+                    headers["X-AI-Task-Models"] = JSON.stringify(prefs.taskModels);
+                }
+            } catch (e) { /* localStorage unavailable */ }
+
             const response = await fetch(`${API_BASE}/ai/chat`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     message: content,
                     source_id: sourceId,
+                    scope: "source",
                     history: messages.map(m => ({ role: m.role, content: m.content }))
                 }),
             });
@@ -70,7 +87,6 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
             if (!response.ok) throw new Error("Failed to send message");
             if (!response.body) throw new Error("No response body");
 
-            // Create placeholder for AI message
             const aiMessageId = uuidv4();
             const aiMessage: Message = {
                 id: aiMessageId,
@@ -81,7 +97,6 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
 
             setMessages((prev) => [...prev, aiMessage]);
 
-            // Stream response
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let aiContent = "";
@@ -103,7 +118,6 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
             }
         } catch (error) {
             console.error("Chat error:", error);
-            // Add error message
             setMessages((prev) => [...prev, {
                 id: uuidv4(),
                 role: "assistant",
@@ -116,9 +130,10 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
     };
 
     return (
-        <div className="flex h-full flex-col bg-gray-50 dark:bg-slate-700 transition-colors duration-300">
+        <div className="flex h-full flex-col bg-slate-50 relative">
             <MessageList messages={messages} isLoading={isLoading} />
             <ChatInput onSend={handleSend} disabled={isLoading} suggestions={messages.length === 0 ? suggestions : []} />
         </div>
     );
 }
+

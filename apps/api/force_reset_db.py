@@ -6,7 +6,7 @@ import os
 sys.path.insert(0, str(Path(__file__).parent))
 
 from database import engine, Base
-from models import User, Category, Project, Source, Artifact, ChatMessage
+from models import User, Category, Project, Source, SourceChunk, Artifact, ChatMessage
 
 def force_reset():
     print("Force resetting database...")

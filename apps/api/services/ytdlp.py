@@ -160,7 +160,6 @@ class YtDlpService:
                     # Try to extract page title to see what the error is
                     error_title = "Unknown Error"
                     try:
-                        import re
                         match = re.search(r'<title>(.*?)</title>', response.text, re.IGNORECASE)
                         if match:
                             error_title = match.group(1)
@@ -278,9 +277,16 @@ class YtDlpService:
                         if (not line or 
                             line.startswith('WEBVTT') or 
                             '-->' in line or 
-                            line.isdigit() or
-                            line in seen_lines):
+                            line.isdigit()):
                             continue
+                            
+                        # Strip inline HTML/VTT tags like <00:00:01.040><c>
+                        line = re.sub(r'<[^>]+>', '', line)
+                        line = line.replace('&nbsp;', ' ').strip()
+                        
+                        if not line or line in seen_lines:
+                            continue
+                            
                         cleaned_lines.append(line)
                         seen_lines.add(line)
                     

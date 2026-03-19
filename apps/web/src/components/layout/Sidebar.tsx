@@ -17,7 +17,8 @@ import {
     Sparkles,
     Search,
     Zap,
-    RefreshCw
+    RefreshCw,
+    BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { categoriesApi, projectsApi, Category, Project, API_BASE } from "@/lib/api";
@@ -513,6 +514,28 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     </div>
                     {pathname === '/studio' && (
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-sky-500 opacity-0 group-hover/studio:opacity-100 transition-opacity duration-300"></div>
+                    )}
+                </Link>
+
+                <Link
+                    href="/chat"
+                    onClick={onNavigate}
+                    className={cn(
+                        "flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/kbchat mt-1",
+                        pathname === '/chat'
+                            ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-600/25"
+                            : "text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300"
+                    )}
+                >
+                    <div className={cn(
+                        "relative z-10 flex items-center gap-2.5",
+                        pathname === '/chat' && "text-white"
+                    )}>
+                        <BookOpen className="h-4 w-4" />
+                        <span>Knowledge Base</span>
+                    </div>
+                    {pathname === '/chat' && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover/kbchat:opacity-100 transition-opacity duration-300"></div>
                     )}
                 </Link>
 

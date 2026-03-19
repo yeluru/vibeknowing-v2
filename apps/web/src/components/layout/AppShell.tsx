@@ -15,6 +15,7 @@ function getPageMeta(pathname: string): PageMeta {
     if (pathname === "/")                    return { title: "VibeKnowing",      subtitle: "Your AI learning workspace" };
     if (pathname.startsWith("/source/"))     return { title: "Study Workspace",  subtitle: "Explore, summarize, and create from your source" };
     if (pathname.startsWith("/studio"))      return { title: "Content Studio",    subtitle: "Turn your knowledge into publishable content" };
+    if (pathname.startsWith("/chat"))        return { title: "Knowledge Base",    subtitle: "Chat across all your uploaded documents" };
     if (pathname.startsWith("/flashcards"))  return { title: "Flashcard Decks",  subtitle: "Spaced-repetition review for every project" };
     if (pathname.startsWith("/projects"))    return { title: "Library",          subtitle: "All your learning goals in one place" };
     if (pathname.startsWith("/settings"))    return { title: "Settings",         subtitle: "API keys and model preferences" };
