@@ -200,13 +200,12 @@ class YtDlpService:
                 if video_id:
                     print(f"Attempting youtube-transcript-api for ID: {video_id}")
                     try:
-                        # Use cookies if available
-                        print(f"Calling get_transcript with cookies_path: {cookies_path}")
-                        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, cookies=cookies_path)
-                        print(f"Successfully fetched transcript with youtube-transcript-api. Items: {len(transcript_list)}")
-                        formatter = ""
-                        for item in transcript_list:
-                            formatter += item['text'] + " "
+                        # Use cookies if available — pass to constructor in v1.x
+                        print(f"Calling fetch() with cookies_path: {cookies_path}")
+                        ytt_api = YouTubeTranscriptApi(cookies=cookies_path) if cookies_path else YouTubeTranscriptApi()
+                        transcript = ytt_api.fetch(video_id)
+                        print(f"Successfully fetched transcript with youtube-transcript-api. Snippets: {len(transcript)}")
+                        formatter = " ".join(snippet.text for snippet in transcript)
                         
                         # Get title using yt-dlp (lightweight)
                         # Determine default title based on URL type

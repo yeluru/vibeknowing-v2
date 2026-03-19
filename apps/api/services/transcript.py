@@ -2,7 +2,6 @@ import subprocess
 import json
 import re
 from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api.formatters import TextFormatter
 
 class TranscriptService:
     @staticmethod
@@ -110,9 +109,9 @@ class TranscriptService:
         Works for some videos but less reliable.
         """
         try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
-            formatter = TextFormatter()
-            text = formatter.format_transcript(transcript)
+            ytt_api = YouTubeTranscriptApi()
+            transcript = ytt_api.fetch(video_id)
+            text = " ".join(snippet.text for snippet in transcript)
             return text
         except Exception as e:
             print(f"youtube-transcript-api error for {video_id}: {e}")
