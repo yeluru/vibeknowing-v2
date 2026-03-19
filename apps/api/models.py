@@ -101,11 +101,13 @@ class ChatMessage(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     source_id = Column(String, ForeignKey("sources.id"), nullable=True)  # NULL for global chat
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
     role = Column(String)  # 'user' or 'assistant'
     content = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     source = relationship("Source", backref="chat_messages")
+    user = relationship("User", backref="chat_messages")
 
 class OTP(Base):
     __tablename__ = "otps"

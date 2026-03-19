@@ -75,6 +75,7 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
     # Save user message (source_id can be NULL for global chat)
     user_message = models.ChatMessage(
         source_id=request_body.source_id,
+        user_id=current_user.id if current_user else None,
         role="user",
         content=request_body.message
     )
@@ -204,6 +205,7 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
             try:
                 assistant_message = models.ChatMessage(
                     source_id=request_body.source_id,
+                    user_id=current_user.id if current_user else None,
                     role="assistant",
                     content=''.join(full_response)
                 )
@@ -227,8 +229,12 @@ async def get_chat_history(source_id: str, db: Session = Depends(get_db)):
 @router.get("/chat/history-global")
 async def get_global_chat_history(db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_user)):
     """Retrieve global chat history (messages with no source_id)"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required for global chat history")
+        
     messages = db.query(models.ChatMessage).filter(
-        models.ChatMessage.source_id == None
+        models.ChatMessage.source_id == None,
+        models.ChatMessage.user_id == current_user.id
     ).order_by(models.ChatMessage.created_at).all()
     
     return [{"role": msg.role, "content": msg.content, "created_at": msg.created_at.isoformat() if msg.created_at else None} for msg in messages]
