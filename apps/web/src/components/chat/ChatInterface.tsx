@@ -100,14 +100,25 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let aiContent = "";
+            let rawBuffer = "";
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value);
-                aiContent += chunk;
+                rawBuffer += decoder.decode(value);
 
+                // Strip __METADATA__:...__END_METADATA__ prefix before displaying
+                let displayContent = rawBuffer;
+                const metaStart = displayContent.indexOf("__METADATA__:");
+                const metaEnd = displayContent.indexOf("__END_METADATA__");
+                if (metaStart !== -1 && metaEnd !== -1) {
+                    displayContent = displayContent.slice(metaEnd + "__END_METADATA__".length);
+                } else if (metaStart !== -1 && metaEnd === -1) {
+                    continue; // metadata still arriving, skip render
+                }
+
+                aiContent = displayContent;
                 setMessages((prev) =>
                     prev.map(m =>
                         m.id === aiMessageId
@@ -136,4 +147,3 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
         </div>
     );
 }
-

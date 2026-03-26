@@ -67,76 +67,11 @@ export default function SourcePage() {
     };
 
     const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast'>(getInitialTab());
-    const [isChatPinned, setIsChatPinned] = useState(false);
     const [studioDropdownOpen, setStudioDropdownOpen] = useState(false);
     const [socialMediaExpanded, setSocialMediaExpanded] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-
-    // Initial load for pinned state from localstorage
-    useEffect(() => {
-        const saved = localStorage.getItem('vk_chat_pinned');
-        if (saved === 'true') {
-            setIsChatPinned(true);
-            // If starting with chat tab but pinned, move to transcript
-            if (activeTab === 'chat') setActiveTab('transcript');
-        }
-    }, [params.id]);
-
-    // ── Citation Scrolling ──
-    useEffect(() => {
-        const handleCitationClick = (e: any) => {
-            const chunk = e.detail;
-            console.log("[Citation] Action requested:", chunk);
-            if (!chunk || !chunk.content_text) return;
-
-            // 1. Switch to transcript tab if not already there
-            if (activeTab !== 'transcript') {
-                setActiveTab('transcript');
-            }
-
-            // 2. Wait for tab to render, then search and scroll
-            setTimeout(() => {
-                const transcriptContainer = document.querySelector('.prose-sm');
-                if (!transcriptContainer) {
-                   console.error("Transcript container not found");
-                   return;
-                }
-
-                const searchText = chunk.content_text.substring(0, 100).trim();
-                const paragraphs = transcriptContainer.querySelectorAll('p');
-                let found = false;
-
-                paragraphs.forEach(p => {
-                    if (p.textContent?.includes(searchText)) {
-                        p.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        p.classList.add('bg-yellow-200', 'dark:bg-yellow-900/40', 'transition-all', 'duration-1000', 'rounded-lg', 'p-2');
-                        setTimeout(() => {
-                            p.classList.remove('bg-yellow-200', 'dark:bg-yellow-900/40');
-                        }, 3000);
-                        found = true;
-                    }
-                });
-
-                if (!found) {
-                   console.warn("Could not find citation text in transcript:", searchText);
-                }
-            }, 300);
-        };
-
-        window.addEventListener('CITATION_CLICKED', handleCitationClick);
-        return () => window.removeEventListener('CITATION_CLICKED', handleCitationClick);
-    }, [activeTab]);
-
-    // Toggle pin and persist
-    const toggleChatPin = () => {
-        const newState = !isChatPinned;
-        setIsChatPinned(newState);
-        localStorage.setItem('vk_chat_pinned', newState.toString());
-        // If pinning, move away from chat tab to transcript so we have something to see on the left
-        if (newState && activeTab === 'chat') {
-            handleTabChange('transcript');
-        }
-    };
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const tab = searchParams.get('tab');
@@ -482,17 +417,14 @@ export default function SourcePage() {
     };
 
     const copyToClipboard = async (text: string, type: 'transcript' | 'summary') => {
-        try {
+        if (type === 'transcript') {
             await navigator.clipboard.writeText(text);
-            if (type === 'transcript') {
-                setCopiedTranscript(true);
-                setTimeout(() => setCopiedTranscript(false), 2000);
-            } else {
-                setCopiedSummary(true);
-                setTimeout(() => setCopiedSummary(false), 2000);
-            }
-        } catch (err) {
-            console.error('Failed to copy text: ', err);
+            setCopiedTranscript(true);
+            setTimeout(() => setCopiedTranscript(false), 2000);
+        } else {
+            await navigator.clipboard.writeText(summary);
+            setCopiedSummary(true);
+            setTimeout(() => setCopiedSummary(false), 2000);
         }
     };
 
@@ -518,19 +450,17 @@ export default function SourcePage() {
 
     // Tab definitions — matches original exactly: Transcript, Summary, Chat, [Studio dropdown], View
     const TABS = [
-        { id: 'transcript' as const, icon: <FileText className="h-4 w-4" />,      label: 'Transcript' },
-        { id: 'summary'    as const, icon: <Sparkles className="h-4 w-4" />,       label: 'Summary' },
-        { id: 'podcast'    as const, icon: <Headphones className="h-4 w-4" />,     label: 'Podcast' },
-        { id: 'chat'       as const, icon: <MessageCircle className="h-4 w-4" />,  label: 'Chat' },
+        { id: 'transcript' as const, icon: <FileText className="h-4 w-4" />, label: 'Transcript' },
+        { id: 'summary' as const, icon: <Sparkles className="h-4 w-4" />, label: 'Summary' },
+        { id: 'podcast' as const, icon: <Headphones className="h-4 w-4" />, label: 'Podcast' },
+        { id: 'chat' as const, icon: <MessageCircle className="h-4 w-4" />, label: 'Chat' },
     ] as const;
 
-    const visibleTabs = TABS.filter(tab => !(isChatPinned && tab.id === 'chat'));
-
     return (
-        <div className="h-full flex flex-col gap-4 overflow-hidden pr-1">
+        <div className="h-full flex flex-col gap-4">
 
             {/* ── Workspace header ─────────────────────────────────────── */}
-            <div className="flex-none bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-slate-200/30 dark:border-slate-800/40 shadow-sm relative z-10">
+            <div className="flex-none bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm relative z-10">
 
                 {/* Title + actions */}
                 <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-3">
@@ -571,296 +501,309 @@ export default function SourcePage() {
                 </div>
 
                 {/* ── Tab strip — underline style ── */}
-                <div className="flex items-end border-t border-slate-100 dark:border-slate-800/80 px-2 relative">
+                <div className="border-t border-slate-100 dark:border-slate-800/80 relative">
 
-                    {/* Static tabs */}
-                    {visibleTabs.map(tab => (
-                        <button key={tab.id} onClick={() => handleTabChange(tab.id)}
-                            className={cn(
-                                "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
-                                activeTab === tab.id
-                                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
-                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
-                            )}>
-                            {tab.icon}
-                            <span>{tab.label}</span>
-                        </button>
-                    ))}
-
-                    {/* Studio dropdown — hover to open, same behaviour as original */}
-                    <div className="relative" ref={dropdownRef}
-                        onMouseEnter={() => setStudioDropdownOpen(true)}
-                        onMouseLeave={() => { setStudioDropdownOpen(false); setSocialMediaExpanded(false); }}>
-                        <button
-                            className={cn(
-                                "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
-                                activeTab === 'studio' || studioDropdownOpen
-                                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
-                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
-                            )}>
-                            <Palette className="h-4 w-4" />
-                            <span>Studio</span>
-                            <ChevronRight className="h-3 w-3 rotate-90 opacity-40" />
-                        </button>
-
-                        {studioDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200/30 dark:border-slate-800/40 py-1.5 z-[200] before:absolute before:-top-2 before:left-0 before:w-full before:h-2 before:content-['']">
-                                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1">
-                                    Content Studio
+                    {/* ── Mobile: active tab + More dropdown ── */}
+                    <div className="flex sm:hidden items-center px-2 gap-1">
+                        <span className="flex-1 flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                            {TABS.find(t => t.id === activeTab)?.icon ?? (activeTab === 'studio' ? <Palette className="h-4 w-4" /> : activeTab === 'view' ? <Eye className="h-4 w-4" /> : null)}
+                            <span className="capitalize">{activeTab === 'studio' ? 'Studio' : activeTab === 'view' ? 'View' : TABS.find(t => t.id === activeTab)?.label ?? activeTab}</span>
+                        </span>
+                        <div className="relative" ref={mobileMenuRef}>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setMobileMenuOpen(v => !v); }}
+                                className="flex items-center gap-1 px-3 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                            >
+                                More <ChevronRight className="h-3 w-3 rotate-90" />
+                            </button>
+                            {mobileMenuOpen && (
+                                <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200/70 dark:border-slate-700/60 py-1.5 z-[200]">
+                                    {TABS.map(tab => (
+                                        <button key={tab.id} onClick={() => { handleTabChange(tab.id); setMobileMenuOpen(false); }}
+                                            className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors",
+                                                activeTab === tab.id
+                                                    ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20 font-medium"
+                                                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60")}>
+                                            {tab.icon} {tab.label}
+                                        </button>
+                                    ))}
+                                    <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                                    {[
+                                        { id: 'studio' as const, icon: <Palette className="h-4 w-4" />, label: 'Studio' },
+                                        { id: 'view' as const, icon: <Eye className="h-4 w-4" />, label: 'View' },
+                                    ].map(tab => (
+                                        <button key={tab.id} onClick={() => { handleTabChange(tab.id); setMobileMenuOpen(false); }}
+                                            className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors",
+                                                activeTab === tab.id
+                                                    ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20 font-medium"
+                                                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60")}>
+                                            {tab.icon} {tab.label}
+                                        </button>
+                                    ))}
                                 </div>
-                                {[
-                                    { tool: 'diagram',    icon: <Sparkles className="h-3.5 w-3.5" />,    label: 'Diagrams' },
-                                    { tool: 'article',    icon: <FileText className="h-3.5 w-3.5" />,     label: 'Articles' },
-                                    { tool: 'quiz',       icon: <Trophy className="h-3.5 w-3.5" />,       label: 'Quiz' },
-                                    { tool: 'flashcards', icon: <Layers className="h-3.5 w-3.5" />,       label: 'Flashcards' },
-                                ].map(item => (
-                                    <button key={item.tool}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleTabChange('studio');
-                                            window.history.replaceState(null, '', `?tab=studio&tool=${item.tool}`);
-                                            window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: item.tool }));
-                                        }}
-                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
-                                        <span className="text-slate-400 dark:text-slate-500">{item.icon}</span>
-                                        {item.label}
-                                    </button>
-                                ))}
-
-                                {/* Social media submenu */}
-                                <div onMouseEnter={() => setSocialMediaExpanded(true)}
-                                    onMouseLeave={() => setSocialMediaExpanded(false)}>
-                                    <button className="w-full flex items-center justify-between gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
-                                        <div className="flex items-center gap-2.5">
-                                            <span className="text-slate-400 dark:text-slate-500"><MessageCircle className="h-3.5 w-3.5" /></span>
-                                            Social Media
-                                        </div>
-                                        <ChevronRight className={cn("h-3.5 w-3.5 opacity-40 transition-transform", socialMediaExpanded && "rotate-90")} />
-                                    </button>
-                                    {socialMediaExpanded && (
-                                        <div className="pl-3 pb-1">
-                                            {[
-                                                { platform: 'twitter',   label: 'Twitter Thread' },
-                                                { platform: 'linkedin',  label: 'LinkedIn Post' },
-                                                { platform: 'instagram', label: 'Instagram Caption' },
-                                            ].map(s => (
-                                                <button key={s.platform}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSocialMediaExpanded(false);
-                                                        handleTabChange('studio');
-                                                        window.history.replaceState(null, '', `?tab=studio&tool=social&platform=${s.platform}`);
-                                                        window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'social' }));
-                                                        window.dispatchEvent(new CustomEvent('social-platform-change', { detail: s.platform }));
-                                                    }}
-                                                    className="w-full text-left px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
-                                                    {s.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
-                    {/* View tab */}
-                    <button onClick={() => handleTabChange('view')}
-                        className={cn(
-                            "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
-                            activeTab === 'view'
-                                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
-                                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
-                        )}>
-                        <Eye className="h-4 w-4" />
-                        <span>View</span>
-                    </button>
+                    {/* ── Desktop: all tabs inline ── */}
+                    <div className="hidden sm:flex items-end px-2">
 
-                    {/* Chat Pin Toggle — Spotlight style */}
-                    <div className="flex-1 flex justify-end items-center pr-4">
-                        <button
-                            onClick={toggleChatPin}
-                            className={cn(
-                                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 shadow-sm",
-                                isChatPinned 
-                                    ? "bg-indigo-600 text-white shadow-indigo-500/20" 
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+                        {/* Static tabs */}
+                        {TABS.map(tab => (
+                            <button key={tab.id} onClick={() => handleTabChange(tab.id)}
+                                className={cn(
+                                    "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
+                                    activeTab === tab.id
+                                        ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
+                                        : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                                )}>
+                                {tab.icon}
+                                <span>{tab.label}</span>
+                            </button>
+                        ))}
+
+                        {/* Studio dropdown — hover to open, same behaviour as original */}
+                        <div className="relative" ref={dropdownRef}
+                            onMouseEnter={() => setStudioDropdownOpen(true)}
+                            onMouseLeave={() => { setStudioDropdownOpen(false); setSocialMediaExpanded(false); }}>
+                            <button
+                                className={cn(
+                                    "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
+                                    activeTab === 'studio' || studioDropdownOpen
+                                        ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
+                                        : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                                )}>
+                                <Palette className="h-4 w-4" />
+                                <span>Studio</span>
+                                <ChevronRight className="h-3 w-3 rotate-90 opacity-40" />
+                            </button>
+
+                            {studioDropdownOpen && (
+                                <div className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200/70 dark:border-slate-700/60 py-1.5 z-[200] before:absolute before:-top-2 before:left-0 before:w-full before:h-2 before:content-['']">
+                                    <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1">
+                                        Content Studio
+                                    </div>
+                                    {[
+                                        { tool: 'diagram', icon: <Sparkles className="h-3.5 w-3.5" />, label: 'Diagrams' },
+                                        { tool: 'article', icon: <FileText className="h-3.5 w-3.5" />, label: 'Articles' },
+                                        { tool: 'quiz', icon: <Trophy className="h-3.5 w-3.5" />, label: 'Quiz' },
+                                        { tool: 'flashcards', icon: <Layers className="h-3.5 w-3.5" />, label: 'Flashcards' },
+                                    ].map(item => (
+                                        <button key={item.tool}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleTabChange('studio');
+                                                window.history.replaceState(null, '', `?tab=studio&tool=${item.tool}`);
+                                                window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: item.tool }));
+                                            }}
+                                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                            <span className="text-slate-400 dark:text-slate-500">{item.icon}</span>
+                                            {item.label}
+                                        </button>
+                                    ))}
+
+                                    {/* Social media submenu */}
+                                    <div onMouseEnter={() => setSocialMediaExpanded(true)}
+                                        onMouseLeave={() => setSocialMediaExpanded(false)}>
+                                        <button className="w-full flex items-center justify-between gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="text-slate-400 dark:text-slate-500"><MessageCircle className="h-3.5 w-3.5" /></span>
+                                                Social Media
+                                            </div>
+                                            <ChevronRight className={cn("h-3.5 w-3.5 opacity-40 transition-transform", socialMediaExpanded && "rotate-90")} />
+                                        </button>
+                                        {socialMediaExpanded && (
+                                            <div className="pl-3 pb-1">
+                                                {[
+                                                    { platform: 'twitter', label: 'Twitter Thread' },
+                                                    { platform: 'linkedin', label: 'LinkedIn Post' },
+                                                    { platform: 'instagram', label: 'Instagram Caption' },
+                                                ].map(s => (
+                                                    <button key={s.platform}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSocialMediaExpanded(false);
+                                                            handleTabChange('studio');
+                                                            window.history.replaceState(null, '', `?tab=studio&tool=social&platform=${s.platform}`);
+                                                            window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'social' }));
+                                                            window.dispatchEvent(new CustomEvent('social-platform-change', { detail: s.platform }));
+                                                        }}
+                                                        className="w-full text-left px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                                                        {s.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             )}
-                            title={isChatPinned ? "Unpin Chat (Full Screen)" : "Pin Chat (Split Screen)"}
-                        >
-                            <MessageCircle className={cn("h-3.5 w-3.5", isChatPinned && "animate-pulse")} />
-                            <span>{isChatPinned ? 'Chat Pinned' : 'Pin Chat'}</span>
+                        </div>
+
+                        {/* View tab */}
+                        <button onClick={() => handleTabChange('view')}
+                            className={cn(
+                                "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 -mb-px",
+                                activeTab === 'view'
+                                    ? "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10"
+                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                            )}>
+                            <Eye className="h-4 w-4" />
+                            <span>View</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* ── Main Content Area — Dynamic Layout for Pinning ──────── */}
-            <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
-                
-                {/* Left Pane (70% if pinned, 100% if not) */}
-                <div className={cn(
-                    "flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/30 dark:border-slate-800/40 shadow-sm overflow-hidden flex flex-col relative group transition-all duration-500",
-                    isChatPinned ? "flex-[0.60]" : "flex-1"
-                )}>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
-                        {/* Transcript */}
-                        {activeTab === 'transcript' && (
-                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
-                                        <FileText className="h-5 w-5 text-indigo-500" /> Source Transcript
-                                    </h2>
-                                    {!showTranscriptUpload && !isProcessing && (
-                                        <div className="flex items-center gap-2">
-                                            <button onClick={() => setShowTranscriptUpload(true)}
-                                                className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Edit transcript">
-                                                <RefreshCw className="h-4 w-4" />
-                                            </button>
-                                            <button onClick={() => copyToClipboard(source.content_text || '', 'transcript')}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
-                                                {copiedTranscript ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+            {/* ── Tab content ─────────────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto min-h-0">
 
-                                {showTranscriptUpload && (
-                                    <div className="mb-6 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-900/10 animate-in zoom-in-95 duration-200">
-                                        <textarea
-                                            value={manualTranscript}
-                                            onChange={(e) => setManualTranscript(e.target.value)}
-                                            placeholder="Paste the page content here..."
-                                            rows={10}
-                                            className="w-full px-4 py-3 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-none leading-relaxed"
-                                        />
-                                        <div className="flex items-center gap-3 mt-3">
-                                            <button
-                                                onClick={handleManualTranscriptUpload}
-                                                disabled={uploading || !manualTranscript.trim()}
-                                                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
-                                                {uploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</> : <>Use this content</>}
-                                            </button>
-                                            <button
-                                                onClick={() => { setShowTranscriptUpload(false); setManualTranscript(""); }}
-                                                className="px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
+                {/* Transcript */}
+                {activeTab === 'transcript' && (
+                    <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <FileText className="h-4.5 w-4.5 text-indigo-400" />Transcript
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                {!isProcessing && !showTranscriptUpload && source.content_text && (
+                                    <button onClick={() => { navigator.clipboard.writeText(source.content_text); setCopiedTranscript(true); setTimeout(() => setCopiedTranscript(false), 2000); }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-all">
+                                        {copiedTranscript ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
+                                    </button>
                                 )}
 
-                                {isProcessing ? (
-                                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                                        <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
-                                            <Loader2 className="h-7 w-7 animate-spin text-indigo-500" />
-                                        </div>
-                                        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-1">Processing your content</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">This usually takes under 30 seconds.</p>
-                                        <button onClick={fetchSource}
-                                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all">
-                                            <RefreshCw className="h-3.5 w-3.5" />Check status
-                                        </button>
-                                    </div>
-                                ) : !showTranscriptUpload && (
-                                    <div className="prose prose-sm dark:prose-invert max-w-none space-y-4">
-                                        {(source.content_text || "").split(/\n\s*\n/).map((para, i) => (
-                                            <p key={i} className="text-slate-700 dark:text-slate-300 leading-relaxed text-[15px] font-medium selection:bg-indigo-500/30">
-                                                {para}
-                                            </p>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
-                        )}
+                        </div>
 
-                        {/* Summary */}
-                        {activeTab === 'summary' && (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <Sparkles className="h-5 w-5 text-indigo-400" /> AI Executive Summary
-                                    </h2>
-                                    <div className="flex items-center gap-2">
-                                        {source.summary && (
-                                            <button onClick={() => { navigator.clipboard.writeText(source.summary || ''); setCopiedSummary(true); setTimeout(() => setCopiedSummary(false), 2000); }}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
-                                                {copiedSummary ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
-                                            </button>
-                                        )}
-                                        <button onClick={handleGenerateSummary} disabled={generating}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/20">
-                                            {generating ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generating…</> : <><RefreshCw className="h-3.5 w-3.5" />{source.summary ? 'Regenerate' : 'Generate'}</>}
-                                        </button>
+                        {/* Paste content panel */}
+                        {showTranscriptUpload && (
+                            <div className="mb-6 rounded-2xl border-2 border-indigo-200 bg-indigo-50/60 p-5">
+                                <div className="flex items-start gap-3 mb-4">
+                                    <div className="h-9 w-9 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                        <Upload className="h-4.5 w-4.5 text-indigo-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-900 mb-0.5">
+                                            Could not extract content from this URL
+                                        </p>
+                                        <p className="text-xs text-slate-500 leading-relaxed">
+                                            Some pages are login-protected or JavaScript-rendered. Open the page in your browser,
+                                            select all the text (<kbd className="px-1 py-0.5 bg-white rounded border border-slate-200 text-[10px]">Cmd+A</kbd> then{" "}
+                                            <kbd className="px-1 py-0.5 bg-white rounded border border-slate-200 text-[10px]">Cmd+C</kbd>), then paste it below.
+                                        </p>
                                     </div>
                                 </div>
-                                
-                                {source.summary ? (
-                                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkGfm, remarkMath]}
-                                            rehypePlugins={[rehypeKatex]}
-                                            components={{
-                                                h1: ({ node, ...props }) => <h1 className="!text-xl !font-bold !mt-6 !mb-3 !text-slate-900 dark:!text-white" {...props} />,
-                                                h2: ({ node, ...props }) => <h2 className="!text-lg !font-bold !mt-5 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
-                                                h3: ({ node, ...props }) => <h3 className="!text-base !font-semibold !mt-4 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
-                                                p:  ({ node, ...props }) => <p  className="!mb-3 !text-slate-700 dark:!text-slate-300 !leading-relaxed !text-[15px]" {...props} />,
-                                                ul: ({ node, ...props }) => <ul className="!list-disc !list-inside !mb-4 !space-y-2 !text-slate-700 dark:!text-slate-300" {...props} />,
-                                                blockquote: ({ node, ...props }) => <blockquote className="!border-l-4 !border-indigo-500 !bg-indigo-50/30 dark:!bg-indigo-900/10 !p-4 !rounded-r-xl !italic !text-slate-800 dark:!text-slate-200 !my-6" {...props} />,
-                                            }}
-                                        >
-                                            {source.summary}
-                                        </ReactMarkdown>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                                        <div className="h-16 w-16 rounded-3xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
-                                            <Sparkles className="h-8 w-8 text-indigo-400" />
-                                        </div>
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Ready to distill the signal from the noise.</p>
-                                    </div>
-                                )}
+                                <textarea
+                                    value={manualTranscript}
+                                    onChange={(e) => setManualTranscript(e.target.value)}
+                                    placeholder="Paste the page content here..."
+                                    rows={10}
+                                    className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
+                                />
+                                <div className="flex items-center gap-3 mt-3">
+                                    <button
+                                        onClick={handleManualTranscriptUpload}
+                                        disabled={uploading || !manualTranscript.trim()}
+                                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                                        {uploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</> : <>Use this content</>}
+                                    </button>
+                                    <button
+                                        onClick={() => { setShowTranscriptUpload(false); setManualTranscript(""); }}
+                                        className="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         )}
 
-                        {/* Podcast */}
-                        {activeTab === 'podcast' && <PodcastInterface sourceId={source.id} />}
-
-                        {/* Chat (Full Screen mode only) */}
-                        {activeTab === 'chat' && !isChatPinned && (
-                            <div className="flex-1 flex flex-col -m-6 sm:-m-8 overflow-hidden">
-                                <ChatInterface sourceId={source.id} />
+                        {isProcessing ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="h-14 w-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
+                                    <Loader2 className="h-7 w-7 animate-spin text-indigo-500" />
+                                </div>
+                                <h3 className="text-base font-semibold text-slate-900 mb-1">Processing your content</h3>
+                                <p className="text-sm text-slate-500 mb-5">This usually takes under 30 seconds.</p>
+                                <button onClick={fetchSource}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-all">
+                                    <RefreshCw className="h-3.5 w-3.5" />Check status
+                                </button>
+                            </div>
+                        ) : !showTranscriptUpload && (
+                            <div className="prose prose-sm max-w-none">
+                                <p className="whitespace-pre-wrap text-slate-700 leading-relaxed text-sm">{source.content_text}</p>
                             </div>
                         )}
-
-                        {/* Studio */}
-                        {activeTab === 'studio' && <StudioInterface sourceId={source.id} />}
-
-                        {/* View */}
-                        {activeTab === 'view' && (
-                            <div className="h-full flex flex-col -m-6 sm:-m-8 overflow-hidden">
-                                 <ContentViewer url={source.url || ''} title={source.title || 'Untitled'} />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Right Pane (Persistent Chat if pinned) */}
-                {isChatPinned && (
-                    <div className="flex-[0.40] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/30 dark:border-slate-800/40 shadow-sm overflow-hidden flex flex-col animate-in slide-in-from-right-4 duration-500 border-l-4 border-l-indigo-500/30">
-                        <div className="flex-none p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
-                            <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
-                                <MessageCircle className="h-4 w-4 text-indigo-500" /> RESEARCH CHAT
-                            </h3>
-                            <button onClick={toggleChatPin} className="p-1 px-2.5 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm text-slate-600">
-                                Close Split View
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-hidden h-full">
-                            <ChatInterface sourceId={source.id} />
-                        </div>
                     </div>
                 )}
+
+                {/* Summary */}
+                {activeTab === 'summary' && (
+                    <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Sparkles className="h-4.5 w-4.5 text-indigo-400" />AI Summary
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                {source.summary && (
+                                    <button onClick={() => { navigator.clipboard.writeText(source.summary || ''); setCopiedSummary(true); setTimeout(() => setCopiedSummary(false), 2000); }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
+                                        {copiedSummary ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
+                                    </button>
+                                )}
+                                <button onClick={handleGenerateSummary} disabled={generating}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                                    {generating ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generating…</> : <><RefreshCw className="h-3.5 w-3.5" />{source.summary ? 'Regenerate' : 'Generate'}</>}
+                                </button>
+                            </div>
+                        </div>
+                        {source.summary ? (
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm, remarkMath]}
+                                    rehypePlugins={[rehypeKatex]}
+                                    components={{
+                                        h1: ({ node, ...props }) => <h1 className="!text-xl !font-bold !mt-6 !mb-3 !text-slate-900 dark:!text-white" {...props} />,
+                                        h2: ({ node, ...props }) => <h2 className="!text-lg !font-bold !mt-5 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
+                                        h3: ({ node, ...props }) => <h3 className="!text-base !font-semibold !mt-4 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
+                                        p: ({ node, ...props }) => <p className="!mb-3 !text-slate-700 dark:!text-slate-300 !leading-relaxed" {...props} />,
+                                        ul: ({ node, ...props }) => <ul className="!list-disc !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                        ol: ({ node, ...props }) => <ol className="!list-decimal !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                        li: ({ node, ...props }) => <li className="!ml-4 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                        strong: ({ node, ...props }) => <strong className="!font-semibold !text-slate-900 dark:!text-white" {...props} />,
+                                        blockquote: ({ node, ...props }) => <blockquote className="!border-l-4 !border-indigo-400 !pl-4 !italic !text-slate-600 dark:!text-slate-400 !my-4" {...props} />,
+                                        pre: ({ node, ...props }) => <pre className="not-prose bg-slate-50 dark:bg-slate-900 rounded-xl overflow-x-auto border border-slate-200 dark:border-slate-700 my-4" {...props} />,
+                                        code: ({ node, inline, className, children, ...props }: any) => !inline
+                                            ? <code className={cn("!block !p-4 !text-sm !font-mono !text-slate-800 dark:!text-slate-200 whitespace-pre", className)} {...props}>{children}</code>
+                                            : <code className="!px-1.5 !py-0.5 !bg-indigo-50 dark:!bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400 !rounded !text-xs !font-mono" {...props}>{children}</code>,
+                                        img: ({ node, ...props }) => <img className="rounded-xl border border-slate-200 dark:border-slate-700 my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />,
+                                    }}
+                                >
+                                    {source.summary}
+                                </ReactMarkdown>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
+                                    <Sparkles className="h-7 w-7 text-indigo-400" />
+                                </div>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm">No summary yet — click Generate above.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Chat */}
+                {activeTab === 'chat' && <ChatInterface sourceId={source.id} />}
+
+                {/* Podcast */}
+                {activeTab === 'podcast' && <PodcastInterface sourceId={source.id} />}
+
+                {/* Studio — handles Diagrams, Articles, Quiz, Flashcards, Social internally */}
+                {activeTab === 'studio' && <StudioInterface sourceId={source.id} />}
+
+                {/* View */}
+                {activeTab === 'view' && <ContentViewer url={source.url || ''} title={source.title || 'Untitled'} />}
+
             </div>
         </div>
     );
