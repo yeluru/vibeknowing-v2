@@ -39,9 +39,9 @@ function SpotlightCard({ children, className }: { children: React.ReactNode; cla
       onMouseMove={handleMouseMove}
       className={cn("group relative", className)}
     >
-      <div 
-        className="vk-spotlight" 
-        style={{ "--x": `${mouseX}px`, "--y": `${mouseY}px` } as any} 
+      <div
+        className="vk-spotlight"
+        style={{ "--x": `${mouseX}px`, "--y": `${mouseY}px` } as any}
       />
       {children}
     </motion.div>
@@ -287,8 +287,8 @@ export default function Home() {
       <section className="relative overflow-hidden w-full max-w-[1400px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
         {/* Deep background & spotlight */}
         <div className="absolute inset-0 -z-10 bg-transparent">
-          <div className="absolute inset-0 bg-[#fdfcfb] dark:bg-black" />
-          
+          <div className="absolute inset-0 bg-[#fdfcfb] dark:bg-transparent" />
+
           {/* Animated Blobs */}
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-[120px] animate-blob mix-blend-multiply dark:mix-blend-normal" />
           <div className="absolute top-[20%] right-[-5%] w-[35%] h-[35%] rounded-full bg-cyan-500/10 dark:bg-cyan-500/5 blur-[120px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-normal" />
@@ -313,12 +313,12 @@ export default function Home() {
             <motion.div initial="hidden" animate="visible" variants={stagger} className="w-full">
               <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white leading-[1.02]">
                 Turn any content <br />
-                <span 
+                <span
                   className="inline-block mt-2 font-black text-transparent bg-clip-text"
-                  style={{ 
-                    backgroundImage: "linear-gradient(135deg, #A8B1FF 0%, #E2E8FF 50%, #A8B1FF 100%)", 
+                  style={{
+                    backgroundImage: "linear-gradient(135deg, #A8B1FF 0%, #E2E8FF 50%, #A8B1FF 100%)",
                     backgroundSize: "200% auto",
-                    animation: "textShine 8s linear infinite" 
+                    animation: "textShine 8s linear infinite"
                   }}>
                   into mastery.
                 </span>
@@ -391,7 +391,7 @@ export default function Home() {
           ].map(card => (
             <SpotlightCard
               key={card.title}
-              className="px-6 py-8 rounded-2xl bg-white/50 dark:bg-[#0c0c0e]/50 border border-slate-200 dark:border-white/5 backdrop-blur-sm shadow-sm transition-all duration-300"
+              className="px-6 py-8 rounded-2xl bg-white/50 dark:bg-[#161b27]/60 border border-slate-200 dark:border-slate-700/60 backdrop-blur-sm shadow-sm transition-all duration-300"
             >
               <div className="relative z-10">
                 <div className="h-10 w-10 flex items-center justify-center mb-4 text-zinc-600 dark:text-white bg-slate-100 dark:bg-white/5 rounded-xl">
@@ -442,7 +442,7 @@ export default function Home() {
           ].map(f => (
             <SpotlightCard
               key={f.title}
-              className="flex flex-col justify-between p-8 rounded-2xl bg-slate-50/50 dark:bg-[#0c0c0e]/50 border border-slate-200/60 dark:border-white/5 backdrop-blur-sm transition-all duration-300"
+              className="flex flex-col justify-between p-8 rounded-2xl bg-white/60 dark:bg-[#161b27]/60 border border-slate-200 dark:border-slate-700/60 backdrop-blur-sm transition-all duration-300"
             >
               <div className="h-10 w-10 text-slate-900 dark:text-zinc-200 mb-6 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm">
                 {f.icon}
@@ -468,7 +468,7 @@ export default function Home() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200 dark:border-white/10">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Your Learning Goals</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Your Learning History</h2>
               <p className="text-slate-500 dark:text-zinc-500 text-sm mt-1">Pick up where you left off</p>
             </div>
             <div className="flex items-center gap-3">
@@ -503,7 +503,7 @@ export default function Home() {
                     <div key={project.id} className="relative group/card">
                       <SpotlightCard className="h-56 rounded-2xl overflow-hidden shadow-sm">
                         <Link href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}>
-                          <div className="h-full p-5 flex flex-col justify-between bg-white dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300">
+                          <div className="h-full p-5 flex flex-col justify-between bg-white dark:bg-[#161b27]/80 border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300">
                             <div className="relative z-10">
                               <div className="flex items-start justify-between mb-3">
                                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1 opacity-70">
@@ -534,7 +534,7 @@ export default function Home() {
                       </button>
                       {activeDropdown === project.id && (
                         <div className="absolute right-3 top-10 z-50 w-48 bg-white dark:bg-[#111113] rounded-xl shadow-xl border border-slate-200 dark:border-white/10 py-1.5" onClick={e => e.stopPropagation()}>
-                          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5 mb-1">Move to...</div>
+                          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/60 mb-1">Move to...</div>
                           <button onClick={() => handleMoveProject(project.id, null)} className={cn("w-full text-left px-4 py-2 text-[13px] hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 text-slate-700 dark:text-zinc-300 transition-colors", !project.category_id && "text-slate-900 dark:text-white font-medium")}>
                             <Folder className="h-3.5 w-3.5 opacity-70" /> Uncategorized
                           </button>
@@ -543,7 +543,7 @@ export default function Home() {
                               <Folder className="h-3.5 w-3.5 opacity-70" /> {cat.name}
                             </button>
                           ))}
-                          <div className="border-t border-slate-100 dark:border-white/5 mt-1 pt-1">
+                          <div className="border-t border-slate-100 dark:border-slate-700/60 mt-1 pt-1">
                             <button onClick={() => handleDeleteProject(project.id)} className="w-full text-left px-4 py-2 text-[13px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/10 flex items-center gap-2 transition-colors">
                               <Trash2 className="h-3.5 w-3.5" /> Delete
                             </button>

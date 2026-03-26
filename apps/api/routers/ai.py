@@ -185,10 +185,20 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
         top_chunks = [c for score, c in scored_chunks[:7]]
         
+        chunk_metadata = []
         system_memory = "Relevant Context Fragments:\n\n"
         for idx, chunk in enumerate(top_chunks):
             # Label by ID for citation
-            system_memory += f"[ID: {idx+1} | Source: {chunk.source.title}]\n{chunk.content_text}\n\n"
+            chunk_id = idx + 1
+            system_memory += f"[ID: {chunk_id} | Source: {chunk.source.title}]\n{chunk.content_text}\n\n"
+            chunk_metadata.append({
+                "id": chunk_id,
+                "source_id": chunk.source_id,
+                "source_title": chunk.source.title,
+                "content_text": chunk.content_text
+            })
+    else:
+        chunk_metadata = []
             
     if not system_memory:
         # Fallback to whole document(s) if no chunks
@@ -231,6 +241,11 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
 
     async def iter_stream():
         try:
+            # Prepend metadata for citation scrolling
+            if chunk_metadata:
+                import json
+                yield f"__METADATA__:{json.dumps(chunk_metadata)}__END_METADATA__"
+
             if provider_type == "openai":
                 for chunk in response_stream:
                     if chunk.choices[0].delta.content:
@@ -258,14 +273,15 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
                     source_id=request_body.source_id,
                     user_id=current_user.id if current_user else None,
                     role="assistant",
-                    content=''.join(full_response)
+                    content=''.join(full_response),
+                    meta_data={"chunks": chunk_metadata} if chunk_metadata else None
                 )
                 new_db.add(assistant_message)
                 new_db.commit()
             finally:
                 new_db.close()
 
-    return StreamingResponse(iter_stream(), media_type="text/event-stream")
+    return StreamingResponse(iter_stream(), media_type="text/plain")
 
 @router.get("/chat/history/{source_id}")
 async def get_chat_history(source_id: str, db: Session = Depends(get_db)):
@@ -274,7 +290,14 @@ async def get_chat_history(source_id: str, db: Session = Depends(get_db)):
         models.ChatMessage.source_id == source_id
     ).order_by(models.ChatMessage.created_at).all()
     
-    return [{"role": msg.role, "content": msg.content, "created_at": msg.created_at.isoformat() if msg.created_at else None} for msg in messages]
+    return [
+        {
+            "role": msg.role, 
+            "content": msg.content, 
+            "meta_data": msg.meta_data,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None
+        } for msg in messages
+    ]
 
 
 @router.get("/chat/history-global")
@@ -288,7 +311,14 @@ async def get_global_chat_history(db: Session = Depends(get_db), current_user: O
         models.ChatMessage.user_id == current_user.id
     ).order_by(models.ChatMessage.created_at).all()
     
-    return [{"role": msg.role, "content": msg.content, "created_at": msg.created_at.isoformat() if msg.created_at else None} for msg in messages]
+    return [
+        {
+            "role": msg.role, 
+            "content": msg.content, 
+            "meta_data": msg.meta_data,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None
+        } for msg in messages
+    ]
 
 
 @router.post("/summarize/{source_id}")
@@ -625,7 +655,7 @@ async def debug_artifacts(source_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/podcast/{source_id}")
-async def generate_podcast(source_id: str, request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def generate_podcast(source_id: str, request: Request, background_tasks: BackgroundTasks, force: bool = False, db: Session = Depends(get_db)):
     """
     Generate a 2-host podcast audio overview for a specific source.
     1. Generate script via AI.
@@ -637,14 +667,12 @@ async def generate_podcast(source_id: str, request: Request, background_tasks: B
         raise HTTPException(status_code=404, detail="Source content not found")
 
     # Check for existing processing/ready podcast
-    # Type 'podcast' is new
     existing = db.query(models.Artifact).filter(
         models.Artifact.source_id == source_id,
         models.Artifact.type == "podcast"
     ).order_by(models.Artifact.created_at.desc()).first()
     
-    # Optional: If force=True we regenerate, otherwise return existing
-    if existing and existing.content.get("status") in ["processing", "ready"]:
+    if not force and existing and existing.content.get("status") in ["processing", "ready"]:
         return existing
 
     ai_params = _get_ai_params(request, "podcast")

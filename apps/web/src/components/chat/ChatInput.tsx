@@ -62,14 +62,14 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a question about this content..."
                     disabled={disabled}
-                    className="vk-input max-h-32 min-h-[44px] w-full resize-none rounded-xl px-4 py-3 pr-12 text-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:bg-white disabled:opacity-50"
+                    className="max-h-32 min-h-[44px] w-full resize-none rounded-xl px-4 py-3 pr-12 text-sm bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 disabled:opacity-50 transition-colors"
                     rows={1}
                     aria-label="Chat message"
                 />
                 <button
                     type="submit"
                     disabled={!input.trim() || disabled}
-                    className="vk-btn vk-btn-primary absolute bottom-1.5 right-1.5 rounded-lg p-2 transition-colors disabled:bg-gray-300"
+                    className="absolute bottom-1.5 right-1.5 rounded-lg p-2 bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                     aria-label="Send message"
                 >
                     <Send className="h-4 w-4" />

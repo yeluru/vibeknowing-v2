@@ -97,14 +97,14 @@ body.vk-ui-v2 {
   color: var(--vk-text-muted);
 }
 
-/* Links: professional, readable, minimal */
-.vk-ui-v2 a {
+/* Links: professional, readable, minimal — exclude styled buttons */
+.vk-ui-v2 a:not([class*="bg-"]) {
   color: color-mix(in srgb, var(--primary) 92%, black);
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.14em;
 }
 
-.vk-ui-v2 a:hover {
+.vk-ui-v2 a:not([class*="bg-"]):hover {
   color: var(--primary-hover);
 }
 

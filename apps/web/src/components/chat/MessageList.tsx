@@ -27,11 +27,11 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
     if (messages.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-slate-500">
-                <div className="mb-4 rounded-full bg-slate-50 border border-slate-200 p-4 shadow-sm">
+                <div className="mb-4 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
                     <Bot className="h-8 w-8 text-indigo-500" />
                 </div>
-                <h3 className="mb-2 text-xl font-bold tracking-tight text-slate-900">Ask anything!</h3>
-                <p className="max-w-sm text-sm leading-relaxed text-slate-500">
+                <h3 className="mb-2 text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Ask anything!</h3>
+                <p className="max-w-sm text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                     I can answer questions about this content, summarize key points, or help you understand complex topics.
                 </p>
             </div>
@@ -52,8 +52,8 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                         className={cn(
                             "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm",
                             message.role === "user"
-                                ? "bg-emerald-100 border-emerald-200 text-emerald-700"
-                                : "bg-white border-slate-200 text-slate-600"
+                                ? "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
                         )}
                     >
                         {message.role === "user" ? (
@@ -67,14 +67,14 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                         className={cn(
                             "max-w-[80%] rounded-2xl px-5 py-3 text-[15px] shadow-sm leading-relaxed",
                             message.role === "user"
-                                ? "bg-emerald-100 text-emerald-900 rounded-tr-sm"
-                                : "bg-white border border-slate-200 text-slate-900 rounded-tl-sm"
+                                ? "bg-emerald-100 dark:bg-emerald-900/25 text-emerald-900 dark:text-emerald-100 rounded-tr-sm"
+                                : "bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-tl-sm"
                         )}
                     >
                         {message.role === "user" ? (
                             <p className="whitespace-pre-wrap tracking-wide font-medium">{message.content}</p>
                         ) : (
-                            <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:text-slate-800 prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-code:text-slate-900 prose-headings:font-bold prose-headings:tracking-tight citation-content">
+                            <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-p:text-slate-800 dark:prose-p:text-slate-200 prose-pre:bg-slate-50 dark:prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-slate-700 prose-code:text-slate-900 dark:prose-code:text-slate-200 prose-headings:font-bold prose-headings:tracking-tight citation-content">
                                 <ReactMarkdown
                                     components={{
                                         // Custom component to handle text and find [1], [2] patterns
@@ -119,13 +119,13 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
 
             {isLoading && (
                 <div className="flex gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 shadow-sm">
                         <Bot className="h-5 w-5" />
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
-                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
+                    <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 px-4 py-4 shadow-sm">
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-500 [animation-delay:-0.3s]" />
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-500 [animation-delay:-0.15s]" />
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-500" />
                     </div>
                 </div>
             )}

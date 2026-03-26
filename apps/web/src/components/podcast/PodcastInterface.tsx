@@ -53,7 +53,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
         }
     };
 
-    const handleGenerate = async () => {
+    const handleGenerate = async (force: boolean = false) => {
         setGenerating(true);
         try {
             const token = localStorage.getItem('token');
@@ -70,7 +70,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
                 if (prefs.defaultProvider) headers["X-AI-Provider"] = prefs.defaultProvider;
             } catch (e) { /* localStorage unavailable */ }
 
-            const response = await fetch(`${API_BASE}/ai/podcast/${sourceId}`, {
+            const response = await fetch(`${API_BASE}/ai/podcast/${sourceId}?force=${force}`, {
                 method: "POST",
                 headers,
             });
@@ -150,7 +150,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
                     Generate a high-energy conversation between two AI hosts discussing your source. Perfect for listening on the go or getting a quick deep-dive.
                 </p>
                 <button
-                    onClick={handleGenerate}
+                    onClick={() => handleGenerate(false)}
                     disabled={generating}
                     className="group relative flex items-center gap-2.5 px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold transition-all shadow-lg hover:shadow-indigo-500/40 disabled:opacity-50"
                 >
@@ -205,7 +205,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
                     <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Studio Error</h3>
-                <button onClick={handleGenerate} className="text-indigo-600 font-semibold hover:underline">Retry generation</button>
+                <button onClick={() => handleGenerate(true)} className="text-indigo-600 font-semibold hover:underline">Retry generation</button>
             </div>
         );
     }
@@ -213,7 +213,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
     return (
         <div className="flex flex-col gap-6 py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* ── AUDIO PLAYER CARD ────────────────────────────────────────── */}
-            <div className="vk-hero p-8 rounded-3xl border border-white/40 dark:border-white/5 shadow-2xl overflow-hidden relative group">
+            <div className="vk-hero p-8 rounded-3xl border border-white/10 dark:border-slate-800/40 shadow-2xl overflow-hidden relative group">
                 {/* Background Decor */}
                 <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000" />
                 
@@ -301,11 +301,19 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
             </div>
 
             {/* ── TRANSCRIPT ─────────────────────────────────────────────────── */}
-            <div className="bg-white/80 dark:bg-[#0c0c0e]/60 backdrop-blur-xl rounded-3xl border border-slate-200/70 dark:border-white/5 p-8 shadow-sm">
+            <div className="bg-white/80 dark:bg-[#0c0c0e]/60 backdrop-blur-xl rounded-3xl border border-slate-200/30 dark:border-slate-800/40 p-8 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <FileText className="h-5 w-5 text-indigo-500" /> Podcast Script
                     </h3>
+                    <button 
+                        onClick={() => handleGenerate(true)}
+                        disabled={generating}
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all disabled:opacity-50"
+                    >
+                        {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                        REGENERATE
+                    </button>
                 </div>
                 
                 <div className="space-y-8">
@@ -326,7 +334,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
                                 )}>
                                     {seg.speaker}
                                 </span>
-                                <p className="text-slate-700 dark:text-zinc-300 leading-relaxed font-serif text-lg">
+                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-sans text-base">
                                     {seg.text}
                                 </p>
                             </div>

@@ -121,7 +121,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
 
     if (questions.length === 0) {
         return (
-            <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 transition-colors duration-300">
+            <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-slate-200/30 dark:border-slate-800/40 transition-colors duration-300">
                 <Trophy className="h-12 w-12 mx-auto mb-3 text-gray-400 dark:text-slate-500" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ready to test your knowledge?</h3>
                 <p className="text-gray-700 dark:text-slate-300 mb-6">Generate a quiz based on this content to reinforce your learning.</p>
@@ -157,8 +157,8 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
     }
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
-            <div className="border-b border-gray-200 dark:border-slate-700 px-6 py-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-slate-800/40 shadow-sm transition-colors duration-300">
+            <div className="border-b border-slate-200/30 dark:border-slate-800/40 px-6 py-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
             </div>
             <div className="p-6">
@@ -167,7 +167,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
                     <span>Score: {score}</span>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm mb-6 transition-colors duration-300">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-slate-800/40 p-6 shadow-sm mb-6 transition-colors duration-300">
                     <QuestionCard
                         question={questions[currentQuestionIndex]}
                         selectedAnswer={selectedAnswer}

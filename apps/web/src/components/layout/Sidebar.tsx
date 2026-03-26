@@ -1,36 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
-    Folder,
-    FileText,
-    ChevronRight,
-    ChevronDown,
-    Plus,
-    Home,
-    MoreHorizontal,
-    Trash2,
-    Layers,
-    Palette,
-    Sparkles,
-    Search,
-    Zap,
-    RefreshCw,
-    BookOpen
+    Folder, FileText, ChevronRight, ChevronDown, Plus, Home,
+    MoreHorizontal, Trash2, Palette, Search, RefreshCw,
+    BookOpen, PanelLeftClose, PanelLeftOpen, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { categoriesApi, projectsApi, Category, Project, API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { EditableTitle } from '@/components/ui/EditableTitle';
+import { EditableTitle } from "@/components/ui/EditableTitle";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
     onNavigate?: () => void;
+    isCollapsed?: boolean;
+    onToggleCollapse?: () => void;
 }
 
-export function Sidebar({ onNavigate }: SidebarProps) {
+export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: SidebarProps) {
     const { isAuthenticated } = useAuth();
     const pathname = usePathname();
     const [categories, setCategories] = useState<Category[]>([]);
@@ -42,406 +32,237 @@ export function Sidebar({ onNavigate }: SidebarProps) {
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
-    const [sidebarWidth, setSidebarWidth] = useState(346);
-    const [isResizing, setIsResizing] = useState(false);
-    const sidebarRef = useRef<HTMLElement>(null);
     const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
     const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
 
-    const startResizing = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsResizing(true);
-    }, []);
-
-    const stopResizing = useCallback(() => {
-        setIsResizing(false);
-    }, []);
-
-    const resize = useCallback((mouseMoveEvent: MouseEvent) => {
-        if (isResizing) {
-            const newWidth = mouseMoveEvent.clientX;
-            if (newWidth >= 200 && newWidth <= 480) {
-                setSidebarWidth(newWidth);
-            }
-        }
-    }, [isResizing]);
-
-    useEffect(() => {
-        window.addEventListener("mousemove", resize);
-        window.addEventListener("mouseup", stopResizing);
-        return () => {
-            window.removeEventListener("mousemove", resize);
-            window.removeEventListener("mouseup", stopResizing);
-        };
-    }, [resize, stopResizing]);
-
     useEffect(() => {
         loadData();
-
-        const handleRefresh = () => {
-            console.log('Sidebar received refresh-sidebar event');
-            loadData();
-        };
-        window.addEventListener('refresh-sidebar', handleRefresh);
-
-        // Close dropdown when clicking outside
+        const handleRefresh = () => loadData();
         const handleClickOutside = () => setActiveDropdown(null);
-        window.addEventListener('click', handleClickOutside);
-
+        window.addEventListener("refresh-sidebar", handleRefresh);
+        window.addEventListener("click", handleClickOutside);
         return () => {
-            window.removeEventListener('refresh-sidebar', handleRefresh);
-            window.removeEventListener('click', handleClickOutside);
+            window.removeEventListener("refresh-sidebar", handleRefresh);
+            window.removeEventListener("click", handleClickOutside);
         };
     }, [isAuthenticated]);
 
     useEffect(() => {
-        const checkClaiming = async () => {
-            if (isAuthenticated) {
-                try {
-                    const guestProjectsStr = localStorage.getItem('guest_projects');
-                    if (!guestProjectsStr) return;
-
-                    const guestProjects = JSON.parse(guestProjectsStr);
-                    if (Array.isArray(guestProjects) && guestProjects.length > 0) {
-                        const ids = guestProjects
-                            .map((p: any) => p.id)
-                            .filter((id: any) => typeof id === 'string' && id.length > 0);
-
-                        if (ids.length > 0) {
-                            await projectsApi.claim(ids);
-                            localStorage.removeItem('guest_projects');
-                            localStorage.removeItem('guest_project_count');
-                            loadData();
-                        } else {
-                            // Invalid data in local storage, clear it
-                            localStorage.removeItem('guest_projects');
-                        }
-                    }
-                } catch (error) {
-                    // Silent fail to avoid console spam, or log debug only
-                    console.debug("Failed to claim guest projects:", error);
+        if (!isAuthenticated) return;
+        try {
+            const guestProjects = JSON.parse(localStorage.getItem("guest_projects") || "[]");
+            if (Array.isArray(guestProjects) && guestProjects.length > 0) {
+                const ids = guestProjects.map((p: any) => p.id).filter(Boolean);
+                if (ids.length > 0) {
+                    projectsApi.claim(ids).then(() => {
+                        localStorage.removeItem("guest_projects");
+                        localStorage.removeItem("guest_project_count");
+                        loadData();
+                    }).catch(() => { });
+                } else {
+                    localStorage.removeItem("guest_projects");
                 }
             }
-        };
-        checkClaiming();
+        } catch { }
     }, [isAuthenticated]);
 
-    const handleMoveProject = async (projectId: string, categoryId: string | null) => {
-        try {
-            console.log('Moving project:', projectId, 'to category:', categoryId);
-            await projectsApi.updateCategory(projectId, categoryId);
-            console.log('Move successful, reloading data...');
-
-            // Force reload by fetching fresh data
-            const [cats, projs] = await Promise.all([
-                categoriesApi.list(),
-                projectsApi.list()
-            ]);
-
-            console.log('Fetched categories:', cats.length, 'projects:', projs.length);
-            console.log('Projects:', projs.map(p => ({ id: p.id, title: p.title, category_id: p.category_id })));
-
-            setCategories(cats);
-            setProjects(projs);
-            setRefreshKey(prev => prev + 1); // Force re-render
-            setActiveDropdown(null);
-
-            // Notify other components (e.g., Home page)
-            window.dispatchEvent(new Event('refresh-sidebar'));
-
-            console.log('State updated successfully');
-        } catch (error) {
-            console.error("Failed to move project:", error);
-            alert(`Failed to move project: ${error}`);
-        }
-    };
-
-    const executeDeleteProject = async (projectId: string) => {
-        // GUEST MODE HANDLER
-        if (!isAuthenticated) {
-            const current = JSON.parse(localStorage.getItem('guest_projects') || '[]');
-            // Ensure ID comparison is type-safe (convert both to string)
-            const updated = current.filter((p: any) => String(p.id) !== String(projectId));
-            localStorage.setItem('guest_projects', JSON.stringify(updated));
-            loadData();
-            window.dispatchEvent(new Event('refresh-sidebar'));
-            toast.success("Project deleted");
-            return;
-        }
-
-        try {
-            await projectsApi.delete(projectId);
-            toast.success("Project deleted");
-
-            // Force reload
-            const [cats, projs] = await Promise.all([
-                categoriesApi.list(),
-                projectsApi.list()
-            ]);
-            setCategories(cats);
-            setProjects(projs);
-            setRefreshKey(prev => prev + 1);
-            setActiveDropdown(null);
-
-            // Notify other components
-            window.dispatchEvent(new Event('refresh-sidebar'));
-        } catch (error) {
-            console.error("Failed to delete project:", error);
-            toast.error("Failed to delete project");
-        }
-    };
-
-    const handleDeleteProject = (projectId: string) => {
-        toast("Are you sure you want to delete this project?", {
-            description: "This action cannot be undone.",
-            action: {
-                label: "Delete",
-                onClick: () => executeDeleteProject(projectId),
-            },
-        });
-    };
-
-
     const loadData = async () => {
-        console.log("LoadData called. Auth:", isAuthenticated);
         if (!isAuthenticated) {
             try {
-                const raw = localStorage.getItem('guest_projects');
-                const guestProjects = JSON.parse(raw || '[]');
-                console.log("Raw Guest Projects:", guestProjects);
-
-                // Simple filter for valid projects
-                const validProjects = guestProjects.filter((p: any) => p && p.id);
-                console.log("Setting projects:", validProjects);
-
-                setProjects(validProjects as Project[]);
+                const guestProjects = JSON.parse(localStorage.getItem("guest_projects") || "[]");
+                setProjects(guestProjects.filter((p: any) => p && p.id) as Project[]);
                 setCategories([]);
-            } catch (e) {
-                console.error("Error loading guest projects:", e);
-                setProjects([]);
-            }
+            } catch { setProjects([]); }
             setLoading(false);
             return;
         }
-
         try {
             const [catsResult, projsResult] = await Promise.allSettled([
                 categoriesApi.list(),
-                projectsApi.list()
+                projectsApi.list(),
             ]);
-
-            const cats = catsResult.status === 'fulfilled' ? catsResult.value : [];
-            const projs = projsResult.status === 'fulfilled' ? projsResult.value : [];
-
-            if (catsResult.status === 'rejected') console.error("Failed to load categories:", catsResult.reason);
-            if (projsResult.status === 'rejected') console.error("Failed to load projects:", projsResult.reason);
+            const cats = catsResult.status === "fulfilled" ? catsResult.value : [];
+            const projs = projsResult.status === "fulfilled" ? projsResult.value : [];
             setCategories(cats);
-
-            // Deduplicate authenticated projects
-            const uniqueProjects = Array.from(new Map(projs.map((p) => [p.id, p])).values());
-            setProjects(uniqueProjects);
-
-            // Default behavior: Expand ALL categories since scrollbar is hidden
-            const newExpanded = new Set<string>();
-            newExpanded.add("uncategorized");
-            cats.forEach(cat => newExpanded.add(cat.id));
-            setExpanded(newExpanded);
-
-        } catch (error) {
-            console.error("Failed to load sidebar data:", error);
-        } finally {
-            setLoading(false);
-        }
+            setProjects(Array.from(new Map(projs.map((p) => [p.id, p])).values()));
+            const e = new Set<string>(["uncategorized"]);
+            cats.forEach(c => e.add(c.id));
+            setExpanded(e);
+        } catch { }
+        finally { setLoading(false); }
     };
 
-    const toggleExpand = (id: string) => {
-        const newExpanded = new Set(expanded);
-        if (newExpanded.has(id)) {
-            newExpanded.delete(id);
-        } else {
-            newExpanded.add(id);
-        }
-        setExpanded(newExpanded);
-    };
-
-    const handleCreateCategory = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newCategoryName.trim()) return;
-
+    const handleMoveProject = async (projectId: string, categoryId: string | null) => {
         try {
-            await categoriesApi.create(newCategoryName);
-            setNewCategoryName("");
-            setIsCreating(false);
+            await projectsApi.updateCategory(projectId, categoryId);
+            const [cats, projs] = await Promise.all([categoriesApi.list(), projectsApi.list()]);
+            setCategories(cats);
+            setProjects(projs);
+            setRefreshKey(p => p + 1);
+            setActiveDropdown(null);
+            window.dispatchEvent(new Event("refresh-sidebar"));
+        } catch { toast.error("Failed to move project"); }
+    };
+
+    const executeDeleteProject = async (projectId: string) => {
+        if (!isAuthenticated) {
+            const current = JSON.parse(localStorage.getItem("guest_projects") || "[]");
+            localStorage.setItem("guest_projects", JSON.stringify(
+                current.filter((p: any) => String(p.id) !== String(projectId))
+            ));
             loadData();
-        } catch (error) {
-            console.error("Failed to create category:", error);
+            window.dispatchEvent(new Event("refresh-sidebar"));
+            toast.success("Project deleted");
+            return;
         }
+        try {
+            await projectsApi.delete(projectId);
+            toast.success("Project deleted");
+            const [cats, projs] = await Promise.all([categoriesApi.list(), projectsApi.list()]);
+            setCategories(cats);
+            setProjects(projs);
+            setRefreshKey(p => p + 1);
+            setActiveDropdown(null);
+            window.dispatchEvent(new Event("refresh-sidebar"));
+        } catch { toast.error("Failed to delete project"); }
+    };
+
+    const handleDeleteProject = (projectId: string) => {
+        toast("Delete this project?", {
+            description: "This action cannot be undone.",
+            action: { label: "Delete", onClick: () => executeDeleteProject(projectId) },
+        });
     };
 
     const handleDeleteCategory = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-
         toast("Delete this category?", {
             description: "Projects will be moved to Uncategorized.",
             action: {
                 label: "Delete",
                 onClick: async () => {
-                    try {
-                        await categoriesApi.delete(id);
-                        loadData();
-                        toast.success("Category deleted");
-                    } catch (error) {
-                        console.error("Failed to delete category:", error);
-                        toast.error("Failed to delete category");
-                    }
+                    try { await categoriesApi.delete(id); loadData(); toast.success("Category deleted"); }
+                    catch { toast.error("Failed to delete category"); }
                 },
             },
         });
     };
 
+    const handleUpdateTitle = async (projectId: string, newTitle: string) => {
+        try {
+            await fetch(`${API_BASE}/sources/projects/${projectId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: newTitle }),
+            });
+            window.dispatchEvent(new Event("refresh-sidebar"));
+        } catch { }
+    };
+
+    const toggleExpand = (id: string) => {
+        const s = new Set(expanded);
+        s.has(id) ? s.delete(id) : s.add(id);
+        setExpanded(s);
+    };
+
+    const handleCreateCategory = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newCategoryName.trim()) return;
+        try {
+            await categoriesApi.create(newCategoryName);
+            setNewCategoryName("");
+            setIsCreating(false);
+            loadData();
+        } catch { }
+    };
+
     const getCategoryProjects = (categoryId: string | null) => {
-        let filtered = projects.filter(p => p.category_id === categoryId);
-        if (searchQuery.trim()) {
-            filtered = filtered.filter(p =>
-                p.title.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-        return filtered;
+        let list = projects.filter(p => p.category_id === categoryId);
+        if (searchQuery.trim())
+            list = list.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        return list;
     };
 
     const filteredCategories = searchQuery.trim()
-        ? categories.filter(cat =>
-            cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            getCategoryProjects(cat.id).length > 0
-        )
+        ? categories.filter(c =>
+            c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            getCategoryProjects(c.id).length > 0)
         : categories;
 
     const uncategorizedProjects = getCategoryProjects(null);
-    const filteredUncategorized = searchQuery.trim()
-        ? uncategorizedProjects.filter(p =>
-            p.title.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        : uncategorizedProjects;
 
-    const handleUpdateTitle = async (projectId: string, newTitle: string) => {
-        try {
-            const response = await fetch(`${API_BASE}/sources/projects/${projectId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle })
-            });
-
-            if (response.ok) {
-                // Dispatch event to update other components
-                window.dispatchEvent(new Event('refresh-sidebar'));
-            }
-        } catch (error) {
-            console.error("Failed to update title:", error);
-        }
-    };
-
+    /* ── Project row ────────────────────────────────────────────────────── */
     const renderProjectItem = (project: Project) => (
         <div
             key={project.id}
             className={cn(
-                "group/project relative flex items-center transition-opacity duration-200",
-                draggedProjectId === project.id ? "opacity-50" : "opacity-100"
+                "group/project relative flex items-center",
+                draggedProjectId === project.id && "opacity-50"
             )}
-            data-project-id={project.id}
             draggable
-            onDragStart={(e) => {
-                setDraggedProjectId(project.id);
-                e.dataTransfer.effectAllowed = "move";
-                // Set a custom drag image if needed, or let browser handle it
-            }}
-            onDragEnd={() => {
-                setDraggedProjectId(null);
-            }}
+            onDragStart={e => { setDraggedProjectId(project.id); e.dataTransfer.effectAllowed = "move"; }}
+            onDragEnd={() => setDraggedProjectId(null)}
         >
             <Link
-                href={project.first_source_id ? `/source/${project.first_source_id}` : '#'}
+                href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}
                 onClick={onNavigate}
                 className={cn(
-                    "flex-1 block px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300 truncate transition-all duration-200 pr-10 font-medium relative overflow-hidden group/link",
-                    project.first_source_id && pathname === `/source/${project.first_source_id}` && "bg-indigo-50/70 dark:bg-indigo-900/25 text-indigo-800 dark:text-indigo-200 font-semibold shadow-sm border border-indigo-200/70 dark:border-indigo-800/60"
+                    "relative flex-1 flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-150 pr-8 font-medium truncate overflow-hidden",
+                    "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    project.first_source_id && pathname === `/source/${project.first_source_id}` &&
+                    "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold"
                 )}
             >
-                <div className="relative z-10 flex items-center gap-2">
-                    <FileText className="h-3.5 w-3.5 opacity-60 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                        <EditableTitle
-                            initialValue={project.title}
-                            onSave={(val) => handleUpdateTitle(project.id, val)}
-                            className="w-full"
-                            editOnIconOnly={true}
-                        />
-                    </div>
-                </div>
                 {project.first_source_id && pathname === `/source/${project.first_source_id}` && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-r-full"></div>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-indigo-500 dark:bg-indigo-400 rounded-r-full" />
                 )}
+                <FileText className="h-3.5 w-3.5 opacity-50 flex-shrink-0" />
+                <EditableTitle
+                    initialValue={project.title}
+                    onSave={val => handleUpdateTitle(project.id, val)}
+                    className="w-full truncate"
+                    editOnIconOnly={true}
+                />
             </Link>
+
             <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    console.log('Three dots clicked for project:', project.id);
-                    setActiveDropdown(activeDropdown === project.id ? null : project.id);
-                }}
-                className="absolute right-1 z-20 p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-700/80 rounded-lg opacity-0 group-hover/project:opacity-100 transition-all duration-200 backdrop-blur-sm shadow-sm"
+                onClick={e => { e.stopPropagation(); e.preventDefault(); setActiveDropdown(activeDropdown === project.id ? null : project.id); }}
+                className="absolute right-1 z-20 p-1 text-muted-foreground hover:text-foreground hover:bg-secondary rounded opacity-0 group-hover/project:opacity-100 transition-all"
             >
                 <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
 
             {activeDropdown === project.id && (
                 <div
-                    className="absolute left-0 top-full mt-2 z-50 w-56 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60 dark:border-slate-700/60 py-2 transition-colors duration-300"
-                    onClick={(e) => e.stopPropagation()}
+                    className="absolute left-0 top-full mt-1 z-50 w-52 bg-popover backdrop-blur-xl rounded-xl shadow-2xl border border-border py-1"
+                    onClick={e => e.stopPropagation()}
                 >
-                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider border-b border-gray-100 dark:border-slate-700 mb-1">
+                    <div className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border mb-1">
                         Move to...
                     </div>
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            console.log('Clicking Uncategorized');
-                            handleMoveProject(project.id, null);
-                        }}
-                        className={cn(
-                            "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors",
-                            !project.category_id ? "text-purple-600 dark:text-purple-400 font-medium bg-purple-50 dark:bg-purple-900/30" : "text-gray-700 dark:text-slate-300"
-                        )}
+                        onClick={() => handleMoveProject(project.id, null)}
+                        className={cn("w-full text-left px-3 py-2 text-sm hover:bg-secondary flex items-center gap-2 text-foreground/80 transition-colors",
+                            !project.category_id && "text-accent font-medium bg-accent/10")}
                     >
-                        <Folder className="h-3.5 w-3.5" />
-                        Uncategorized
+                        <Folder className="h-3.5 w-3.5" /> Uncategorized
                     </button>
                     {categories.map(cat => (
                         <button
                             key={cat.id}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                console.log('Clicking category:', cat.name);
-                                handleMoveProject(project.id, cat.id);
-                            }}
-                            className={cn(
-                                "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors",
-                                project.category_id === cat.id ? "text-purple-600 dark:text-purple-400 font-medium bg-purple-50 dark:bg-purple-900/30" : "text-gray-700 dark:text-slate-300"
-                            )}
+                            onClick={() => handleMoveProject(project.id, cat.id)}
+                            className={cn("w-full text-left px-3 py-2 text-sm hover:bg-secondary flex items-center gap-2 text-foreground/80 transition-colors",
+                                project.category_id === cat.id && "text-accent font-medium bg-accent/10")}
                         >
-                            <Folder className="h-3.5 w-3.5" />
-                            {cat.name}
+                            <Folder className="h-3.5 w-3.5" /> {cat.name}
                         </button>
                     ))}
-                    <div className="border-t border-gray-100 dark:border-slate-700 mt-1 pt-1">
+                    <div className="border-t border-border mt-1 pt-1">
                         <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteProject(project.id);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center gap-2 transition-colors"
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2 transition-colors"
                         >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Delete Project
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
                         </button>
                     </div>
                 </div>
@@ -449,288 +270,225 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         </div>
     );
 
-
-    return (
-        <aside
-            ref={sidebarRef}
-            style={{ width: `${sidebarWidth}px` }}
-            className="bg-white/75 dark:bg-slate-900/55 backdrop-blur-2xl border-r border-slate-200/70 dark:border-slate-800 flex flex-col h-full shadow-xl transition-colors duration-300 relative overflow-hidden group/sidebar"
+    /* ── Nav link helper ────────────────────────────────────────────────── */
+    const NavLink = ({ href, icon: Icon, label, active }: { href: string; icon: any; label: string; active: boolean }) => (
+        <Link
+            href={href}
+            onClick={onNavigate}
+            title={isCollapsed ? label : undefined}
+            className={cn(
+                "relative flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-150 overflow-hidden",
+                isCollapsed && "justify-center px-0 py-2.5",
+                active
+                    ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            )}
         >
-            {/* Decorative background elements */}
-            <div className="absolute inset-0 opacity-[0.035] pointer-events-none">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-400 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400 rounded-full blur-3xl"></div>
+            {active && !isCollapsed && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-indigo-500 dark:bg-indigo-400" />
+            )}
+            <Icon className="h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && <span>{label}</span>}
+        </Link>
+    );
+
+    /* ── Render ─────────────────────────────────────────────────────────── */
+    return (
+        <aside className={cn(
+            "bg-card/80 backdrop-blur-2xl border-r border-border flex flex-col h-full transition-all duration-300 overflow-hidden",
+            isCollapsed ? "w-14" : "w-60"
+        )}>
+
+            {/* Logo */}
+            <div className={cn(
+                "flex items-center border-b border-border flex-shrink-0",
+                isCollapsed ? "justify-center p-3" : "gap-2.5 px-3 py-3"
+            )}>
+                <Link href="/" onClick={onNavigate} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity min-w-0">
+                    <div className="flex-shrink-0 h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
+                        <Home className="h-3.5 w-3.5 text-white" />
+                    </div>
+                    {!isCollapsed && (
+                        <div className="min-w-0">
+                            <span className="block font-bold text-sm tracking-tight text-foreground leading-tight">VibeKnowing</span>
+                            <span className="block text-[10px] text-muted-foreground">AI Learning Suite</span>
+                        </div>
+                    )}
+                </Link>
             </div>
 
-            <div className="relative p-5 border-b border-slate-200/70 dark:border-slate-800 space-y-3 bg-gradient-to-br from-white/70 to-slate-50/30 dark:from-slate-900/50 dark:to-slate-950/20 transition-colors duration-300">
-                <Link href="/" onClick={onNavigate} className="flex items-center gap-3 text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 mb-4 group">
-                    <div className="relative p-2.5 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl shadow-md group-hover:shadow-indigo-500/40 group-hover:scale-110 transition-all duration-300 hover-lift">
-                        <Home className="h-5 w-5 text-white relative z-10" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="font-bold text-2xl tracking-tight text-slate-900 dark:text-slate-100">VibeKnowing</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">AI Learning Suite</span>
-                    </div>
-                </Link>
+            {/* Primary nav */}
+            <div className={cn(
+                "flex-shrink-0 border-b border-border",
+                isCollapsed ? "px-2 py-2 space-y-1" : "px-2 py-2 space-y-0.5"
+            )}>
+                <NavLink href="/studio" icon={Palette} label="Content Studio" active={pathname === "/studio"} />
+                <NavLink href="/chat" icon={BookOpen} label="Knowledge Base" active={pathname === "/chat"} />
+                <NavLink href="/" icon={Plus} label="New Project" active={false} />
 
-                {/* Search Bar with Refresh Button */}
-                <div className="relative mb-2 flex items-center gap-2">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                        <input
-                            type="text"
-                            placeholder="Search projects..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
-                        />
+                {!isCollapsed && (
+                    isCreating ? (
+                        <form onSubmit={handleCreateCategory} className="mt-1">
+                            <input
+                                autoFocus type="text" value={newCategoryName}
+                                onChange={e => setNewCategoryName(e.target.value)}
+                                onBlur={() => !newCategoryName && setIsCreating(false)}
+                                placeholder="Category name..."
+                                className="w-full px-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-secondary text-foreground placeholder:text-muted-foreground"
+                            />
+                        </form>
+                    ) : (
+                        <button
+                            onClick={() => setIsCreating(true)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-all mt-0.5"
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span>New Category</span>
+                        </button>
+                    )
+                )}
+            </div>
+
+            {/* Scrollable project tree */}
+            <div className="flex-1 overflow-y-auto min-h-0 px-2 py-2 space-y-0.5" key={refreshKey}>
+
+                {/* Total Projects row + Search — expanded only */}
+                {!isCollapsed && !loading && (
+                    <div className="mb-3 space-y-2">
+                        <div className="flex items-center justify-between px-1 py-1">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                <Zap className="h-3.5 w-3.5 text-accent" />
+                                <span>Total Projects</span>
+                                <span className="ml-1 text-sm font-bold text-foreground">{projects.length}</span>
+                            </div>
+                            <button
+                                onClick={() => loadData()}
+                                className="p-1 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-all"
+                                title="Refresh"
+                            >
+                                <RefreshCw className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder="Search projects..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="w-full pl-8 pr-3 py-1.5 text-sm bg-secondary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground transition-all"
+                            />
+                        </div>
                     </div>
+                )}
+
+                {/* Collapsed refresh */}
+                {isCollapsed && !loading && (
                     <button
                         onClick={() => loadData()}
-                        className="p-2 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 rounded-xl transition-all duration-200"
-                        title="Refresh projects"
+                        className="w-full flex justify-center p-2.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-all"
+                        title="Refresh"
                     >
                         <RefreshCw className="h-4 w-4" />
                     </button>
-                </div>
-
-                <Link
-                    href="/studio"
-                    onClick={onNavigate}
-                    className={cn(
-                        "flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/studio",
-                        pathname === '/studio'
-                            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/25"
-                            : "text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300"
-                    )}
-                >
-                    <div className={cn(
-                        "relative z-10 flex items-center gap-2.5",
-                        pathname === '/studio' && "text-white"
-                    )}>
-                        <Palette className="h-4 w-4" />
-                        <span>Content Studio</span>
-                    </div>
-                    {pathname === '/studio' && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-sky-500 opacity-0 group-hover/studio:opacity-100 transition-opacity duration-300"></div>
-                    )}
-                </Link>
-
-                <Link
-                    href="/chat"
-                    onClick={onNavigate}
-                    className={cn(
-                        "flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/kbchat mt-1",
-                        pathname === '/chat'
-                            ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-600/25"
-                            : "text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300"
-                    )}
-                >
-                    <div className={cn(
-                        "relative z-10 flex items-center gap-2.5",
-                        pathname === '/chat' && "text-white"
-                    )}>
-                        <BookOpen className="h-4 w-4" />
-                        <span>Knowledge Base</span>
-                    </div>
-                    {pathname === '/chat' && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover/kbchat:opacity-100 transition-opacity duration-300"></div>
-                    )}
-                </Link>
-
-                <Link
-                    href="/"
-                    onClick={onNavigate}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 hover-lift relative overflow-hidden group/newproj text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-indigo-700 dark:hover:text-indigo-300 mt-1"
-                >
-                    <div className="relative z-10 flex items-center gap-2.5">
-                        <Plus className="h-4 w-4" />
-                        <span>New Project</span>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/70 to-sky-100/60 dark:from-indigo-900/15 dark:to-sky-900/10 opacity-0 group-hover/newproj:opacity-100 transition-opacity duration-300"></div>
-                </Link>
-
-                {/* New Category Input */}
-                {isCreating ? (
-                    <form onSubmit={handleCreateCategory} className="px-2 mt-2">
-                        <input
-                            autoFocus
-                            type="text"
-                            value={newCategoryName}
-                            onChange={(e) => setNewCategoryName(e.target.value)}
-                            onBlur={() => !newCategoryName && setIsCreating(false)}
-                            placeholder="Category name..."
-                            className="w-full px-2 py-1 text-sm border border-purple-200 dark:border-purple-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                        />
-                    </form>
-                ) : (
-                    <button
-                        onClick={() => setIsCreating(true)}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 text-sm text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 rounded-xl transition-all duration-300 border border-dashed border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md group relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/70 to-sky-100/60 dark:from-indigo-900/15 dark:to-sky-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="relative z-10 flex items-center gap-2">
-                            <Plus className="h-4 w-4 transform group-hover:rotate-90 transition-transform duration-300" />
-                            <span className="font-medium">New Category</span>
-                        </div>
-                    </button>
-                )}
-            </div>
-
-            {/* Invisible Scrollbar Styles */}
-            <style jsx global>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
-                }
-                .scrollbar-hide {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-                .group\\/sidebar:hover .scrollbar-hide::-webkit-scrollbar {
-                    display: block;
-                    width: 6px;
-                }
-                .group\\/sidebar:hover .scrollbar-hide {
-                   scrollbar-width: thin;
-                }
-            `}</style>
-
-            <div className="relative flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide" key={refreshKey}>
-                {/* Stats Summary */}
-                {!loading && (
-                    <div className="mb-4 p-3 rounded-2xl bg-white/60 dark:bg-slate-950/25 backdrop-blur-xl border border-slate-200/70 dark:border-slate-800 shadow-sm">
-                        <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300">
-                                <Zap className="h-3.5 w-3.5" />
-                                <span className="font-semibold">Total Projects</span>
-                            </div>
-                            <span className="font-bold text-slate-900 dark:text-slate-100 bg-white/70 dark:bg-slate-900/40 px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-slate-800">{projects.length}</span>
-                        </div>
-                    </div>
                 )}
 
-                {/* Uncategorized Section */}
-                {filteredUncategorized.length > 0 && (
-                    <div className="mb-2">
+                {/* Uncategorized */}
+                {uncategorizedProjects.length > 0 && !isCollapsed && (
+                    <div>
                         <button
                             onClick={() => toggleExpand("uncategorized")}
-                            onDragOver={(e) => {
-                                e.preventDefault();
-                                setDragOverCategoryId("uncategorized");
-                            }}
+                            onDragOver={e => { e.preventDefault(); setDragOverCategoryId("uncategorized"); }}
                             onDragLeave={() => setDragOverCategoryId(null)}
-                            onDrop={(e) => {
-                                e.preventDefault();
-                                if (draggedProjectId) {
-                                    handleMoveProject(draggedProjectId, null);
-                                    setDragOverCategoryId(null);
-                                }
-                            }}
+                            onDrop={e => { e.preventDefault(); if (draggedProjectId) { handleMoveProject(draggedProjectId, null); setDragOverCategoryId(null); } }}
                             className={cn(
-                                "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 dark:hover:from-slate-700 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-xl transition-all duration-300 group hover-lift relative overflow-hidden",
-                                dragOverCategoryId === "uncategorized" && "bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-500/50"
+                                "w-full flex items-center gap-2 px-2 py-2 text-sm font-semibold rounded-lg transition-all",
+                                "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                                dragOverCategoryId === "uncategorized" && "bg-accent/10 ring-1 ring-accent/40"
                             )}
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <div className="relative z-10 flex items-center gap-2.5 w-full">
-                                {expanded.has("uncategorized") ? (
-                                    <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-300 transform group-hover:scale-110" />
-                                ) : (
-                                    <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-300 transform group-hover:translate-x-0.5" />
-                                )}
-                                <Folder className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-300 transform group-hover:scale-110" />
-                                <span className="flex-1 text-left">Uncategorized</span>
-                                <span className="ml-auto text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-300 shadow-sm group-hover:shadow-md">{filteredUncategorized.length}</span>
-                            </div>
+                            {expanded.has("uncategorized")
+                                ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" />
+                                : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+                            }
+                            <Folder className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span className="flex-1 text-left truncate">Uncategorized</span>
+                            <span className="text-xs font-bold bg-secondary px-2 py-0.5 rounded-full">{uncategorizedProjects.length}</span>
                         </button>
-
                         {expanded.has("uncategorized") && (
-                            <div className="ml-4 mt-1.5 space-y-1 border-l-2 border-indigo-200 dark:border-indigo-800/50 pl-3 animate-in slide-in-from-top-2 duration-200">
-                                {filteredUncategorized.map(p => (
-                                    <div key={p.id}>
-                                        {renderProjectItem(p)}
-                                    </div>
-                                ))}
+                            <div className="ml-3 mt-0.5 space-y-0.5 pl-2">
+                                {uncategorizedProjects.map(p => renderProjectItem(p))}
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Categories */}
-                {filteredCategories.map(category => {
+                {/* Named categories */}
+                {!isCollapsed && filteredCategories.map(category => {
                     const catProjects = getCategoryProjects(category.id);
                     return (
-                        <div key={category.id} className="mb-2">
+                        <div key={category.id}>
                             <div className="flex items-center group/item">
                                 <button
                                     onClick={() => toggleExpand(category.id)}
-                                    onDragOver={(e) => {
-                                        e.preventDefault();
-                                        setDragOverCategoryId(category.id);
-                                    }}
+                                    onDragOver={e => { e.preventDefault(); setDragOverCategoryId(category.id); }}
                                     onDragLeave={() => setDragOverCategoryId(null)}
-                                    onDrop={(e) => {
-                                        e.preventDefault();
-                                        if (draggedProjectId) {
-                                            handleMoveProject(draggedProjectId, category.id);
-                                            setDragOverCategoryId(null);
-                                        }
-                                    }}
+                                    onDrop={e => { e.preventDefault(); if (draggedProjectId) { handleMoveProject(draggedProjectId, category.id); setDragOverCategoryId(null); } }}
                                     className={cn(
-                                        "flex-1 flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 dark:hover:from-slate-700 hover:to-indigo-50/30 dark:hover:to-indigo-900/30 rounded-xl transition-all duration-300 group hover-lift relative overflow-hidden",
-                                        dragOverCategoryId === category.id && "bg-indigo-50 dark:bg-indigo-900/30 ring-2 ring-indigo-500/50"
+                                        "flex-1 flex items-center gap-2 px-2 py-2 text-sm font-semibold rounded-lg transition-all",
+                                        "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                                        dragOverCategoryId === category.id && "bg-accent/10 ring-1 ring-accent/40"
                                     )}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div className="relative z-10 flex items-center gap-2.5 w-full">
-                                        {expanded.has(category.id) ? (
-                                            <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-300 transform group-hover:scale-110" />
-                                        ) : (
-                                            <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-300 transform group-hover:translate-x-0.5" />
-                                        )}
-                                        <Folder className="h-4 w-4 text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-all duration-300 transform group-hover:scale-110" />
-                                        <span className="truncate flex-1 text-left">{category.name}</span>
-                                        <span className="ml-auto text-xs font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-300 shadow-sm group-hover:shadow-md">{catProjects.length}</span>
-                                    </div>
+                                    {expanded.has(category.id)
+                                        ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" />
+                                        : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+                                    }
+                                    <Folder className="h-3.5 w-3.5 flex-shrink-0 text-accent/70" />
+                                    <span className="flex-1 text-left truncate">{category.name}</span>
+                                    <span className="text-xs font-bold bg-secondary px-2 py-0.5 rounded-full">{catProjects.length}</span>
                                 </button>
                                 <button
-                                    onClick={(e) => handleDeleteCategory(category.id, e)}
-                                    className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-all duration-200 opacity-0 group-hover/item:opacity-100 transform group-hover/item:scale-110"
+                                    onClick={e => handleDeleteCategory(category.id, e)}
+                                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all opacity-0 group-hover/item:opacity-100"
                                     title="Delete Category"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                             </div>
-
                             {expanded.has(category.id) && (
-                                <div className="ml-4 mt-1.5 space-y-1 border-l-2 border-indigo-200 dark:border-indigo-800/50 pl-3 animate-in slide-in-from-top-2 duration-200">
-                                    {catProjects.length === 0 ? (
-                                        <div className="px-3 py-2 text-xs text-gray-400 dark:text-slate-500 italic bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
-                                            No projects
-                                        </div>
-                                    ) : (
-                                        catProjects.map(p => (
-                                            <div key={p.id}>
-                                                {renderProjectItem(p)}
-                                            </div>
-                                        ))
-                                    )}
+                                <div className="ml-3 mt-0.5 space-y-0.5 pl-2">
+                                    {catProjects.length === 0
+                                        ? <div className="px-3 py-2 text-sm text-muted-foreground italic">No projects</div>
+                                        : catProjects.map(p => renderProjectItem(p))
+                                    }
                                 </div>
                             )}
                         </div>
                     );
                 })}
-
-
             </div>
 
-
-            {/* Resize Handle */}
-            <div
-                className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-indigo-500/50 active:bg-indigo-500 transition-colors z-50"
-                onMouseDown={startResizing}
-            />
-        </aside >
+            {/* ── Collapse / Expand button — always visible at bottom ──── */}
+            <div className="flex-shrink-0 border-t border-border p-2">
+                <button
+                    onClick={onToggleCollapse}
+                    title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    className={cn(
+                        "w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all",
+                        "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                        isCollapsed && "justify-center"
+                    )}
+                >
+                    {isCollapsed
+                        ? <PanelLeftOpen className="h-4 w-4 flex-shrink-0" />
+                        : <>
+                            <PanelLeftClose className="h-4 w-4 flex-shrink-0" />
+                            <span>Collapse</span>
+                        </>
+                    }
+                </button>
+            </div>
+        </aside>
     );
 }

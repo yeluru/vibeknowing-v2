@@ -612,35 +612,31 @@ How to write your answers:
 
     @staticmethod
     def generate_podcast_script(text: str, provider: str = "openai", model: str = None, api_key: str = None):
-        prompt = """Create a high-density, professional podcast script between two hosts, Alex and Sam, based on the content below.
+        prompt = """Create a VIBRANT, HIGH-ENERGY AI Audio Briefing, presented by Alex, a professional human analyst who knows how to tell a story.
 
-Podcast Style Rules (The "Cut the Crap" Edition):
-- DIVE IN IMMEDIATELY: Skip the cheesy "Welcome to the show," "How are you doing today," and long setup banter. First two lines should state the core insight.
-- Alex: Professional, curious, and direct. Asks high-level strategic questions. No repetitive filler.
-- Sam: Expert and efficient. Breaks down the technical 'why' with deep analogies, skipping the 'intro' for each point.
-- Dialogue style: Rapid-fire insights. Each segment should contain exactly one major technical or conceptual 'aha!' moment.
-- Tone: Think "Masterclass for Experts" rather than "Intro for Beginners."
-- No "Next up," "Let's move on," or "Transitioning to..." — let the insights flow naturally.
-- Language: Professional, spoken-word English. Focused.
+Audio Briefing Style Rules (The "Vibrant Human" Edition):
+- DIVE IN IMMEDIATELY: Start with a powerful hook that captures the 'Why does this matter?' of the material. Use the speaker's own energy.
+- NO AI JARGON: Strictly avoid phrases like "In summary," "The evolution of," "This technology underpinned," or "This methodology integrates." Speak like a human expert in a casual but professional setting.
+- NARRATIVE PULSE: Tell a story. Start with the problem, the context, and the friction described in the transcript. Then, reveal the 'Aha!' moment.
+- GROUNDED DETAILS: Use the specific examples from the transcript. If the speaker mentions AltaVista, MOSFETs, or 'Wi-Fi lights flashing yellow,' YOU mention them. These details make it real.
+- ENGAGEMENT TECHNIQUES: Use rhetorical questions ("Ever wonder why...?"), verbal hooks ("Now, here's where it gets interesting..."), and emphasis ("This is really freaking powerful").
+- HUMAN CADENCE: Use varied sentence lengths. Use conversational fillers naturally (e.g., "Think about it," "The reality is," "But wait, there's a kicker").
+- COMPREHENSIVE BUT PUNCHY: For a 20-minute source, aim for 1200-1500 words of high-density storytelling. Go deep into the 'How it works' without losing the listener.
+- Tone: Enthusiastic, Insightful, and Human. Not a robot reading a summary.
 
 Output a JSON object with this exact structure:
 {
-  "title": "Topic-focused title",
+  "title": "A punchy, engaging title that hooks the reader",
   "segments": [
     {
       "speaker": "Alex",
-      "text": "The core problem/insight statement."
-    },
-    {
-      "speaker": "Sam",
-      "text": "The expert decomposition."
+      "text": "The energetic, story-driven monologue. One segment is fine if it flows perfectly."
     }
   ]
 }
 
-Content:
+Source Transcript:
 """
-
         return _generate_json(
             prompt=f"{prompt}{text[:30000]}",
             provider=provider, model=model, api_key=api_key,

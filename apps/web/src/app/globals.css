@@ -104,8 +104,8 @@ body {
 }
 
 .dark body {
-  background-color: #000000;
-  color: #f8fafc;
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 /* Glassmorphism Utility */
@@ -280,3 +280,31 @@ html {
 }
 
 /* Universal Text Color Rules removed to allow component-level control */
+/* Dark mode tokens — UltraHire palette */
+.dark {
+  --background: #0f1117;
+  --background-light: #161b27;
+  --background-elevated: #1e2535;
+  --foreground: #e8ecf4;
+  --foreground-muted: #8b95a9;
+  --card: #161b27;
+  --card-hover: #1e2535;
+  --card-border: #252e42;
+  --primary: #818cf8;
+  --primary-hover: #a5b4fc;
+  --primary-light: #1e1b4b;
+  --primary-dark: #a5b4fc;
+  --secondary: #60a5fa;
+  --secondary-hover: #3b82f6;
+  --secondary-light: #1e3a5f;
+  --accent: #06b6d4;
+  --accent-hover: #0891b2;
+  --accent-light: #0c3a42;
+  --muted: #374151;
+  --muted-foreground: #9ca3af;
+  --border: #252e42;
+  --border-light: #1e2535;
+  --ring: #818cf8;
+  --ring-offset: #0f1117;
+}
+
