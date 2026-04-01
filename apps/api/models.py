@@ -104,7 +104,6 @@ class ChatMessage(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=True)
     role = Column(String)  # 'user' or 'assistant'
     content = Column(Text)
-    meta_data = Column(JSON, nullable=True)  # Store citations, used chunks, etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     source = relationship("Source", backref="chat_messages")
