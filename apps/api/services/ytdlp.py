@@ -103,6 +103,9 @@ class YtDlpService:
                     )
                     return transcript
             except Exception as e:
+                # Quota errors won't resolve with retries — fail fast so caller can switch provider
+                if "429" in str(e) or "insufficient_quota" in str(e):
+                    raise e
                 print(f"Transcription attempt {attempt + 1} failed: {str(e)}")
                 if attempt < max_retries - 1:
                     time.sleep(2 ** attempt)  # Exponential backoff
@@ -303,15 +306,15 @@ class YtDlpService:
                         "title": title
                     }
 
-                # 2. Fallback: download audio and transcribe with Whisper (OpenAI or Groq)
+                # 2. Fallback: download audio and transcribe with Whisper (OpenAI → Groq fallback)
                 print("No subtitles found, falling back to audio transcription...")
 
                 if settings.OPENAI_API_KEY:
-                    print("Using OpenAI Whisper for transcription")
+                    print("Using OpenAI Whisper for transcription (will fall back to Groq on quota error)")
                     client = OpenAI(api_key=settings.OPENAI_API_KEY)
                     whisper_model = "whisper-1"
                 elif settings.GROQ_API_KEY:
-                    print("OpenAI key not available, using Groq Whisper for transcription")
+                    print("No OpenAI key — using Groq Whisper for transcription")
                     client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
                     whisper_model = "whisper-large-v3-turbo"
                 else:
@@ -358,7 +361,18 @@ class YtDlpService:
                             transcript = YtDlpService.transcribe_with_retry(client, chunk_path, model=whisper_model)
                             full_transcript += transcript + "\n"
                         except Exception as e:
-                            print(f"Failed to transcribe chunk {i+1}: {str(e)}")
+                            # If OpenAI quota exceeded, fall back to Groq for this and remaining chunks
+                            if ("429" in str(e) or "insufficient_quota" in str(e)) and settings.GROQ_API_KEY and whisper_model != "whisper-large-v3-turbo":
+                                print(f"OpenAI quota exceeded on chunk {i+1}, switching to Groq for remaining chunks...")
+                                client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                                whisper_model = "whisper-large-v3-turbo"
+                                try:
+                                    transcript = YtDlpService.transcribe_with_retry(client, chunk_path, model=whisper_model)
+                                    full_transcript += transcript + "\n"
+                                except Exception as e2:
+                                    print(f"Groq also failed for chunk {i+1}: {str(e2)}")
+                            else:
+                                print(f"Failed to transcribe chunk {i+1}: {str(e)}")
                             # Continue with other chunks
                         
                         # Clean up chunk file if it's not the original

@@ -296,11 +296,11 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
             from pydub import AudioSegment
 
             if settings.OPENAI_API_KEY:
-                print("Using OpenAI Whisper for transcription")
+                print("Using OpenAI Whisper for transcription (will fall back to Groq on quota error)")
                 client = OpenAI(api_key=settings.OPENAI_API_KEY)
                 whisper_model = "whisper-1"
             elif settings.GROQ_API_KEY:
-                print("OpenAI key not available, using Groq Whisper for transcription")
+                print("No OpenAI key — using Groq Whisper for transcription")
                 client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
                 whisper_model = "whisper-large-v3-turbo"
             else:
@@ -308,6 +308,15 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
                 source.status = "failed"
                 db.commit()
                 return
+
+            def switch_to_groq():
+                nonlocal client, whisper_model
+                if settings.GROQ_API_KEY and whisper_model != "whisper-large-v3-turbo":
+                    print("OpenAI quota exceeded, switching to Groq...")
+                    client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                    whisper_model = "whisper-large-v3-turbo"
+                    return True
+                return False
 
             print(f"Using local Whisper transcription")
 
@@ -348,6 +357,17 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
                                     response_format="text"
                                 )
                             full_transcript.append(transcript_chunk)
+                        except Exception as chunk_err:
+                            if ("429" in str(chunk_err) or "insufficient_quota" in str(chunk_err)) and switch_to_groq():
+                                with open(chunk_name, 'rb') as audio_chunk:
+                                    transcript_chunk = client.audio.transcriptions.create(
+                                        model=whisper_model,
+                                        file=audio_chunk,
+                                        response_format="text"
+                                    )
+                                full_transcript.append(transcript_chunk)
+                            else:
+                                raise
                         finally:
                             # Clean up chunk file
                             if os.path.exists(chunk_name):
@@ -358,12 +378,23 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
                     
                 else:
                     # File is small enough, transcribe directly
-                    with open(tmp_path, 'rb') as audio_file:
-                        transcript = client.audio.transcriptions.create(
-                            model=whisper_model,
-                            file=audio_file,
-                            response_format="text"
-                        )
+                    try:
+                        with open(tmp_path, 'rb') as audio_file:
+                            transcript = client.audio.transcriptions.create(
+                                model=whisper_model,
+                                file=audio_file,
+                                response_format="text"
+                            )
+                    except Exception as e:
+                        if ("429" in str(e) or "insufficient_quota" in str(e)) and switch_to_groq():
+                            with open(tmp_path, 'rb') as audio_file:
+                                transcript = client.audio.transcriptions.create(
+                                    model=whisper_model,
+                                    file=audio_file,
+                                    response_format="text"
+                                )
+                        else:
+                            raise
                     content_text = transcript
                     print(f"Whisper transcription successful ({len(content_text)} chars)")
                     
