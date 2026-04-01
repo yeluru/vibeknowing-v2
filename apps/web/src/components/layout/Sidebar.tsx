@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -207,16 +208,16 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                 href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}
                 onClick={onNavigate}
                 className={cn(
-                    "relative flex-1 flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all duration-150 pr-8 font-medium truncate overflow-hidden",
-                    "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    "relative flex-1 flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-xl transition-all duration-200 pr-8 font-medium truncate overflow-hidden",
+                    "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white",
                     project.first_source_id && pathname === `/source/${project.first_source_id}` &&
-                    "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold"
+                    "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 font-bold shadow-sm"
                 )}
             >
                 {project.first_source_id && pathname === `/source/${project.first_source_id}` && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-indigo-500 dark:bg-indigo-400 rounded-r-full" />
+                    <motion.span layoutId="active-sidebar-pill" className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-indigo-500 rounded-r-full" />
                 )}
-                <FileText className="h-3.5 w-3.5 opacity-50 flex-shrink-0" />
+                <FileText className="h-3.5 w-3.5 opacity-60 flex-shrink-0" />
                 <EditableTitle
                     initialValue={project.title}
                     onSave={val => handleUpdateTitle(project.id, val)}
@@ -242,8 +243,8 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                     </div>
                     <button
                         onClick={() => handleMoveProject(project.id, null)}
-                        className={cn("w-full text-left px-3 py-2 text-sm hover:bg-secondary flex items-center gap-2 text-foreground/80 transition-colors",
-                            !project.category_id && "text-accent font-medium bg-accent/10")}
+                        className={cn("w-full text-left px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5 flex items-center gap-2 rounded-xl text-slate-700 dark:text-slate-300 transition-colors",
+                            !project.category_id && "text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-500/10")}
                     >
                         <Folder className="h-3.5 w-3.5" /> Uncategorized
                     </button>
@@ -277,17 +278,17 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
             onClick={onNavigate}
             title={isCollapsed ? label : undefined}
             className={cn(
-                "relative flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-150 overflow-hidden",
-                isCollapsed && "justify-center px-0 py-2.5",
+                "relative flex items-center gap-3 px-3 py-2 text-[13px] font-semibold rounded-xl transition-all duration-200 overflow-hidden",
+                isCollapsed && "justify-center px-0 py-3",
                 active
-                    ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
             )}
         >
             {active && !isCollapsed && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-indigo-500 dark:bg-indigo-400" />
+                <motion.span layoutId="active-sidebar-pill" className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-indigo-500" />
             )}
-            <Icon className="h-4 w-4 flex-shrink-0" />
+            <Icon className="h-[18px] w-[18px] flex-shrink-0" />
             {!isCollapsed && <span>{label}</span>}
         </Link>
     );
@@ -295,23 +296,23 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
     /* ── Render ─────────────────────────────────────────────────────────── */
     return (
         <aside className={cn(
-            "bg-card/80 backdrop-blur-2xl border-r border-border flex flex-col h-full transition-all duration-300 overflow-hidden",
-            isCollapsed ? "w-14" : "w-60"
+            "bg-white/40 dark:bg-[#09090b]/40 backdrop-blur-3xl border-r border-slate-200/50 dark:border-[#383e59] flex flex-col h-full transition-all duration-300 overflow-hidden",
+            isCollapsed ? "w-16" : "w-64"
         )}>
 
             {/* Logo */}
             <div className={cn(
-                "flex items-center border-b border-border flex-shrink-0",
-                isCollapsed ? "justify-center p-3" : "gap-2.5 px-3 py-3"
+                "flex items-center border-b border-slate-200/50 dark:border-[#383e59] flex-shrink-0",
+                isCollapsed ? "justify-center p-4" : "gap-3 px-4 py-4"
             )}>
-                <Link href="/" onClick={onNavigate} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity min-w-0">
-                    <div className="flex-shrink-0 h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
-                        <Home className="h-3.5 w-3.5 text-white" />
+                <Link href="/" onClick={onNavigate} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
+                    <div className="flex-shrink-0 h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+                        <Home className="h-4 w-4 text-white" />
                     </div>
                     {!isCollapsed && (
                         <div className="min-w-0">
-                            <span className="block font-bold text-sm tracking-tight text-foreground leading-tight">VibeKnowing</span>
-                            <span className="block text-[10px] text-muted-foreground">AI Learning Suite</span>
+                            <span className="block font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-white leading-tight">VibeKnowing</span>
+                            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5">Workspace</span>
                         </div>
                     )}
                 </Link>
@@ -319,8 +320,8 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
 
             {/* Primary nav */}
             <div className={cn(
-                "flex-shrink-0 border-b border-border",
-                isCollapsed ? "px-2 py-2 space-y-1" : "px-2 py-2 space-y-0.5"
+                "flex-shrink-0 border-b border-slate-200/50 dark:border-[#383e59]",
+                isCollapsed ? "px-2 py-3 space-y-1" : "px-3 py-3 space-y-1"
             )}>
                 <NavLink href="/studio" icon={Palette} label="Content Studio" active={pathname === "/studio"} />
                 <NavLink href="/chat" icon={BookOpen} label="Knowledge Base" active={pathname === "/chat"} />
@@ -470,14 +471,14 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
             </div>
 
             {/* ── Collapse / Expand button — always visible at bottom ──── */}
-            <div className="flex-shrink-0 border-t border-border p-2">
+            <div className="flex-shrink-0 border-t border-slate-200/50 dark:border-[#383e59] p-3">
                 <button
                     onClick={onToggleCollapse}
                     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                     className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all",
-                        "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                        isCollapsed && "justify-center"
+                        "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200",
+                        "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white",
+                        isCollapsed && "justify-center px-0"
                     )}
                 >
                     {isCollapsed

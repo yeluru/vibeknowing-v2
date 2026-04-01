@@ -213,7 +213,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
     return (
         <div className="flex flex-col gap-6 py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* ── AUDIO PLAYER CARD ────────────────────────────────────────── */}
-            <div className="vk-hero p-8 rounded-3xl border border-white/10 dark:border-slate-800/40 shadow-2xl overflow-hidden relative group">
+            <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl p-8 rounded-3xl border border-slate-200/70 dark:border-[#383e59] shadow-sm overflow-hidden relative group">
                 {/* Background Decor */}
                 <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000" />
                 
@@ -301,7 +301,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
             </div>
 
             {/* ── TRANSCRIPT ─────────────────────────────────────────────────── */}
-            <div className="bg-white/80 dark:bg-[#0c0c0e]/60 backdrop-blur-xl rounded-3xl border border-slate-200/30 dark:border-slate-800/40 p-8 shadow-sm">
+            <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl rounded-3xl border border-slate-200/70 dark:border-[#383e59] shadow-sm p-8">
                 <div className="flex items-center justify-between mb-8">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <FileText className="h-5 w-5 text-indigo-500" /> Podcast Script

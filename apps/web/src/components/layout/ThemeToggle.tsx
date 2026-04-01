@@ -11,7 +11,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       className={cn(
         "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-300",
-        "bg-transparent border-slate-200/80 dark:border-white/10",
+        "bg-transparent border-slate-200/80 dark:border-[#383e59]",
         "hover:bg-slate-50 dark:hover:bg-white/5",
         "text-slate-700 dark:text-slate-300"
       )}

@@ -15,7 +15,7 @@ export function MobileNav({ onMenuClick }: MobileNavProps) {
     const isActive = (path: string) => pathname === path;
 
     return (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 z-50 px-6 pb-safe">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-[#1a1e30]/90 backdrop-blur-lg border-t border-slate-200 dark:border-[#383e59] z-50 px-6 pb-safe">
             <div className="grid grid-cols-4 items-center h-full max-w-lg mx-auto">
                 <Link
                     href="/"

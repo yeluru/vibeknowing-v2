@@ -456,7 +456,7 @@ export default function SourcePage() {
         <div className="h-full flex flex-col gap-4">
 
             {/* ── Workspace header ─────────────────────────────────────── */}
-            <div className="flex-none bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm relative z-10">
+            <div className="flex-none bg-white/80 dark:bg-[#1a1e30]/70 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm relative z-10">
 
                 {/* Title + actions */}
                 <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-3">
@@ -497,7 +497,7 @@ export default function SourcePage() {
                 </div>
 
                 {/* ── Tab strip — underline style ── */}
-                <div className="border-t border-slate-100 dark:border-slate-800/80 relative">
+                <div className="border-t border-slate-100 dark:border-[#383e59]/80 relative">
 
                     {/* ── Mobile: active tab + More dropdown ── */}
                     <div className="flex sm:hidden items-center px-2 gap-1">
@@ -513,7 +513,7 @@ export default function SourcePage() {
                                 More <ChevronRight className="h-3 w-3 rotate-90" />
                             </button>
                             {mobileMenuOpen && (
-                                <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200/70 dark:border-slate-700/60 py-1.5 z-[200]">
+                                <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200/70 dark:border-[#383e59]/60 py-1.5 z-[200]">
                                     {TABS.map(tab => (
                                         <button key={tab.id} onClick={() => { handleTabChange(tab.id); setMobileMenuOpen(false); }}
                                             className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors",
@@ -523,7 +523,7 @@ export default function SourcePage() {
                                             {tab.icon} {tab.label}
                                         </button>
                                     ))}
-                                    <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                                    <div className="border-t border-slate-100 dark:border-[#383e59] my-1" />
                                     {[
                                         { id: 'studio' as const, icon: <Palette className="h-4 w-4" />, label: 'Studio' },
                                         { id: 'view' as const, icon: <Eye className="h-4 w-4" />, label: 'View' },
@@ -575,8 +575,8 @@ export default function SourcePage() {
                             </button>
 
                             {studioDropdownOpen && (
-                                <div className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200/70 dark:border-slate-700/60 py-1.5 z-[200] before:absolute before:-top-2 before:left-0 before:w-full before:h-2 before:content-['']">
-                                    <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1">
+                                <div className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200/70 dark:border-[#383e59]/60 py-1.5 z-[200] before:absolute before:-top-2 before:left-0 before:w-full before:h-2 before:content-['']">
+                                    <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-[#383e59] mb-1">
                                         Content Studio
                                     </div>
                                     {[
@@ -655,7 +655,7 @@ export default function SourcePage() {
 
                 {/* Transcript */}
                 {activeTab === 'transcript' && (
-                    <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+                    <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm p-6 sm:p-8">
                         <div className="flex items-center justify-between mb-5">
                             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <FileText className="h-4.5 w-4.5 text-indigo-400" />Transcript
@@ -726,7 +726,7 @@ export default function SourcePage() {
                             </div>
                         ) : !showTranscriptUpload && (
                             <div className="prose prose-sm max-w-none">
-                                <p className="whitespace-pre-wrap text-slate-700 leading-relaxed text-sm">{source.content_text}</p>
+                                <p className="whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed text-sm">{source.content_text}</p>
                             </div>
                         )}
                     </div>
@@ -734,7 +734,7 @@ export default function SourcePage() {
 
                 {/* Summary */}
                 {activeTab === 'summary' && (
-                    <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+                    <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm p-6 sm:p-8">
                         <div className="flex items-center justify-between mb-5">
                             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Sparkles className="h-4.5 w-4.5 text-indigo-400" />AI Summary
@@ -767,11 +767,11 @@ export default function SourcePage() {
                                         li: ({ node, ...props }) => <li className="!ml-4 !text-slate-700 dark:!text-slate-300" {...props} />,
                                         strong: ({ node, ...props }) => <strong className="!font-semibold !text-slate-900 dark:!text-white" {...props} />,
                                         blockquote: ({ node, ...props }) => <blockquote className="!border-l-4 !border-indigo-400 !pl-4 !italic !text-slate-600 dark:!text-slate-400 !my-4" {...props} />,
-                                        pre: ({ node, ...props }) => <pre className="not-prose bg-slate-50 dark:bg-slate-900 rounded-xl overflow-x-auto border border-slate-200 dark:border-slate-700 my-4" {...props} />,
+                                        pre: ({ node, ...props }) => <pre className="not-prose bg-slate-50 dark:bg-[#1a1e30] rounded-xl overflow-x-auto border border-slate-200 dark:border-[#383e59] my-4" {...props} />,
                                         code: ({ node, inline, className, children, ...props }: any) => !inline
                                             ? <code className={cn("!block !p-4 !text-sm !font-mono !text-slate-800 dark:!text-slate-200 whitespace-pre", className)} {...props}>{children}</code>
                                             : <code className="!px-1.5 !py-0.5 !bg-indigo-50 dark:!bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400 !rounded !text-xs !font-mono" {...props}>{children}</code>,
-                                        img: ({ node, ...props }) => <img className="rounded-xl border border-slate-200 dark:border-slate-700 my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />,
+                                        img: ({ node, ...props }) => <img className="rounded-xl border border-slate-200 dark:border-[#383e59] my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />,
                                     }}
                                 >
                                     {source.summary}

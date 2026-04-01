@@ -106,13 +106,13 @@ export function SocialMediaGenerator({ sourceId, title = "Social Media Generator
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-slate-800/40 shadow-sm transition-colors duration-300">
-            <div className="border-b border-slate-200/30 dark:border-slate-800/40 px-6 py-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[#383e59]/40 shadow-sm transition-colors duration-300">
+            <div className="border-b border-slate-200/30 dark:border-[#383e59]/40 px-6 py-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">{platformTitles[platform]}</h2>
             </div>
             <div className="p-6 space-y-6">
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-slate-800/40 p-6 shadow-sm min-h-[300px] transition-colors duration-300">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[#383e59]/40 p-6 shadow-sm min-h-[300px] transition-colors duration-300">
                     {loading ? (
                         <div className="h-full flex flex-col items-center justify-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
@@ -123,7 +123,7 @@ export function SocialMediaGenerator({ sourceId, title = "Social Media Generator
                             <textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                className="w-full h-64 p-4 border border-slate-200/30 dark:border-slate-800/40 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                className="w-full h-64 p-4 border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                             />
                             <div className="flex justify-end gap-2">
                                 <button

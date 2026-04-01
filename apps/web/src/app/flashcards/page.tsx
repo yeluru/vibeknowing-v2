@@ -37,7 +37,7 @@ export default function FlashcardsPage() {
             {loading ? (
                 <div className="flex justify-center py-24"><Loader2 className="h-7 w-7 animate-spin text-indigo-500" /></div>
             ) : projects.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/30 text-center px-6">
+                <div className="flex flex-col items-center justify-center py-24 rounded-2xl border border-dashed border-slate-200 dark:border-[#383e59] bg-white/50 dark:bg-[#1a1e30]/30 text-center px-6">
                     <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
                         <Layers className="h-7 w-7 text-indigo-400" />
                     </div>
@@ -52,7 +52,7 @@ export default function FlashcardsPage() {
                             <motion.div key={project.id}
                                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.35, delay: i * 0.05 }}
-                                className={cn("group relative flex flex-col rounded-2xl border bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-300", a.border)}
+                                className={cn("group relative flex flex-col rounded-2xl border bg-white/80 dark:bg-[#1a1e30]/50 backdrop-blur-xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-300", a.border)}
                             >
                                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-70 pointer-events-none", a.glow)} />
                                 <div className="relative p-5 flex flex-col h-full">

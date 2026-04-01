@@ -84,7 +84,7 @@
 
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
 
 * {
@@ -98,7 +98,7 @@ body {
   background-color: #f4f5fb; /* very slight indigo tint */
   background-attachment: fixed;
   color: #0f172a;
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-jakarta), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -132,7 +132,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -282,9 +282,9 @@ html {
 /* Universal Text Color Rules removed to allow component-level control */
 /* Dark mode tokens — UltraHire palette */
 .dark {
-  --background: #0f1117;
-  --background-light: #161b27;
-  --background-elevated: #1e2535;
+  --background: #0b0e17;
+  --background-light: #161825;
+  --background-elevated: #1e2133;
   --foreground: #e8ecf4;
   --foreground-muted: #8b95a9;
   --card: #161b27;

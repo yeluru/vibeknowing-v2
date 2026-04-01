@@ -148,14 +148,14 @@ export default function GlobalChatPage() {
         <div className="h-full flex flex-col gap-4">
 
             {/* ── Chat panel (same card style as workspace header) ── */}
-            <div className="flex-1 flex flex-col bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-slate-800 shadow-sm overflow-hidden relative">
+            <div className="flex-1 flex flex-col bg-white/80 dark:bg-[#1a1e30]/70 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm overflow-hidden relative">
 
                 {/* Decorative blurs matching other panels */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-400/[0.04] rounded-full blur-3xl pointer-events-none"></div>
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/[0.04] rounded-full blur-3xl pointer-events-none"></div>
 
                 {/* Title bar */}
-                <div className="flex-none flex items-center gap-3 px-6 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800/80 relative z-10">
+                <div className="flex-none flex items-center gap-3 px-6 pt-5 pb-4 border-b border-slate-100 dark:border-[#383e59]/80 relative z-10">
                     <div className="p-2.5 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl shadow-md">
                         <BookOpen className="h-5 w-5 text-white" />
                     </div>
@@ -166,9 +166,9 @@ export default function GlobalChatPage() {
                 </div>
 
                 {/* Input area — at the top */}
-                <div className="flex-none border-b border-slate-100 dark:border-slate-800/80 px-6 py-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm relative z-10">
+                <div className="flex-none border-b border-slate-100 dark:border-[#383e59]/80 px-6 py-4 bg-white/40 dark:bg-[#1a1e30]/40 backdrop-blur-sm relative z-10">
                     <div className="max-w-3xl mx-auto">
-                        <div className="relative flex items-end bg-white/80 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-300 dark:focus-within:border-indigo-700 transition-all">
+                        <div className="relative flex items-end bg-white/80 dark:bg-slate-800/50 border border-slate-200/70 dark:border-[#383e59]/60 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-300 dark:focus-within:border-indigo-700 transition-all">
                             <textarea
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
@@ -213,7 +213,7 @@ export default function GlobalChatPage() {
                                         <button
                                             key={i}
                                             onClick={() => handleSend(s)}
-                                            className="text-left px-4 py-3 text-sm text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-800/40 backdrop-blur-sm border border-slate-200/70 dark:border-slate-700/60 rounded-xl hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                                            className="text-left px-4 py-3 text-sm text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-800/40 backdrop-blur-sm border border-slate-200/70 dark:border-[#383e59]/60 rounded-xl hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all duration-200 shadow-sm hover:shadow-md"
                                         >
                                             {s}
                                         </button>
@@ -224,7 +224,7 @@ export default function GlobalChatPage() {
 
                         {isLoading && messages[messages.length - 1]?.role === "user" && (
                             <div className="flex justify-start">
-                                <div className="bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/70 dark:border-slate-700/60 rounded-2xl rounded-bl-md px-5 py-4 shadow-sm">
+                                <div className="bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/70 dark:border-[#383e59]/60 rounded-2xl rounded-bl-md px-5 py-4 shadow-sm">
                                     <div className="flex items-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
                                         <span className="text-sm text-slate-500 dark:text-slate-400">Searching your knowledge base…</span>
@@ -263,7 +263,7 @@ export default function GlobalChatPage() {
                                             <div className={`max-w-[85%] ${
                                                 message.role === "user"
                                                     ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100 border border-emerald-200/70 dark:border-emerald-800/50 rounded-2xl rounded-br-md px-5 py-3 shadow-sm"
-                                                    : "bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/70 dark:border-slate-700/60 rounded-2xl rounded-bl-md px-5 py-4 shadow-sm"
+                                                    : "bg-white/90 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/70 dark:border-[#383e59]/60 rounded-2xl rounded-bl-md px-5 py-4 shadow-sm"
                                             }`}>
                                                 {message.role === "assistant" ? (
                                                     <div className="prose prose-sm prose-slate dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mt-1 [&>ol]:mt-1">

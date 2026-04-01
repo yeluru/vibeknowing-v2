@@ -50,8 +50,8 @@ export function UserMenu() {
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 animate-in fade-in slide-in-from-top-2 z-50">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#1a1e30] rounded-xl shadow-xl border border-slate-200 dark:border-[#383e59] py-2 animate-in fade-in slide-in-from-top-2 z-50">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-[#383e59]">
                         <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                             {user?.full_name || "User"}
                         </p>

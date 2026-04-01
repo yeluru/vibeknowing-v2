@@ -11,7 +11,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 type={type}
                 className={cn(
                     "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                    "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-indigo-500", // Default VibeKnowing styles
+                    "border-slate-200 dark:border-[#383e59] bg-white dark:bg-[#1a1e30] focus:ring-indigo-500", // Default VibeKnowing styles
                     className
                 )}
                 ref={ref}

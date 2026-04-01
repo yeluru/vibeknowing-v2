@@ -74,7 +74,7 @@ export default function LibraryPage() {
             </header>
 
             {projects.length === 0 ? (
-                <div className="text-center py-12 bg-slate-50 dark:bg-slate-900/30 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                <div className="text-center py-12 bg-slate-50 dark:bg-[#1a1e30]/30 rounded-3xl border border-dashed border-slate-200 dark:border-[#383e59]">
                     <Folder className="h-12 w-12 text-slate-300 mx-auto mb-3" />
                     <p className="text-slate-500 font-medium">No projects yet</p>
                     <Link href="/" className="text-indigo-600 font-semibold text-sm hover:underline mt-2 inline-block">
@@ -85,7 +85,7 @@ export default function LibraryPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {projects.map((project) => (
                         <Link key={project.id} href={`/source/${project.first_source_id || '#'}`}>
-                            <div className="vk-card p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all">
+                            <div className="vk-card p-5 rounded-2xl bg-white dark:bg-[#1a1e30] border border-slate-200 dark:border-[#383e59] hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600 dark:text-indigo-400">
                                         <Folder className="h-5 w-5" />

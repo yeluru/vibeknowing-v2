@@ -36,7 +36,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
     }, [input]);
 
     return (
-        <div className="border-t border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/55 backdrop-blur-xl p-3 sm:p-4 transition-colors duration-300">
+        <div className="border-t border-slate-200/70 dark:border-[#383e59] bg-white/70 dark:bg-[#1a1e30]/55 backdrop-blur-xl p-3 sm:p-4 transition-colors duration-300">
 
             {suggestions.length > 0 && (
                 <>
@@ -49,7 +49,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                                 disabled={disabled}
                                 className="flex items-center gap-1.5 w-full px-3 py-2 rounded-lg text-xs font-medium text-left
                                            text-slate-700 dark:text-slate-300
-                                           border border-slate-200 dark:border-slate-700
+                                           border border-slate-200 dark:border-[#383e59]
                                            bg-slate-50 dark:bg-slate-800/60
                                            hover:bg-indigo-50 dark:hover:bg-indigo-900/20
                                            hover:border-indigo-200 dark:hover:border-indigo-800
@@ -71,7 +71,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                                 disabled={disabled}
                                 className="flex items-start gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-left
                                            text-slate-700 dark:text-slate-300
-                                           border border-slate-200 dark:border-slate-700
+                                           border border-slate-200 dark:border-[#383e59]
                                            bg-slate-50 dark:bg-slate-800/60
                                            hover:bg-indigo-50 dark:hover:bg-indigo-900/20
                                            hover:border-indigo-200 dark:hover:border-indigo-800
@@ -96,7 +96,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                     disabled={disabled}
                     className="max-h-32 min-h-[44px] w-full resize-none rounded-xl px-4 py-3 pr-12 text-sm
                                bg-white dark:bg-slate-800/80
-                               border border-slate-200 dark:border-slate-700
+                               border border-slate-200 dark:border-[#383e59]
                                text-slate-900 dark:text-slate-100
                                placeholder-slate-400 dark:placeholder-slate-500
                                focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-500
@@ -118,9 +118,9 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
             </form>
 
             <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-[10px]">Enter</kbd> to send,{" "}
-                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-[10px]">Shift</kbd>{" "}+{" "}
-                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-[10px]">Enter</kbd> for a new line.
+                Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-[#383e59] text-[10px]">Enter</kbd> to send,{" "}
+                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-[#383e59] text-[10px]">Shift</kbd>{" "}+{" "}
+                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-[#383e59] text-[10px]">Enter</kbd> for a new line.
             </div>
         </div>
     );

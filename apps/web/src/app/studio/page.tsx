@@ -82,7 +82,7 @@ export default function StudioPage() {
             <motion.div
                 onClick={() => router.push(project.first_source_id ? `/source/${project.first_source_id}` : "#")}
                 whileHover={{ y: -4, scale: 1.01 }}
-                className="cursor-pointer relative rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                className="cursor-pointer relative rounded-2xl border border-slate-200/70 dark:border-[#383e59] bg-white/80 dark:bg-[#1a1e30]/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden">
                     <div className={cn("absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none", i % 2 === 0 ? "bg-indigo-500/8" : "bg-sky-500/8")} />
                     <div className="relative">
                         <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-snug line-clamp-2 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors pr-6">
@@ -91,7 +91,7 @@ export default function StudioPage() {
                         <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
                             {project.description || "No description."}
                         </p>
-                        <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
+                        <div className="border-t border-slate-100 dark:border-[#383e59] pt-3">
                             <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Quick Actions</div>
                             <div className="grid grid-cols-4 gap-1.5">
                                 {QUICK_ACTIONS.map(action => (
@@ -125,7 +125,7 @@ export default function StudioPage() {
             <div className="space-y-6 pb-10">
                 <div className="flex items-center gap-3">
                     <button onClick={() => setSelectedCategory(null)}
-                        className="p-2 rounded-xl bg-white/80 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 transition-all shadow-sm">
+                        className="p-2 rounded-xl bg-white/80 dark:bg-[#1a1e30]/50 border border-slate-200/70 dark:border-[#383e59] text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 transition-all shadow-sm">
                         <ChevronLeft className="h-4 w-4" />
                     </button>
                     <div>
@@ -138,11 +138,11 @@ export default function StudioPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Search projects..."
-                        className="w-full pl-9 pr-4 py-2 text-sm bg-white/80 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400" />
+                        className="w-full pl-9 pr-4 py-2 text-sm bg-white/80 dark:bg-[#1a1e30]/50 border border-slate-200/70 dark:border-[#383e59] rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100 placeholder-slate-400" />
                 </div>
 
                 {catProjects.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/30 text-center">
+                    <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-[#383e59] bg-white/50 dark:bg-[#1a1e30]/30 text-center">
                         <Sparkles className="h-10 w-10 text-slate-300 mb-3" />
                         <p className="text-sm text-slate-500 dark:text-slate-400">No projects in this category.</p>
                     </div>
@@ -176,7 +176,7 @@ export default function StudioPage() {
                     <motion.button
                         whileHover={{ y: -4, scale: 1.02 }}
                         onClick={() => setSelectedCategory("uncategorized")}
-                        className="group relative text-left rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden"
+                        className="group relative text-left rounded-2xl border border-slate-200/70 dark:border-[#383e59] bg-white/80 dark:bg-[#1a1e30]/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-transparent pointer-events-none" />
                         <div className="relative flex items-center gap-3 mb-3">
@@ -200,7 +200,7 @@ export default function StudioPage() {
                         return (
                             <motion.button key={cat.id} whileHover={{ y: -4, scale: 1.02 }}
                                 onClick={() => setSelectedCategory(cat.id)}
-                                className={cn("group relative text-left rounded-2xl border bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden", border)}>
+                                className={cn("group relative text-left rounded-2xl border bg-white/80 dark:bg-[#1a1e30]/50 backdrop-blur-xl p-5 hover:shadow-xl transition-all duration-300 overflow-hidden", border)}>
                                 <div className={cn("absolute inset-0 bg-gradient-to-br opacity-70 pointer-events-none", glow)} />
                                 <div className="relative flex items-center gap-3 mb-3">
                                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300", iconBg)}>
@@ -219,7 +219,7 @@ export default function StudioPage() {
                     })}
 
                     {categories.length === 0 && uncategorizedCount === 0 && (
-                        <div className="col-span-full flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/30 text-center">
+                        <div className="col-span-full flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-[#383e59] bg-white/50 dark:bg-[#1a1e30]/30 text-center">
                             <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
                                 <Palette className="h-7 w-7 text-indigo-400" />
                             </div>

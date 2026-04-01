@@ -233,13 +233,13 @@ export default function SettingsPage() {
                 key={prov.name}
                 variants={fadeInUp}
                 className={`flex flex-col p-6 rounded-2xl border transition-all duration-300 ${
-                  hasKey ? "bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 shadow-sm" : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-700/60"
+                  hasKey ? "bg-white dark:bg-slate-800/60 border-slate-200 dark:border-[#383e59] shadow-sm" : "bg-slate-50/50 dark:bg-[#1a1e30]/40 border-slate-200/60 dark:border-[#383e59]/60"
                 }`}
               >
                 {/* Provider header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800 flex items-center justify-center text-xl">
+                    <div className="h-12 w-12 rounded-xl border border-slate-100 dark:border-[#383e59] shadow-sm bg-white dark:bg-slate-800 flex items-center justify-center text-xl">
                       {prov.icon}
                     </div>
                     <div>
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                       value={keyInputs[prov.name] || ""}
                       onChange={(e) => setKeyInputs((k) => ({ ...k, [prov.name]: e.target.value }))}
                       placeholder={hasKey ? "Enter new key to replace..." : `Paste your ${prov.displayName} key (${prov.keyPrefix}...)`}
-                      className="w-full bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 transition-all pr-12"
+                      className="w-full bg-slate-50 dark:bg-[#1a1e30]/60 border border-slate-200 dark:border-[#383e59] rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 transition-all pr-12"
                       onKeyDown={(e) => e.key === "Enter" && handleSaveKey(prov.name)}
                     />
                     <button
@@ -303,7 +303,7 @@ export default function SettingsPage() {
                   )}
                 </div>
 
-                <div className="mt-5 flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-5">
+                <div className="mt-5 flex items-center justify-between border-t border-slate-100 dark:border-[#383e59] pt-5">
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => setExpandedProvider(expandedProvider === prov.name ? null : prov.name)}
@@ -333,12 +333,12 @@ export default function SettingsPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900/50 relative top-1"
+                    className="mt-4 border border-slate-200 dark:border-[#383e59] rounded-xl overflow-hidden bg-slate-50 dark:bg-[#1a1e30]/50 relative top-1"
                   >
                     {prov.models.map((m, idx) => (
                       <div
                         key={m.id}
-                        className={cn("flex items-center justify-between px-5 py-3 bg-white dark:bg-slate-800/80", idx !== 0 && "border-t border-slate-100 dark:border-slate-700")}
+                        className={cn("flex items-center justify-between px-5 py-3 bg-white dark:bg-slate-800/80", idx !== 0 && "border-t border-slate-100 dark:border-[#383e59]")}
                       >
                         <div>
                           <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 tracking-tight">{m.name}</span>
@@ -370,7 +370,7 @@ export default function SettingsPage() {
           </p>
 
           {configuredModels.length === 0 ? (
-            <div className="rounded-2xl p-10 text-center bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-700 border-dashed">
+            <div className="rounded-2xl p-10 text-center bg-slate-50/50 dark:bg-[#1a1e30]/30 border border-slate-200 dark:border-[#383e59] border-dashed">
               <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-4" />
               <p className="text-slate-600 dark:text-slate-400 font-medium">
                 Add at least one API key above to configure model preferences.
@@ -381,7 +381,7 @@ export default function SettingsPage() {
               {Object.entries(TASK_LABELS).map(([task, { label, description }]) => (
                 <div
                   key={task}
-                  className="rounded-2xl p-5 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col justify-between gap-4 shadow-sm"
+                  className="rounded-2xl p-5 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-[#383e59] flex flex-col justify-between gap-4 shadow-sm"
                 >
                   <div className="min-w-0">
                     <div className="text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">{label}</div>
@@ -391,7 +391,7 @@ export default function SettingsPage() {
                     <select
                       value={prefs.taskModels[task] || ""}
                       onChange={(e) => handleSetTaskModel(task, e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 appearance-none focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                      className="w-full bg-slate-50 dark:bg-[#1a1e30]/60 border border-slate-200 dark:border-[#383e59] rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 appearance-none focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                     >
                       <option value="">Auto (provider default)</option>
                       {configuredModels.map((m) => (

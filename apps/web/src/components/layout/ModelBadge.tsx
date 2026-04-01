@@ -86,7 +86,7 @@ export function ModelBadge() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-xs font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-xs font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#383e59]">
         <Cpu className="h-3.5 w-3.5 text-indigo-500" />
         <span>{label}</span>
       </div>

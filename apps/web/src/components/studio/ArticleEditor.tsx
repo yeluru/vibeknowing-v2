@@ -161,8 +161,8 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-slate-800/40 shadow-sm min-h-[500px] transition-colors duration-300">
-                <div className="border-b border-slate-200/30 dark:border-slate-800/40 px-6 py-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[#383e59]/40 shadow-sm min-h-[500px] transition-colors duration-300">
+                <div className="border-b border-slate-200/30 dark:border-[#383e59]/40 px-6 py-4">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
                 </div>
                 <div className="p-6">
@@ -173,18 +173,18 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                         </div>
                     ) : content ? (
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800/40 pb-4">
+                            <div className="flex justify-between items-center border-b border-slate-100 dark:border-[#383e59]/40 pb-4">
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setMode('edit')}
-                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'edit' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-slate-800/40'
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'edit' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40'
                                             }`}
                                     >
                                         Edit
                                     </button>
                                     <button
                                         onClick={() => setMode('preview')}
-                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'preview' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-slate-800/40'
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'preview' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40'
                                             }`}
                                     >
                                         Preview
@@ -198,7 +198,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                             }
                                         }}
                                         disabled={loading}
-                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-slate-800/40 rounded-lg transition-colors disabled:opacity-50"
+                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg transition-colors disabled:opacity-50"
                                     >
                                         <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                                         Regenerate
@@ -206,14 +206,14 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-slate-800/40 rounded-lg transition-colors disabled:opacity-50"
+                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg transition-colors disabled:opacity-50"
                                     >
                                         {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                                         {saving ? "Saving..." : "Save"}
                                     </button>
                                     <button
                                         onClick={handleExport}
-                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg transition-colors"
+                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-[#383e59] rounded-lg transition-colors"
                                     >
                                         <Download className="h-4 w-4 mr-2" />
                                         Export
@@ -225,11 +225,11 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                 <textarea
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
-                                    className="w-full min-h-[500px] p-4 font-mono text-sm border border-slate-200/30 dark:border-slate-800/40 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                    className="w-full min-h-[500px] p-4 font-mono text-sm border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                                     style={{ fieldSizing: "content" } as any}
                                 />
                             ) : (
-                                <div className="prose prose-purple dark:prose-invert max-w-none p-6 border border-slate-200/30 dark:border-slate-800/40 rounded-lg bg-white dark:bg-slate-800">
+                                <div className="prose prose-purple dark:prose-invert max-w-none p-6 border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg bg-white dark:bg-slate-800">
                                     <ReactMarkdown
                                         remarkPlugins={[remarkGfm]}
                                         components={{

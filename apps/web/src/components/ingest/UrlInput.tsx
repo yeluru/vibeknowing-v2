@@ -173,7 +173,7 @@ export function UrlInput() {
                 <div className="vk-panel flex flex-col md:flex-row items-stretch md:items-center gap-3 p-2 rounded-3xl transition-all duration-300">
 
                     {/* Input Wrapper */}
-                    <div className="flex-1 flex items-center bg-slate-50/80 dark:bg-slate-950/30 rounded-2xl border border-transparent focus-within:border-purple-200 dark:focus-within:border-purple-800 focus-within:bg-white/70 dark:focus-within:bg-slate-950/40 transition-all duration-300">
+                    <div className="flex-1 flex items-center bg-slate-50/80 dark:bg-[#141829]/30 rounded-2xl border border-transparent focus-within:border-purple-200 dark:focus-within:border-purple-800 focus-within:bg-white/70 dark:focus-within:bg-slate-950/40 transition-all duration-300">
                         {/* File Upload Button */}
                         <button
                             type="button"

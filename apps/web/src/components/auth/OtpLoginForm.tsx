@@ -101,7 +101,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
 
     return (
         <div className="w-full space-y-6">
-            <div className="text-center space-y-2">
+            <div className="text-left space-y-3 mb-8">
                 {formError && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -112,13 +112,13 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                         {formError}
                     </motion.div>
                 )}
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                    {mode === "login" ? "Welcome Back" : "Create Account"}
+                <h1 className="text-4xl md:text-[2.75rem] font-bold tracking-[-0.04em] text-slate-900 dark:text-white leading-[1.1]">
+                    {mode === "login" ? "Welcome back" : "Create account"}
                 </h1>
-                <p className="text-base text-slate-600 dark:text-slate-300">
+                <p className="text-base text-slate-500 dark:text-slate-400">
                     {step === "email"
-                        ? mode === "login" ? "Enter your email to sign in" : "Enter your details to get started"
-                        : `We sent a code to ${email}`}
+                        ? mode === "login" ? "Enter your email to sign in to your workspace" : "Enter your details to get started"
+                        : `We sent a secure code to ${email}`}
                 </p>
             </div>
 
@@ -135,7 +135,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                         {mode === "signup" && (
                             <>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">
                                         Full Name
                                     </label>
                                     <input
@@ -143,31 +143,31 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                                         placeholder="Jane Doe"
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
-                                        className="vk-input w-full px-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                                        className="w-full px-4 py-3.5 text-base rounded-2xl bg-slate-50 dark:bg-[#1a1e30] border border-slate-200/60 dark:border-[#3b415a] focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-indigo-200/40 text-slate-900 dark:text-white shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                                         required
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                                            Phone <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">
+                                            Phone <span className="font-normal opacity-70">(Optional)</span>
                                         </label>
                                         <input
                                             type="tel"
                                             placeholder="+1 (555) 000-0000"
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
-                                            className="vk-input w-full px-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                                            className="w-full px-4 py-3.5 text-base rounded-2xl bg-slate-50 dark:bg-[#1a1e30] border border-slate-200/60 dark:border-[#3b415a] focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-indigo-200/40 text-slate-900 dark:text-white shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                                            Role <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                                        <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">
+                                            Role <span className="font-normal opacity-70">(Optional)</span>
                                         </label>
                                         <select
                                             value={role}
                                             onChange={(e) => setRole(e.target.value)}
-                                            className="vk-input w-full px-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 dark:text-slate-300"
+                                            className="w-full px-4 py-3.5 text-base rounded-2xl bg-slate-50 dark:bg-[#1a1e30] border border-slate-200/60 dark:border-[#3b415a] focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-700 dark:text-slate-300 shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                                         >
                                             <option value="">Select Role...</option>
                                             <option value="student">Student</option>
@@ -181,24 +181,24 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                         )}
 
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">
                                 Email Address
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                 <input
                                     type="email"
                                     placeholder="name@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="vk-input w-full pl-11 pr-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                                    className="w-full pl-12 pr-4 py-3.5 text-base rounded-2xl bg-slate-50 dark:bg-[#1a1e30] border border-slate-200/60 dark:border-[#3b415a] focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-indigo-200/40 text-slate-900 dark:text-white shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                                     required
                                 />
                             </div>
                         </div>
 
                         {mode === "signup" && (
-                            <div className="flex items-start gap-3 p-3 bg-slate-50/50 dark:bg-slate-900/30 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <div className="flex items-start gap-3 p-3 bg-slate-50/50 dark:bg-[#1a1e30]/30 rounded-lg border border-slate-100 dark:border-[#383e59]">
                                 <input
                                     id="sms-consent"
                                     type="checkbox"
@@ -219,8 +219,8 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                             type="submit"
                             disabled={loading || !isFormValid()}
                             className={cn(
-                                "vk-btn vk-btn-primary w-full py-3.5 rounded-xl text-base font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]",
-                                (loading || !isFormValid()) && "opacity-70 cursor-not-allowed grayscale-[0.2]"
+                                "w-full py-4 rounded-2xl text-base font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
+                                (loading || !isFormValid()) && "opacity-50 cursor-not-allowed hover:bg-indigo-600 hover:-translate-y-0 active:scale-100"
                             )}
                         >
                             {loading ? (
@@ -244,18 +244,18 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                         className="space-y-5"
                     >
                         <div className="space-y-1.5">
-                            <label htmlFor="code" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+                            <label htmlFor="code" className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">
                                 Secure Code
                             </label>
                             <div className="relative">
-                                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                 <input
                                     id="code"
                                     type="text"
                                     placeholder="123456"
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
-                                    className="vk-input w-full pl-11 pr-4 py-3 text-base rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400 font-mono tracking-widest text-lg"
+                                    className="w-full pl-12 pr-4 py-3.5 text-base rounded-2xl bg-slate-50 dark:bg-[#1a1e30] border border-slate-200/60 dark:border-[#3b415a] focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-indigo-200/40 font-mono tracking-widest text-xl text-slate-900 dark:text-white shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                                     maxLength={6}
                                     required
                                     autoFocus
@@ -273,8 +273,8 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                             type="submit"
                             disabled={loading}
                             className={cn(
-                                "vk-btn vk-btn-primary w-full py-3.5 rounded-xl text-base font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]",
-                                loading && "opacity-70 cursor-not-allowed"
+                                "w-full py-4 rounded-2xl text-base font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
+                                loading && "opacity-50 cursor-not-allowed hover:bg-indigo-600 hover:-translate-y-0 active:scale-100"
                             )}
                         >
                             {loading ? (
@@ -306,10 +306,10 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                 <>
                     <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+                            <span className="w-full border-t border-slate-200 dark:border-[#383e59]" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-slate-50 dark:bg-slate-900 px-2 text-slate-500">
+                            <span className="bg-slate-50 dark:bg-[#1a1e30] px-2 text-slate-500">
                                 Or continue with
                             </span>
                         </div>
@@ -318,7 +318,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                     <div className="space-y-3">
                         <a
                             href={`${API_BASE}/auth/login/google`}
-                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm"
+                            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1e30] border border-slate-200/60 dark:border-[#3b415a] hover:bg-slate-50 dark:hover:bg-[#20253b] transition-all text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:-translate-y-0.5"
                         >
                             <svg className="h-5 w-5" viewBox="0 0 24 24">
                                 <path
@@ -343,7 +343,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
 
                         <a
                             href={`${API_BASE}/auth/login/github`}
-                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm"
+                            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-2xl bg-white dark:bg-[#1a1e30] border border-slate-200/60 dark:border-[#3b415a] hover:bg-slate-50 dark:hover:bg-[#20253b] transition-all text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:-translate-y-0.5"
                         >
                             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-2.91-.12-.3-.54-1.525.12-3.165 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405 1.02 0 2.04.135 3 .405 2.28-1.545 3.3-1.23 3.3-1.23.66 1.65.24 2.865.12 3.165.765.525 1.23 1.605 1.23 2.91 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.285 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
@@ -357,17 +357,16 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
             {/* Toggle Login/Signup */}
             {
                 step === "email" && (
-                    <div className="pt-4 border-t border-slate-200/60 dark:border-slate-700/60 text-center">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <div className="pt-4 border-t border-slate-200/60 dark:border-[#383e59]/60 text-center">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                             {mode === "login" ? "Don't have an account? " : "Already have an account? "}
                             <button
                                 onClick={() => {
                                     setMode(mode === "login" ? "signup" : "login");
-                                    // Reset fields when switching
                                     setFormError(null);
                                     setConsent(false);
                                 }}
-                                className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                                className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
                             >
                                 {mode === "login" ? "Sign up" : "Log in"}
                             </button>

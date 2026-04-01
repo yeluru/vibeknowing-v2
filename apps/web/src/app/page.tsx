@@ -75,7 +75,7 @@ const DEMO_CARDS = [
     preview: (
       <div className="space-y-2">
         {["What is the main concept?", "Key difference between X and Y?", "Define the process of Z"].map((q, i) => (
-          <div key={i} className="flex items-start gap-2 bg-white/60 dark:bg-slate-900/40 rounded-lg p-2">
+          <div key={i} className="flex items-start gap-2 bg-white/60 dark:bg-[#1a1e30]/40 rounded-lg p-2">
             <div className="h-4 w-4 rounded bg-sky-500/20 flex-shrink-0 mt-0.5" />
             <span className="text-xs text-slate-600 dark:text-slate-300 leading-tight">{q}</span>
           </div>
@@ -97,7 +97,7 @@ const DEMO_CARDS = [
             "flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs border",
             i === 2
               ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
-              : "bg-white/50 dark:bg-slate-900/30 border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300"
+              : "bg-white/50 dark:bg-[#1a1e30]/30 border-slate-200/50 dark:border-[#383e59]/50 text-slate-600 dark:text-slate-300"
           )}>
             {i === 2 && <CheckCircle2 className="h-3 w-3 flex-shrink-0" />}
             {i !== 2 && <div className="h-3 w-3 rounded-full border border-current flex-shrink-0" />}
@@ -138,8 +138,8 @@ function DemoPreview() {
       {/* Glow orb */}
       <div className="absolute -inset-4 bg-gradient-to-br from-indigo-500/20 via-violet-500/10 to-sky-500/15 blur-3xl rounded-full pointer-events-none" />
       {/* Stack of cards behind */}
-      <div className="absolute top-3 left-3 right-0 h-full rounded-2xl bg-white/30 dark:bg-slate-800/30 border border-slate-200/40 dark:border-slate-700/30 backdrop-blur-sm" />
-      <div className="absolute top-1.5 left-1.5 right-0 h-full rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/40 backdrop-blur-sm" />
+      <div className="absolute top-3 left-3 right-0 h-full rounded-2xl bg-white/30 dark:bg-slate-800/30 border border-slate-200/40 dark:border-[#383e59]/30 backdrop-blur-sm" />
+      <div className="absolute top-1.5 left-1.5 right-0 h-full rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-[#383e59]/40 backdrop-blur-sm" />
       {/* Active card */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -149,7 +149,7 @@ function DemoPreview() {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.4 }}
           className={cn(
-            "relative bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border p-4 shadow-xl",
+            "relative vk-card p-4",
             card.border
           )}
         >
@@ -175,7 +175,7 @@ function DemoPreview() {
         </motion.div>
       </AnimatePresence>
       {/* Processing pill */}
-      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-md text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-[#383e59] shadow-md text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
         <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
         Generated in ~12s
       </div>
@@ -303,7 +303,7 @@ export default function Home() {
         <div className="pt-20 pb-16 lg:pt-32 lg:pb-24">
           {/* Eyebrow pill */}
           <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex justify-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 text-slate-800 dark:text-slate-300 text-[11px] font-semibold tracking-wide uppercase shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200/60 dark:border-[#383e59] text-slate-800 dark:text-slate-300 text-[11px] font-semibold tracking-wide uppercase shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)]">
               <Sparkles className="h-3 w-3 text-indigo-500 dark:text-white" />
               The open-source alternative to NotebookLM
             </div>
@@ -313,13 +313,7 @@ export default function Home() {
             <motion.div initial="hidden" animate="visible" variants={stagger} className="w-full">
               <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white leading-[1.02]">
                 Turn any content <br />
-                <span
-                  className="inline-block mt-2 font-black text-transparent bg-clip-text"
-                  style={{
-                    backgroundImage: "linear-gradient(135deg, #A8B1FF 0%, #E2E8FF 50%, #A8B1FF 100%)",
-                    backgroundSize: "200% auto",
-                    animation: "textShine 8s linear infinite"
-                  }}>
+                <span className="inline-block mt-2 font-black vk-hero-text">
                   into mastery.
                 </span>
               </motion.h1>
@@ -331,7 +325,7 @@ export default function Home() {
               {/* Source type pills */}
               <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-2.5 justify-center">
                 {SOURCE_TYPES.map(s => (
-                  <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 dark:bg-[#111113] border border-slate-200 dark:border-white/[0.06] text-slate-700 dark:text-slate-300 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-white/20">
+                  <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 dark:bg-[#1e2235] border border-slate-200 dark:border-[#383e59] text-slate-700 dark:text-slate-300 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-white/30">
                     <span className="opacity-70 grayscale">{s.icon}</span> {s.label}
                   </span>
                 ))}
@@ -391,7 +385,7 @@ export default function Home() {
           ].map(card => (
             <SpotlightCard
               key={card.title}
-              className="px-6 py-8 rounded-2xl bg-white/50 dark:bg-[#161b27]/60 border border-slate-200 dark:border-slate-700/60 backdrop-blur-sm shadow-sm transition-all duration-300"
+              className="vk-card px-6 py-8"
             >
               <div className="relative z-10">
                 <div className="h-10 w-10 flex items-center justify-center mb-4 text-zinc-600 dark:text-white bg-slate-100 dark:bg-white/5 rounded-xl">
@@ -442,7 +436,7 @@ export default function Home() {
           ].map(f => (
             <SpotlightCard
               key={f.title}
-              className="flex flex-col justify-between p-8 rounded-2xl bg-white/60 dark:bg-[#161b27]/60 border border-slate-200 dark:border-slate-700/60 backdrop-blur-sm transition-all duration-300"
+              className="vk-card flex flex-col justify-between p-8"
             >
               <div className="h-10 w-10 text-slate-900 dark:text-zinc-200 mb-6 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm">
                 {f.icon}
@@ -466,7 +460,7 @@ export default function Home() {
           className="max-w-6xl mx-auto px-4 mt-20"
         >
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200 dark:border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200 dark:border-[#383e59]">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Your Learning History</h2>
               <p className="text-slate-500 dark:text-zinc-500 text-sm mt-1">Pick up where you left off</p>
@@ -474,7 +468,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <button
                 onClick={async () => { setIsRefreshing(true); await loadData(); setIsRefreshing(false); }}
-                className="p-2 rounded-xl bg-slate-50 dark:bg-[#111113] border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-[#1a1a1c] text-slate-600 dark:text-zinc-400 transition-colors"
+                className="p-2 rounded-xl bg-slate-50 dark:bg-[#1e2235] border border-slate-200 dark:border-[#383e59] hover:bg-slate-100 dark:hover:bg-[#252a42] text-slate-600 dark:text-indigo-200/80 transition-colors shadow-sm"
                 title="Refresh"
               >
                 <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
@@ -484,7 +478,7 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Search goals..."
-                  className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-[#111113] border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-shadow"
+                  className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-[#1a1e30] border border-slate-200 dark:border-[#383e59] text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                 />
               </div>
             </div>
@@ -501,9 +495,9 @@ export default function Home() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {group.projects.map((project, i) => (
                     <div key={project.id} className="relative group/card">
-                      <SpotlightCard className="h-56 rounded-2xl overflow-hidden shadow-sm">
-                        <Link href={project.first_source_id ? `/source/${project.first_source_id}` : "#"}>
-                          <div className="h-full p-5 flex flex-col justify-between bg-white dark:bg-[#161b27]/80 border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300">
+                      <SpotlightCard className="vk-card h-56 p-0">
+                        <Link href={project.first_source_id ? `/source/${project.first_source_id}` : "#"} className="h-full block">
+                          <div className="h-full p-5 flex flex-col justify-between transition-all duration-300">
                             <div className="relative z-10">
                               <div className="flex items-start justify-between mb-3">
                                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1 opacity-70">
@@ -528,13 +522,13 @@ export default function Home() {
                       {/* Options */}
                       <button
                         onClick={e => { e.preventDefault(); e.stopPropagation(); setActiveDropdown(activeDropdown === project.id ? null : project.id); }}
-                        className="absolute top-3 right-3 z-20 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-all opacity-0 group-hover/card:opacity-100 bg-white/80 dark:bg-black/80 backdrop-blur-md border border-slate-200 dark:border-white/10"
+                        className="absolute top-3 right-3 z-20 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-all opacity-0 group-hover/card:opacity-100 bg-white/80 dark:bg-[#0b0e17]/80 backdrop-blur-md border border-slate-200 dark:border-[#383e59]"
                       >
                         <MoreHorizontal className="h-3 w-3" />
                       </button>
                       {activeDropdown === project.id && (
-                        <div className="absolute right-3 top-10 z-50 w-48 bg-white dark:bg-[#111113] rounded-xl shadow-xl border border-slate-200 dark:border-white/10 py-1.5" onClick={e => e.stopPropagation()}>
-                          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/60 mb-1">Move to...</div>
+                        <div className="absolute right-3 top-10 z-50 w-48 bg-white dark:bg-[#1e2235] rounded-xl shadow-xl border border-slate-200 dark:border-[#383e59] py-1.5" onClick={e => e.stopPropagation()}>
+                          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-[#383e59]/50 mb-1">Move to...</div>
                           <button onClick={() => handleMoveProject(project.id, null)} className={cn("w-full text-left px-4 py-2 text-[13px] hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 text-slate-700 dark:text-zinc-300 transition-colors", !project.category_id && "text-slate-900 dark:text-white font-medium")}>
                             <Folder className="h-3.5 w-3.5 opacity-70" /> Uncategorized
                           </button>
@@ -543,7 +537,7 @@ export default function Home() {
                               <Folder className="h-3.5 w-3.5 opacity-70" /> {cat.name}
                             </button>
                           ))}
-                          <div className="border-t border-slate-100 dark:border-slate-700/60 mt-1 pt-1">
+                          <div className="border-t border-slate-100 dark:border-[#383e59]/60 mt-1 pt-1">
                             <button onClick={() => handleDeleteProject(project.id)} className="w-full text-left px-4 py-2 text-[13px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/10 flex items-center gap-2 transition-colors">
                               <Trash2 className="h-3.5 w-3.5" /> Delete
                             </button>

@@ -54,8 +54,8 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm min-h-[400px] transition-colors duration-300">
-                <div className="border-b border-gray-200 dark:border-slate-700 px-6 py-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-[#383e59] shadow-sm min-h-[400px] transition-colors duration-300">
+                <div className="border-b border-gray-200 dark:border-[#383e59] px-6 py-4">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
                 </div>
                 <div className="p-6">
@@ -70,7 +70,7 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{diagram.title}</h3>
                                 <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">{diagram.description}</p>
                             </div>
-                            <div className="relative border border-gray-100 dark:border-slate-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-slate-900 p-4">
+                            <div className="relative border border-gray-100 dark:border-[#383e59] rounded-lg overflow-hidden bg-gray-50 dark:bg-[#1a1e30] p-4">
                                 <pre className="text-sm font-mono whitespace-pre overflow-x-auto text-gray-900 dark:text-gray-100 bg-transparent">
                                     {diagram.diagram}
                                 </pre>

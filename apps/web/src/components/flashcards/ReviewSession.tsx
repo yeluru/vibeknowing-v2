@@ -89,8 +89,8 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
 
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm transition-colors duration-300">
-            <div className="border-b border-gray-200 dark:border-slate-700 px-6 py-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-[#383e59] shadow-sm transition-colors duration-300">
+            <div className="border-b border-gray-200 dark:border-[#383e59] px-6 py-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
             </div>
             <div className="p-6">
@@ -100,7 +100,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
                         <p className="text-gray-900 dark:text-white">Creating flashcards...</p>
                     </div>
                 ) : cards.length === 0 ? (
-                    <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 transition-colors duration-300">
+                    <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-200 dark:border-[#383e59] transition-colors duration-300">
                         <Layers className="h-12 w-12 mx-auto mb-3 text-gray-400 dark:text-slate-500" />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Master this topic</h3>
                         <p className="text-gray-900 dark:text-white mb-6">Generate flashcards to memorize key concepts.</p>

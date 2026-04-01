@@ -28,7 +28,7 @@ function LandingNav() {
     const { theme, toggleTheme } = useTheme();
     return (
         <nav className="fixed top-0 inset-x-0 z-50 h-12 flex items-center justify-between px-5 lg:px-10
-                        bg-white/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-[#252e42]/80">
+                        bg-transparent backdrop-blur-3xl border-b border-transparent">
             <Link href="/" className="flex items-center gap-2 font-bold text-sm text-slate-900 dark:text-slate-100 hover:opacity-80 transition-opacity">
                 <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm flex-shrink-0">
                     <span className="text-white text-[10px] font-black">V</span>
@@ -47,7 +47,7 @@ function LandingNav() {
                     Sign in
                 </Link>
                 <Link href="/auth/signup"
-                    className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm">
+                    className="vk-btn vk-btn-primary px-4 py-1.5 shadow-sm">
                     Get started
                 </Link>
             </div>
@@ -70,7 +70,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     // Logged out — minimal landing nav, no sidebar
     if (!isLoading && !isAuthenticated) {
         return (
-            <div className="min-h-screen bg-white dark:bg-[#0f1117] transition-colors duration-300">
+            <div className="min-h-screen bg-transparent transition-colors duration-300">
                 <LandingNav />
                 <main className="pt-12">{children}</main>
             </div>
@@ -78,7 +78,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
 
     // Loading — blank to avoid layout flash
-    if (isLoading) return <div className="min-h-screen bg-white dark:bg-[#0f1117]" />;
+    if (isLoading) return <div className="min-h-screen bg-transparent" />;
 
     // Logged in — full app shell
     return (

@@ -15,7 +15,7 @@ export function Header({ onMenuClick, title = "VibeKnowing", subtitle }: HeaderP
     const { theme, toggleTheme } = useTheme();
 
     return (
-        <header className="relative z-[100] flex-none h-12 bg-white/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-[#252e42]/80 flex items-center justify-between px-4 sm:px-5 transition-colors duration-300">
+        <header className="relative z-[100] flex-none h-[60px] bg-white/40 dark:bg-[#09090b]/40 backdrop-blur-3xl border-b border-slate-200/50 dark:border-[#383e59] flex items-center justify-between px-6 transition-colors duration-300">
 
             {/* Left */}
             <div className="flex items-center gap-3 min-w-0">
