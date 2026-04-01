@@ -11,7 +11,7 @@ interface HeaderProps {
     subtitle?: string;
 }
 
-export function Header({ onMenuClick, title = "VibeKnowing", subtitle }: HeaderProps) {
+export function Header({ onMenuClick, title = "VibeLearn", subtitle }: HeaderProps) {
     const { theme, toggleTheme } = useTheme();
 
     return (

@@ -419,7 +419,7 @@ export default function SettingsPage() {
           <div>
             <h3 className="font-bold tracking-tight text-slate-900 text-lg mb-2">Your keys never leave your browser</h3>
             <p className="text-[14px] text-slate-600 leading-relaxed">
-              API keys are stored exclusively in your browser&apos;s local storage. On each AI request, the key is sent directly to the provider. VibeKnowing does not database or log your keys anywhere. You can verify this in your browser&apos;s network tab at any time.
+              API keys are stored exclusively in your browser&apos;s local storage. On each AI request, the key is sent directly to the provider. VibeLearn does not database or log your keys anywhere. You can verify this in your browser&apos;s network tab at any time.
             </p>
           </div>
         </motion.div>

@@ -13,27 +13,27 @@ import { useTheme } from "@/contexts/ThemeContext";
 interface PageMeta { title: string; subtitle: string; }
 
 function getPageMeta(pathname: string): PageMeta {
-    if (pathname === "/")                    return { title: "VibeKnowing",     subtitle: "Your AI learning workspace" };
+    if (pathname === "/")                    return { title: "VibeLearn",        subtitle: "Your AI learning workspace" };
     if (pathname.startsWith("/source/"))     return { title: "Study Workspace", subtitle: "Explore, summarize, and create from your source" };
     if (pathname.startsWith("/studio"))      return { title: "Content Studio",  subtitle: "Turn your knowledge into publishable content" };
     if (pathname.startsWith("/chat"))        return { title: "Knowledge Base",  subtitle: "Chat across all your uploaded documents" };
     if (pathname.startsWith("/flashcards"))  return { title: "Flashcard Decks", subtitle: "Spaced-repetition review for every project" };
     if (pathname.startsWith("/projects"))    return { title: "Library",         subtitle: "All your learning goals in one place" };
     if (pathname.startsWith("/settings"))    return { title: "Settings",        subtitle: "API keys and model preferences" };
-    if (pathname.startsWith("/auth"))        return { title: "VibeKnowing",     subtitle: "Sign in to continue" };
-    return                                          { title: "VibeKnowing",     subtitle: "AI learning suite" };
+    if (pathname.startsWith("/auth"))        return { title: "VibeLearn",        subtitle: "Sign in to continue" };
+    return                                          { title: "VibeLearn",        subtitle: "AI learning suite" };
 }
 
 function LandingNav() {
     const { theme, toggleTheme } = useTheme();
     return (
-        <nav className="fixed top-0 inset-x-0 z-50 h-12 flex items-center justify-between px-5 lg:px-10
-                        bg-transparent backdrop-blur-3xl border-b border-transparent">
-            <Link href="/" className="flex items-center gap-2 font-bold text-sm text-slate-900 dark:text-slate-100 hover:opacity-80 transition-opacity">
-                <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm flex-shrink-0">
-                    <span className="text-white text-[10px] font-black">V</span>
+        <nav className="fixed top-0 inset-x-0 z-50 h-[60px] flex items-center justify-between px-5 lg:px-10
+                        bg-white/40 dark:bg-[#0c0f18]/40 backdrop-blur-3xl border-b border-slate-200/50 dark:border-[#383e59]/50">
+            <Link href="/" className="flex items-center gap-2.5 font-black text-[15px] tracking-tight text-slate-900 dark:text-slate-100 hover:opacity-80 transition-opacity">
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+                    <span className="text-white text-[12px] font-black">V</span>
                 </div>
-                VibeKnowing
+                VibeLearn
             </Link>
             <div className="flex items-center gap-2">
                 <button

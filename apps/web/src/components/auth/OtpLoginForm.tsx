@@ -208,7 +208,7 @@ export function OtpLoginForm({ onSuccess, defaultMode = "login" }: OtpLoginFormP
                                     required
                                 />
                                 <label htmlFor="sms-consent" className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    I agree to receive messaging from VibeKnowing at the phone number provided above.
+                                    I agree to receive messaging from VibeLearn at the phone number provided above.
                                     I understand I will receive messages about my account security or updates.
                                     Reply STOP to opt out.
                                 </label>

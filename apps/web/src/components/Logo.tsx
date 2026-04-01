@@ -21,8 +21,8 @@ export function Logo({ className }: LogoProps) {
             </div>
 
             {/* Smallest Text Underneath */}
-            <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase leading-none">
-                vibeknowing
+            <span className="text-[10px] font-bold tracking-[0.15em] text-slate-400 dark:text-slate-500 uppercase leading-none">
+                VibeLearn
             </span>
         </div>
     );

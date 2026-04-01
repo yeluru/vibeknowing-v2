@@ -417,23 +417,27 @@ export default function Home() {
               <motion.div variants={fadeUp} className="flex justify-center mb-8 z-20">
                 <div className="relative group cursor-pointer">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-                  <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[#0c0f18] border border-slate-200/80 dark:border-[#383e59]/80 text-slate-800 dark:text-slate-300 text-xs font-bold tracking-wide shadow-xl min-w-max">
+                  <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[#0c0f18] border border-slate-200/80 dark:border-[#383e59]/80 text-slate-800 dark:text-slate-300 text-xs font-black tracking-widest uppercase shadow-xl min-w-max">
                     <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                    The open-source alternative to NotebookLM
+                    Welcome to VibeLearn!
                     <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </motion.div>
 
-              <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white leading-[1.02] drop-shadow-sm">
+              <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white leading-[0.98] drop-shadow-sm">
                 Turn any content <br />
                 <span className="inline-block mt-3 text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 drop-shadow-lg pb-2">
                   into mastery.
                 </span>
               </motion.h1>
 
-              <motion.p variants={fadeUp} className="mt-6 text-lg tracking-tight text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed font-medium">
-                Paste a YouTube video, Instagram Reel, PDF, or any URL. Instantly generate deep summaries, flashcards, and publishable content.
+              <motion.p variants={fadeUp} className="mt-8 text-lg align-center tracking-tight text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed font-bold">
+                The problem isn’t a lack of information; it’s the cost of too much. Inspired by <span className="text-slate-900 dark:text-white font-bold opacity-100 italic">"Vibecoding,"</span> VibeLearn is the ultimate ingestion engine—a high-performance, 360-degree knowledge cycle.
+              </motion.p>
+
+              <motion.p variants={fadeUp} className="mt-4 text-[13px] text-slate-400 dark:text-slate-500 max-w-xl font-bold uppercase tracking-[0.2em] opacity-80">
+                Don't just watch it. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Vibe Learn it.</span>
               </motion.p>
 
               {/* Source type pills */}

@@ -311,8 +311,8 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                     </div>
                     {!isCollapsed && (
                         <div className="min-w-0">
-                            <span className="block font-extrabold text-[15px] tracking-tight text-slate-900 dark:text-white leading-tight">VibeKnowing</span>
-                            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5">Workspace</span>
+                            <span className="block font-black text-[16px] tracking-tight text-slate-900 dark:text-white leading-tight">VibeLearn</span>
+                            <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-0.5">Workspace</span>
                         </div>
                     )}
                 </Link>
