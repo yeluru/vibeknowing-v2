@@ -288,23 +288,35 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
                     print(f"Worker request failed: {str(e)}")
                     print("Falling back to local Whisper processing...")
             
-            # Fallback: Local Whisper transcription
-            print(f"Using local Whisper transcription")
-            
-            # Save temporarily for Whisper
+            # Fallback: Local Whisper transcription (OpenAI or Groq)
             import tempfile
             import os
             from openai import OpenAI
             from config import settings
             from pydub import AudioSegment
-            
+
+            if settings.OPENAI_API_KEY:
+                print("Using OpenAI Whisper for transcription")
+                client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                whisper_model = "whisper-1"
+            elif settings.GROQ_API_KEY:
+                print("OpenAI key not available, using Groq Whisper for transcription")
+                client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                whisper_model = "whisper-large-v3-turbo"
+            else:
+                source.content = "Audio transcription requires an OpenAI or Groq API key."
+                source.status = "failed"
+                db.commit()
+                return
+
+            print(f"Using local Whisper transcription")
+
             # Create a temp file for the original upload
             with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{file_ext}') as tmp_file:
                 tmp_file.write(content_bytes)
                 tmp_path = tmp_file.name
-            
+
             try:
-                client = OpenAI(api_key=settings.OPENAI_API_KEY)
                 file_size = os.path.getsize(tmp_path)
                 limit_bytes = 25 * 1024 * 1024  # 25 MB
                 
@@ -331,7 +343,7 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
                             print(f"Transcribing chunk {i+1}/{len(chunks)}...")
                             with open(chunk_name, 'rb') as audio_chunk:
                                 transcript_chunk = client.audio.transcriptions.create(
-                                    model="whisper-1",
+                                    model=whisper_model,
                                     file=audio_chunk,
                                     response_format="text"
                                 )
@@ -348,7 +360,7 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
                     # File is small enough, transcribe directly
                     with open(tmp_path, 'rb') as audio_file:
                         transcript = client.audio.transcriptions.create(
-                            model="whisper-1",
+                            model=whisper_model,
                             file=audio_file,
                             response_format="text"
                         )

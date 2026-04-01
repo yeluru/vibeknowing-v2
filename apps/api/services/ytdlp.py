@@ -91,13 +91,13 @@ class YtDlpService:
         return chunk_paths if chunk_paths else [audio_file]
 
     @staticmethod
-    def transcribe_with_retry(client: OpenAI, audio_file_path: str, max_retries: int = 3) -> str:
+    def transcribe_with_retry(client: OpenAI, audio_file_path: str, max_retries: int = 3, model: str = "whisper-1") -> str:
         """Transcribe audio file with retry logic"""
         for attempt in range(max_retries):
             try:
                 with open(audio_file_path, "rb") as audio_file:
                     transcript = client.audio.transcriptions.create(
-                        model="whisper-1",
+                        model=model,
                         file=audio_file,
                         response_format="text"
                     )
@@ -108,7 +108,7 @@ class YtDlpService:
                     time.sleep(2 ** attempt)  # Exponential backoff
                 else:
                     raise e
-        
+
         # This should never be reached, but just in case
         raise RuntimeError("All transcription attempts failed")
 
@@ -303,13 +303,19 @@ class YtDlpService:
                         "title": title
                     }
 
-                # 2. Fallback: download audio and transcribe with OpenAI Whisper
+                # 2. Fallback: download audio and transcribe with Whisper (OpenAI or Groq)
                 print("No subtitles found, falling back to audio transcription...")
-                
-                if not settings.OPENAI_API_KEY:
-                    return {"success": False, "error": "OpenAI API key required for audio transcription"}
-                
-                client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+                if settings.OPENAI_API_KEY:
+                    print("Using OpenAI Whisper for transcription")
+                    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                    whisper_model = "whisper-1"
+                elif settings.GROQ_API_KEY:
+                    print("OpenAI key not available, using Groq Whisper for transcription")
+                    client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                    whisper_model = "whisper-large-v3-turbo"
+                else:
+                    return {"success": False, "error": "Audio transcription requires an OpenAI or Groq API key."}
                 
                 cmd = [
                     "yt-dlp",
@@ -349,7 +355,7 @@ class YtDlpService:
                     for i, chunk_path in enumerate(chunk_paths):
                         print(f"Transcribing chunk {i+1}/{len(chunk_paths)}: {chunk_path}")
                         try:
-                            transcript = YtDlpService.transcribe_with_retry(client, chunk_path)
+                            transcript = YtDlpService.transcribe_with_retry(client, chunk_path, model=whisper_model)
                             full_transcript += transcript + "\n"
                         except Exception as e:
                             print(f"Failed to transcribe chunk {i+1}: {str(e)}")
