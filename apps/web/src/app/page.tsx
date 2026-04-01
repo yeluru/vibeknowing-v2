@@ -111,11 +111,12 @@ const DEMO_CARDS = [
 
 const SOURCE_TYPES = [
   { icon: <Youtube className="h-4 w-4" />, label: "YouTube", color: "text-red-500" },
+  { icon: <Instagram className="h-4 w-4" />, label: "Instagram", color: "text-pink-500" },
+  { icon: <Twitter className="h-4 w-4" />, label: "X / Twitter", color: "text-slate-900 dark:text-slate-300" },
+  { icon: <Linkedin className="h-4 w-4" />, label: "LinkedIn", color: "text-blue-600" },
   { icon: <Globe className="h-4 w-4" />, label: "Websites", color: "text-sky-500" },
   { icon: <FileText className="h-4 w-4" />, label: "PDFs", color: "text-indigo-500" },
   { icon: <Mic className="h-4 w-4" />, label: "Audio", color: "text-violet-500" },
-  { icon: <Video className="h-4 w-4" />, label: "Video", color: "text-emerald-500" },
-  { icon: <File className="h-4 w-4" />, label: "Docs", color: "text-amber-500" },
 ];
 
 const DIFFERENTIATORS = [
@@ -125,60 +126,166 @@ const DIFFERENTIATORS = [
   { icon: <Github className="h-4 w-4" />, label: "Open source", desc: "MIT License" },
 ];
 
-// ─── rotating demo card component ─────────────────────────────────────────────
+// ─── floating constellation demo component ────────────────────────────────────
 function DemoPreview() {
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setActive(i => (i + 1) % DEMO_CARDS.length), 3000);
-    return () => clearInterval(t);
-  }, []);
-  const card = DEMO_CARDS[active];
   return (
-    <div className="relative w-full max-w-[340px]">
-      {/* Glow orb */}
-      <div className="absolute -inset-4 bg-gradient-to-br from-indigo-500/20 via-violet-500/10 to-sky-500/15 blur-3xl rounded-full pointer-events-none" />
-      {/* Stack of cards behind */}
-      <div className="absolute top-3 left-3 right-0 h-full rounded-2xl bg-white/30 dark:bg-slate-800/30 border border-slate-200/40 dark:border-[#383e59]/30 backdrop-blur-sm" />
-      <div className="absolute top-1.5 left-1.5 right-0 h-full rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-[#383e59]/40 backdrop-blur-sm" />
-      {/* Active card */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={card.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.4 }}
-          className={cn(
-            "relative vk-card p-4",
-            card.border
-          )}
-        >
-          <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 rounded-2xl", card.color)} />
-          <div className="relative">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                {card.icon}
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{card.label}</span>
-              </div>
-              <div className="flex gap-1">
-                {DEMO_CARDS.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActive(i)}
-                    className={cn("h-1.5 rounded-full transition-all duration-300", i === active ? "w-4 bg-indigo-500" : "w-1.5 bg-slate-300 dark:bg-slate-600")}
-                  />
-                ))}
-              </div>
-            </div>
-            {card.preview}
+    <div className="relative w-full max-w-[420px] h-[480px]">
+      {/* Deep glow orb behind the constellation */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-br from-indigo-500/20 via-sky-500/10 to-violet-500/20 blur-[80px] rounded-full pointer-events-none" />
+
+      {/* 5. Social Threads (Top Left) */}
+      <motion.div
+        animate={{ y: [8, -8, 8] }}
+        transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 2.5 }}
+        className="absolute -top-6 left-10 w-[240px] z-10"
+      >
+        <div className="vk-card p-3 border-pink-200/60 dark:border-pink-700/40 bg-white/75 dark:bg-[#0b0e17]/75 backdrop-blur-xl shadow-lg">
+          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-pink-100 dark:border-pink-900/30">
+             <Share2 className="h-3.5 w-3.5 text-pink-500" />
+             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Viral Thread</span>
           </div>
-        </motion.div>
-      </AnimatePresence>
-      {/* Processing pill */}
-      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-[#383e59] shadow-md text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
-        <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
-        Generated in ~12s
-      </div>
+          <div className="flex items-start gap-2">
+             <div className="h-6 w-6 rounded-full bg-gradient-to-tr from-pink-500 to-orange-400 shrink-0" />
+             <div className="space-y-1.5 mt-0.5 opacity-90 w-full">
+                <div className="h-1.5 w-full bg-pink-500/20 rounded-full" />
+                <div className="h-1.5 w-5/6 bg-pink-500/20 rounded-full" />
+                <div className="flex gap-1 mt-2">
+                   <span className="text-[9px] text-pink-600 dark:text-pink-400 font-bold bg-pink-50 dark:bg-pink-500/10 px-1 rounded-sm">#TECH</span>
+                   <span className="text-[9px] text-pink-600 dark:text-pink-400 font-bold bg-pink-50 dark:bg-pink-500/10 px-1 rounded-sm">#LEARNING</span>
+                </div>
+             </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* 1. Extraction / Transcript Card (Top, slightly right) */}
+      <motion.div
+        animate={{ y: [-5, 5, -5] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-10 right-0 w-[260px] z-20"
+      >
+        <div className="vk-card p-3 border-emerald-200/60 dark:border-emerald-700/40 bg-white/70 dark:bg-[#0b0e17]/70 backdrop-blur-xl shadow-lg">
+          <div className="flex items-center gap-2 mb-2 border-b border-emerald-100 dark:border-emerald-900/30 pb-2">
+            <Mic className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Transcription</span>
+          </div>
+          <div className="space-y-1.5 opacity-80">
+            <div className="h-1.5 w-full bg-emerald-500/20 rounded-full" />
+            <div className="h-1.5 w-11/12 bg-emerald-500/20 rounded-full" />
+            <div className="h-1.5 w-4/5 bg-emerald-500/20 rounded-full" />
+            <div className="h-1.5 w-full bg-emerald-500/20 rounded-full" />
+            <div className="h-1.5 w-2/3 bg-emerald-500/20 rounded-full" />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* 2. AI Summary Card (Left, middle) */}
+      <motion.div
+        animate={{ y: [5, -5, 5] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute top-40 -left-6 w-[240px] z-30"
+      >
+        <div className="vk-card p-4 border-indigo-200/60 dark:border-indigo-700/40 bg-white/70 dark:bg-[#0b0e17]/70 backdrop-blur-xl shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-2xl" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain className="h-4 w-4 text-indigo-500" />
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">AI Summary</span>
+            </div>
+            <div className="space-y-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+              {"• Extracted key arguments"} <br/>
+              {"• Bypassed paywalls seamlessly"} <br/>
+              {"• Structured output format"}
+            </div>
+            <div className="mt-3 flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="text-[9px] font-medium text-indigo-600 dark:text-indigo-400">Processing signals...</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+      
+      {/* 6. Chat with Doc (Middle Right) */}
+      <motion.div
+        animate={{ y: [-6, 6, -6] }}
+        transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
+        className="absolute top-48 -right-8 w-[230px] z-30"
+      >
+        <div className="vk-card p-3 border-amber-200/60 dark:border-amber-700/40 bg-white/80 dark:bg-[#0b0e17]/80 backdrop-blur-xl shadow-xl">
+          <div className="flex items-center gap-2 mb-3 border-b border-amber-100 dark:border-amber-900/30 pb-2">
+            <MessageCircle className="h-3.5 w-3.5 text-amber-500" />
+            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Chat with Doc</span>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            {/* User message */}
+            <div className="self-end bg-slate-100 dark:bg-[#1e2235] px-2.5 py-1.5 rounded-l-xl rounded-tr-xl max-w-[85%] border border-slate-200 dark:border-[#383e59]/50">
+               <span className="text-[10px] text-slate-600 dark:text-slate-300 font-medium">Explain the 3rd principle?</span>
+            </div>
+            {/* AI message */}
+            <div className="self-start bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1.5 rounded-r-xl rounded-tl-xl max-w-[90%] border border-amber-200/50 dark:border-amber-500/20">
+               <div className="flex items-center gap-1.5 mb-1">
+                 <div className="h-2 w-2 rounded-full bg-amber-500" />
+                 <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400">AI Assistant</span>
+               </div>
+               <div className="space-y-1">
+                  <div className="h-1 w-full bg-amber-500/20 rounded-full" />
+                  <div className="h-1 w-5/6 bg-amber-500/20 rounded-full" />
+               </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* 3. Flashcards (Center bottom) */}
+      <motion.div
+        animate={{ y: [-8, 8, -8] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        className="absolute bottom-16 right-4 w-[220px] z-40"
+      >
+         <div className="vk-card p-3 border-sky-200/60 dark:border-sky-700/40 bg-white/70 dark:bg-[#0b0e17]/70 backdrop-blur-xl shadow-xl hover:scale-105 transition-transform cursor-pointer">
+           <div className="flex items-center gap-2 mb-3">
+              <BookOpen className="h-3.5 w-3.5 text-sky-500" />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Flashcards Generated</span>
+            </div>
+            <div className="flex -space-x-2">
+              {[1,2,3].map(i => (
+                 <div key={i} className="w-10 h-12 bg-white dark:bg-[#1a1e30] border border-slate-200 dark:border-slate-700 rounded-md shadow-sm transform -rotate-6 origin-bottom-left" style={{ zIndex: 10 - i, rotate: `${-6 + (i*4)}deg` }} />
+              ))}
+            </div>
+            <div className="mt-3 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              34 cards ready for review
+            </div>
+         </div>
+      </motion.div>
+
+      {/* 4. Quiz Validation (Bottom left) */}
+      <motion.div
+        animate={{ y: [6, -6, 6] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        className="absolute bottom-4 -left-2 w-[250px] z-50"
+      >
+        <div className="vk-card p-4 border-violet-200/60 dark:border-violet-700/40 bg-white/85 dark:bg-[#0b0e17]/85 backdrop-blur-xl shadow-2xl">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FlaskConical className="h-3.5 w-3.5 text-violet-500" />
+              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 tracking-wider uppercase">Quiz Testing</span>
+            </div>
+            <span className="text-[9px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded font-black tracking-wide">+5 XP</span>
+          </div>
+          <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">What is the primary function of the core extraction loop?</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-[#1a1e30]/50 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-[#383e59]/50 opacity-60">
+               <div className="h-3 w-3 rounded-full border border-slate-300 dark:border-slate-500 shrink-0" />
+               <div className="h-1.5 w-3/4 bg-slate-300 dark:bg-slate-500/50 rounded-full" />
+            </div>
+            <div className="flex items-center gap-2.5 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-500/30">
+               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 bg-white dark:bg-transparent rounded-full" />
+               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">Maintains signal-to-noise</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
@@ -300,58 +407,115 @@ export default function Home() {
           />
         </div>
 
-        <div className="pt-20 pb-16 lg:pt-32 lg:pb-24">
-          {/* Eyebrow pill */}
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex justify-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200/60 dark:border-[#383e59] text-slate-800 dark:text-slate-300 text-[11px] font-semibold tracking-wide uppercase shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)]">
-              <Sparkles className="h-3 w-3 text-indigo-500 dark:text-white" />
-              The open-source alternative to NotebookLM
-            </div>
-          </motion.div>
+        <div className="pt-20 pb-16 lg:pt-32 lg:pb-24 grid lg:grid-cols-12 gap-16 items-center">
+          
+          {/* Left Column - Centered Copy & Input */}
+          <div className="lg:col-span-7 flex flex-col items-center text-center relative z-20">
+            <motion.div initial="hidden" animate="visible" variants={stagger} className="w-full flex flex-col items-center">
+              
+              {/* Eyebrow pill */}
+              <motion.div variants={fadeUp} className="flex justify-center mb-8 z-20">
+                <div className="relative group cursor-pointer">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                  <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[#0c0f18] border border-slate-200/80 dark:border-[#383e59]/80 text-slate-800 dark:text-slate-300 text-xs font-bold tracking-wide shadow-xl min-w-max">
+                    <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+                    The open-source alternative to NotebookLM
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </motion.div>
 
-          <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-            <motion.div initial="hidden" animate="visible" variants={stagger} className="w-full">
-              <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white leading-[1.02]">
+              <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white leading-[1.02] drop-shadow-sm">
                 Turn any content <br />
-                <span className="inline-block mt-2 font-black vk-hero-text">
+                <span className="inline-block mt-3 text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 drop-shadow-lg pb-2">
                   into mastery.
                 </span>
               </motion.h1>
 
-              <motion.p variants={fadeUp} className="mt-6 text-lg tracking-tight text-slate-600 dark:text-[#a1a1aa] max-w-2xl mx-auto leading-relaxed">
-                Paste a YouTube video, PDF, or any URL. Get instant summaries, flashcards, quizzes, and publishable content — powered by your own API keys.
+              <motion.p variants={fadeUp} className="mt-6 text-lg tracking-tight text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed font-medium">
+                Paste a YouTube video, Instagram Reel, PDF, or any URL. Instantly generate deep summaries, flashcards, and publishable content.
               </motion.p>
 
               {/* Source type pills */}
-              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-2.5 justify-center">
+              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap justify-center gap-2.5 max-w-2xl">
                 {SOURCE_TYPES.map(s => (
-                  <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 dark:bg-[#1e2235] border border-slate-200 dark:border-[#383e59] text-slate-700 dark:text-slate-300 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-white/30">
-                    <span className="opacity-70 grayscale">{s.icon}</span> {s.label}
+                  <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-[#383e59]/50 text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:scale-105 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50">
+                    <span className={cn("opacity-100 drop-shadow-sm", s.color)}>{s.icon}</span> {s.label}
                   </span>
                 ))}
               </motion.div>
 
-              {/* URL input */}
-              <motion.div variants={fadeUp} className="mt-12 w-full max-w-3xl mx-auto relative z-20">
-                <UrlInput />
+              {/* URL input Hero Spotlight */}
+              <motion.div variants={fadeUp} className="mt-10 w-full max-w-2xl relative z-30 group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 rounded-[2rem] blur-lg opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                <div className="relative bg-white/40 dark:bg-black/20 backdrop-blur-2xl p-2 rounded-[2rem] border border-white/20 dark:border-white/10 shadow-2xl">
+                  <UrlInput />
+                </div>
               </motion.div>
 
               {/* Differentiators */}
-              <motion.div variants={fadeUp} className="mt-12 flex flex-wrap justify-center gap-6 sm:gap-10">
+              <motion.div variants={fadeUp} className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 opacity-80">
                 {DIFFERENTIATORS.map(d => (
-                  <div key={d.label} className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-zinc-400">
-                    <div className="text-indigo-500 dark:text-white opacity-90">
+                  <div key={d.label} className="flex items-center gap-2 text-sm">
+                    <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-indigo-500 dark:text-indigo-400 shadow-inner dark:shadow-black/20">
                       {d.icon}
                     </div>
                     <div className="flex flex-col text-left">
-                      <span className="font-semibold text-slate-800 dark:text-zinc-200 block text-xs tracking-tight">{d.label}</span>
-                      <span className="text-[11px] text-slate-500 dark:text-zinc-500">{d.desc}</span>
+                      <span className="font-bold text-slate-700 dark:text-zinc-300 block text-xs tracking-tight">{d.label}</span>
                     </div>
                   </div>
                 ))}
               </motion.div>
             </motion.div>
           </div>
+
+          {/* Right Column - Demo Interactive UI (Flanking the right) */}
+          <div className="lg:col-span-5 hidden lg:flex relative justify-end items-center perspective-[2000px]">
+            {/* Massive Ambient Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-indigo-600/20 via-purple-600/10 to-sky-500/20 blur-[100px] rounded-[100%] pointer-events-none" />
+            
+            <motion.div 
+              initial={{ opacity: 0, x: 50, rotateY: -15, scale: 0.95 }} 
+              animate={{ opacity: 1, x: 0, rotateY: -10, scale: 1 }} 
+              transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
+              className="relative w-full max-w-[420px] hover:rotate-y-[0deg] transition-transform duration-1000 ease-out z-10"
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="scale-[1.15] origin-right transform-gpu">
+                <DemoPreview />
+              </div>
+              
+              {/* Floating aesthetic elements */}
+              <motion.div 
+                animate={{ y: [-10, 10, -10] }} 
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -bottom-8 -left-16 h-24 w-24 bg-white/90 dark:bg-[#1a1e30]/90 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-[#383e59] shadow-2xl flex items-center justify-center -translate-z-10"
+              >
+                <div className="text-center">
+                  <span className="block text-2xl font-black text-indigo-500">A+</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Score</span>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                animate={{ y: [10, -10, 10] }} 
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute top-10 -right-8 w-40 bg-white/90 dark:bg-[#1a1e30]/90 backdrop-blur-2xl p-3.5 rounded-3xl border border-slate-200 dark:border-[#383e59] shadow-2xl translate-z-10"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                  </div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fact Checked</div>
+                </div>
+                <div className="space-y-1.5 opacity-60">
+                  <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full" />
+                  <div className="h-1.5 w-4/5 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+          
         </div>
       </section>
 

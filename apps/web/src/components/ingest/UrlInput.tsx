@@ -200,7 +200,7 @@ export function UrlInput() {
                         {/* Text Input */}
                         <input
                             type="text"
-                            placeholder="Paste URL (YouTube/Web) or upload file..."
+                            placeholder="Paste link (YouTube, Instagram, X/Twitter, TED, Web) or upload..."
                             className="flex-1 border-none bg-transparent px-3 py-4 h-14 text-base md:text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 w-full"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
@@ -233,8 +233,9 @@ export function UrlInput() {
 
                 {/* Helper Text and Options */}
                 <div className="mt-6 flex flex-col items-center gap-2">
-                    <p className="text-xs text-gray-500 dark:text-slate-400 text-center">
-                        Supports: YouTube, TED Talks, Websites, Audio/Video files (MP3, MP4, WAV), PDFs, Word (.docx), and Text files
+                    <p className="text-xs text-gray-500 dark:text-slate-400 text-center leading-relaxed">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Supported Links:</span> YouTube, Instagram, X/Twitter, TikTok, LinkedIn, TED Talks, and Web.<br/>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Supported Files:</span> Audio/Video (MP3, MP4, WAV), Documents (PDF, DOCX), and Data (TXT, CSV, JSON).
                     </p>
 
                     {file && file.name.toLowerCase().endsWith('.pdf') && (
