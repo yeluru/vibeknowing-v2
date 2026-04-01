@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, RefreshCw, Download, Copy, Check, GitGraph } from "lucide-react";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, buildAIHeaders } from "@/lib/api";
 
 interface DiagramViewerProps {
     sourceId: string;
@@ -38,7 +38,7 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
         try {
             const response = await fetch(`${API_BASE}/ai/diagram/${sourceId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', ...buildAIHeaders() }
             });
 
             if (!response.ok) throw new Error('Failed to generate diagram');

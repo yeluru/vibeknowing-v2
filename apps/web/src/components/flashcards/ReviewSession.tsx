@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, RotateCw, Check, X, Loader2, Layers, CheckCircle } from "lucide-react";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, buildAIHeaders } from "@/lib/api";
 import { FlashcardDeck } from "./FlashcardDeck";
 
 interface Flashcard {
@@ -50,7 +50,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
         try {
             const response = await fetch(`${API_BASE}/ai/flashcards/${sourceId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', ...buildAIHeaders() }
             });
 
             if (!response.ok) throw new Error('Failed to generate flashcards');

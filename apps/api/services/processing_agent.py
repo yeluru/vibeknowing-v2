@@ -4,6 +4,7 @@ from .agent_base import AgentBase
 from database import SessionLocal
 from models import Source, Artifact
 from .ai import AIService
+from config import settings
 import uuid
 
 class ProcessingAgent(AgentBase):
@@ -58,11 +59,23 @@ class ProcessingAgent(AgentBase):
                 if len(current_group.strip()) > 50:
                     chunk_groups.append(current_group.strip())
 
+                # Determine which provider to use for embeddings.
+                # Anthropic has no native embeddings API so we prefer OpenAI, then Google.
+                # If neither is available the embedding will be None and RAG will be skipped gracefully.
+                if settings.OPENAI_API_KEY:
+                    embed_provider = "openai"
+                    embed_key = settings.OPENAI_API_KEY
+                elif settings.GOOGLE_AI_API_KEY:
+                    embed_provider = "google"
+                    embed_key = settings.GOOGLE_AI_API_KEY
+                else:
+                    embed_provider = "openai"  # will fail gracefully with empty key
+                    embed_key = ""
+
                 # Generate Math Vectors
                 chunks_created = 0
                 for chunk_text in chunk_groups:
-                    # Provide empty kwargs to let AI service use fallback keys from env
-                    emb = AIService.generate_embedding(chunk_text, provider="openai") 
+                    emb = AIService.generate_embedding(chunk_text, provider=embed_provider, api_key=embed_key)
                     new_chunk = SourceChunk(
                         source_id=source.id,
                         project_id=source.project_id,

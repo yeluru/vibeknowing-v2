@@ -165,4 +165,31 @@ export const authApi = {
     },
 };
 
+/**
+ * Builds the AI provider headers from localStorage.
+ * Use this in any fetch() call that hits an /ai/* endpoint,
+ * so they respect the user's provider/key settings just like axios does.
+ */
+export function buildAIHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {};
+    try {
+        const token = localStorage.getItem("token");
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const keys = JSON.parse(localStorage.getItem("vk_provider_keys") || "{}");
+        const prefs = JSON.parse(localStorage.getItem("vk_ai_prefs") || "{}");
+
+        if (keys.openai) headers["X-OpenAI-Key"] = keys.openai;
+        if (keys.anthropic) headers["X-Anthropic-Key"] = keys.anthropic;
+        if (keys.google) headers["X-Google-Key"] = keys.google;
+        if (prefs.defaultProvider) headers["X-AI-Provider"] = prefs.defaultProvider;
+        if (prefs.taskModels && Object.keys(prefs.taskModels).length > 0) {
+            headers["X-AI-Task-Models"] = JSON.stringify(prefs.taskModels);
+        }
+    } catch (e) {
+        // localStorage not available, skip
+    }
+    return headers;
+}
+
 export default api;

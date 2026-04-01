@@ -17,7 +17,7 @@ import { ContentViewer } from "@/components/content/ContentViewer";
 import { PodcastInterface } from "@/components/podcast/PodcastInterface";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, buildAIHeaders } from "@/lib/api";
 import { EditableTitle } from "@/components/ui/EditableTitle";
 
 interface Source {
@@ -339,13 +339,9 @@ export default function SourcePage() {
             // If summary already exists, we are regenerating, so force=true
             const force = !!summary;
 
-            const token = localStorage.getItem('token');
-            const headers: HeadersInit = { "Content-Type": "application/json" };
-            if (token) headers['Authorization'] = `Bearer ${token}`;
-
             const response = await fetch(`${API_BASE}/ai/summarize/${params.id}?force=${force}`, {
                 method: "POST",
-                headers,
+                headers: { "Content-Type": "application/json", ...buildAIHeaders() },
             });
 
             if (response.ok) {

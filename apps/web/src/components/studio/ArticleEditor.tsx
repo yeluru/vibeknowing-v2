@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, RefreshCw, Save, FileText, Check, FilePenLine, Download } from "lucide-react";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, buildAIHeaders } from "@/lib/api";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -42,7 +42,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
         try {
             const response = await fetch(`${API_BASE}/ai/article/${sourceId}?style=blog`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', ...buildAIHeaders() }
             });
 
             if (!response.ok) throw new Error('Failed to generate article');
