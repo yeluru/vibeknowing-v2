@@ -203,12 +203,15 @@ class YtDlpService:
                 if video_id:
                     print(f"Attempting youtube-transcript-api for ID: {video_id}")
                     try:
-                        # Use cookies if available — pass to constructor in v1.x
-                        print(f"Calling fetch() with cookies_path: {cookies_path}")
-                        ytt_api = YouTubeTranscriptApi(cookies=cookies_path) if cookies_path else YouTubeTranscriptApi()
-                        transcript = ytt_api.fetch(video_id)
+                        # Use cookies if available — correct way is get_transcript(video_id, cookies=path)
+                        print(f"Calling get_transcript() with cookies_path: {cookies_path}")
+                        if cookies_path:
+                            transcript = YouTubeTranscriptApi.get_transcript(video_id, cookies=cookies_path)
+                        else:
+                            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+                            
                         print(f"Successfully fetched transcript with youtube-transcript-api. Snippets: {len(transcript)}")
-                        formatter = " ".join(snippet.text for snippet in transcript)
+                        formatter = " ".join(snippet['text'] for snippet in transcript)
                         
                         # Get title using yt-dlp (lightweight)
                         # Determine default title based on URL type
@@ -253,7 +256,8 @@ class YtDlpService:
                     "--skip-download",
                     "--no-warnings",
                     "-o", f"{temp_dir}/%(title)s.%(ext)s",
-                    "--extractor-args", "youtube:player_client=android",
+                    "--extractor-args", "youtube:player_client=ios,web;player_skip=web,android",
+                    "--sleep-requests", "1",
                     url
                 ]
                 
@@ -327,7 +331,8 @@ class YtDlpService:
                     "--audio-quality", "192K",
                     "--no-warnings",
                     "-o", f"{temp_dir}/%(title)s.%(ext)s",
-                    "--extractor-args", "youtube:player_client=android",
+                    "--extractor-args", "youtube:player_client=ios,web;player_skip=web,android",
+                    "--sleep-requests", "1",
                     url
                 ]
                 

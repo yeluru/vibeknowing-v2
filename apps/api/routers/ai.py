@@ -274,7 +274,6 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
                     user_id=current_user.id if current_user else None,
                     role="assistant",
                     content=''.join(full_response),
-                    meta_data={"chunks": chunk_metadata} if chunk_metadata else None
                 )
                 new_db.add(assistant_message)
                 new_db.commit()
@@ -292,9 +291,8 @@ async def get_chat_history(source_id: str, db: Session = Depends(get_db)):
     
     return [
         {
-            "role": msg.role, 
-            "content": msg.content, 
-            "meta_data": msg.meta_data,
+            "role": msg.role,
+            "content": msg.content,
             "created_at": msg.created_at.isoformat() if msg.created_at else None
         } for msg in messages
     ]
@@ -313,9 +311,8 @@ async def get_global_chat_history(db: Session = Depends(get_db), current_user: O
     
     return [
         {
-            "role": msg.role, 
-            "content": msg.content, 
-            "meta_data": msg.meta_data,
+            "role": msg.role,
+            "content": msg.content,
             "created_at": msg.created_at.isoformat() if msg.created_at else None
         } for msg in messages
     ]
