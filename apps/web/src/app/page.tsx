@@ -497,27 +497,21 @@ export default function Home() {
                   </div>
                 </motion.div>
 
-                {/* Combined Capabilities Cloud - Sources */}
-                <motion.div variants={fadeUp} className="mt-8 flex flex-wrap justify-center gap-2.5 max-w-3xl">
+                {/* Unified Capabilities Cloud - Sources + Differentiators (Center Aligned) */}
+                <motion.div variants={fadeUp} className="mt-8 flex flex-wrap justify-center gap-2.5 max-w-4xl mx-auto lg:mx-0">
+                  {/* Sources */}
                   {SOURCE_TYPES.map(s => (
                     <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-[#383e59]/50 text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:scale-105 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 group/pill">
                       <span className={cn("opacity-100 drop-shadow-sm group-hover/pill:scale-110 transition-transform", s.color)}>{s.icon}</span> {s.label}
                     </span>
                   ))}
-                </motion.div>
-
-                {/* Technical Differentiators - Restored Original Icon Style */}
-                <motion.div variants={fadeUp} className="mt-10 flex flex-wrap justify-center lg:justify-start gap-x-10 gap-y-6 opacity-90">
+                  
+                  {/* Platform Features - Integrated Into The Cloud */}
                   {DIFFERENTIATORS.map(d => (
-                    <div key={d.label} className="flex items-center gap-3.5 group/item">
-                      <div className="h-9 w-9 rounded-xl bg-slate-100/80 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-indigo-500 dark:text-indigo-400 shadow-sm transition-all group-hover/item:scale-110 group-hover/item:bg-indigo-500 group-hover/item:text-white dark:group-hover/item:bg-indigo-600">
-                        {d.icon}
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <span className="font-bold text-slate-800 dark:text-zinc-200 block text-xs tracking-tight uppercase">{d.label}</span>
-                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold tracking-widest uppercase opacity-70">Verified</span>
-                      </div>
-                    </div>
+                    <span key={d.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50/50 dark:bg-indigo-500/10 backdrop-blur-xl border border-indigo-100 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 shadow-sm transition-all hover:scale-105 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 group/feature">
+                      <span className="opacity-100 drop-shadow-sm group-hover/feature:scale-110 transition-transform">{d.icon}</span> {d.label}
+                      <span className="ml-1 text-[8px] font-black uppercase tracking-[0.15em] opacity-40 bg-indigo-500/10 px-1 py-0.5 rounded-sm">Verified</span>
+                    </span>
                   ))}
                 </motion.div>
               </motion.div>
