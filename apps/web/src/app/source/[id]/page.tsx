@@ -524,16 +524,60 @@ export default function SourcePage() {
                                         </button>
                                     ))}
                                     <div className="border-t border-slate-100 dark:border-[#383e59] my-1" />
+                                    {/* Standard 'View' Tab */}
+                                    <button onClick={() => { handleTabChange('view'); setMobileMenuOpen(false); }}
+                                        className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors",
+                                            activeTab === 'view'
+                                                ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20 font-medium"
+                                                : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60")}>
+                                        <Eye className="h-4 w-4" /> View
+                                    </button>
+
+                                    <div className="border-t border-slate-100 dark:border-[#383e59] my-1" />
+
+                                    {/* Expanded Studio Submenu for Mobile */}
+                                    <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                                        Content Studio
+                                    </div>
                                     {[
-                                        { id: 'studio' as const, icon: <Palette className="h-4 w-4" />, label: 'Studio' },
-                                        { id: 'view' as const, icon: <Eye className="h-4 w-4" />, label: 'View' },
-                                    ].map(tab => (
-                                        <button key={tab.id} onClick={() => { handleTabChange(tab.id); setMobileMenuOpen(false); }}
-                                            className={cn("w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors",
-                                                activeTab === tab.id
-                                                    ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/20 font-medium"
-                                                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60")}>
-                                            {tab.icon} {tab.label}
+                                        { tool: 'diagram', icon: <Sparkles className="h-3.5 w-3.5" />, label: 'Diagrams' },
+                                        { tool: 'article', icon: <FileText className="h-3.5 w-3.5" />, label: 'Articles' },
+                                        { tool: 'quiz', icon: <Trophy className="h-3.5 w-3.5" />, label: 'Quiz' },
+                                        { tool: 'flashcards', icon: <Layers className="h-3.5 w-3.5" />, label: 'Flashcards' },
+                                    ].map(item => (
+                                        <button key={item.tool}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleTabChange('studio');
+                                                window.history.replaceState(null, '', `?tab=studio&tool=${item.tool}`);
+                                                window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: item.tool }));
+                                                setMobileMenuOpen(false);
+                                            }}
+                                            className="w-full pl-4 pr-3 py-2 text-sm flex items-center gap-2.5 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/25 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                            {item.icon} {item.label}
+                                        </button>
+                                    ))}
+                                    
+                                    {/* Social Media Mobile Link */}
+                                    <div className="w-full pl-4 pr-3 py-2 text-sm flex items-center gap-2.5 text-slate-600 dark:text-slate-300">
+                                       <MessageCircle className="h-3.5 w-3.5" /> Social Media
+                                    </div>
+                                    {[
+                                        { platform: 'twitter', label: 'Twitter Thread' },
+                                        { platform: 'linkedin', label: 'LinkedIn Post' },
+                                        { platform: 'instagram', label: 'Instagram Caption' },
+                                    ].map(s => (
+                                        <button key={s.platform}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleTabChange('studio');
+                                                window.history.replaceState(null, '', `?tab=studio&tool=social&platform=${s.platform}`);
+                                                window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: 'social' }));
+                                                window.dispatchEvent(new CustomEvent('social-platform-change', { detail: s.platform }));
+                                                setMobileMenuOpen(false);
+                                            }}
+                                            className="w-full text-left pl-10 pr-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                                            {s.label}
                                         </button>
                                     ))}
                                 </div>
