@@ -455,26 +455,20 @@ Content:
     @staticmethod
     def generate_diagram(text: str, concept: str = "", provider: str = "openai", model: str = None, api_key: str = None):
         concept_hint = f" Focus on visualizing: {concept}." if concept else ""
-        prompt = f"""Create a text-based diagram that makes the key relationships or processes in the content visually clear.{concept_hint}
+        prompt = f"""Create a highly readable, structural node-based overview of the key concepts, relationships, or processes in the content.{concept_hint}
 
 Diagram rules:
-- Use ASCII box-drawing characters: ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼ ╔ ╗ ╚ ╝ ║ ═
-- Use arrows to show direction: → ← ↑ ↓ ⟶
-- Keep the diagram under 30 lines wide and 25 lines tall.
-- Label every box and arrow clearly.
-- Choose the diagram type that best fits the content:
-  - Flowchart: for processes and decision trees
-  - Hierarchy: for systems with layers or levels  
-  - Timeline: for sequences of events
-  - Comparison table: for contrasting two or more things
-  - Network: for showing connections between components
+- Extract logical steps, hierarchies, or networks from the text.
+- Create explicit nodes and the directional edges (connections) between them.
+- Keep node labels concise (under 5-8 words).
+- You MUST format the output as a valid stringified JSON object containing 'nodes' and 'edges'.
 
 Output a JSON object with this exact structure:
 {{
-  "diagram": "The ASCII diagram here",
-  "type": "flowchart|hierarchy|timeline|comparison|network",
-  "title": "Specific descriptive title (e.g., 'How HTTP Request-Response Works', not 'Process Flow')",
-  "description": "One sentence explaining what the diagram shows and why this structure was chosen."
+  "diagram": "{{\\"nodes\\": [{{\\"id\\": \\"1\\", \\"label\\": \\"Step 1\\"}}, ...], \\"edges\\": [{{\\"id\\": \\"e1-2\\", \\"source\\": \\"1\\", \\"target\\": \\"2\\", \\"label\\": \\"leads to\\"}}]}}",
+  "type": "flowchart",
+  "title": "Specific descriptive title",
+  "description": "One sentence explaining what the diagram shows."
 }}
 
 Content:
@@ -483,8 +477,8 @@ Content:
         return _generate_json(
             prompt=prompt,
             provider=provider, model=model, api_key=api_key,
-            system_prompt="You are a technical illustrator. Return only valid JSON. Use proper ASCII box-drawing characters.",
-            max_tokens=4096, temperature=0.4, task="diagram",
+            system_prompt="You are a senior Data Visualization architect. Return strictly valid JSON.",
+            max_tokens=4096, temperature=0.3, task="diagram",
         )
 
     @staticmethod
