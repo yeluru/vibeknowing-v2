@@ -18,10 +18,25 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 
 // ─── animation presets ───────────────────────────────────────────────────────
-const fadeUp: Variants = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } } };
-const stagger: Variants = { visible: { transition: { staggerChildren: 0.09 } } };
+const fadeUp: Variants = { 
+  hidden: { opacity: 0, y: 30, filter: 'blur(10px)' }, 
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    filter: 'blur(0px)',
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+  } 
+};
+const stagger: Variants = { visible: { transition: { staggerChildren: 0.12 } } };
 const fadeInUp = fadeUp;
 const staggerContainer = stagger;
+const pulseGlow: Variants = {
+  animate: {
+    opacity: [0.4, 0.7, 0.4],
+    scale: [1, 1.05, 1],
+    transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+  }
+};
 
 function SpotlightCard({ children, className }: { children: React.ReactNode; className?: string }) {
   const [mouseX, setMouseX] = useState(0);
@@ -265,23 +280,24 @@ function DemoPreview() {
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
         className="absolute bottom-4 -left-2 w-[250px] z-50"
       >
-        <div className="vk-card p-4 border-violet-200/60 dark:border-violet-700/40 bg-white/85 dark:bg-[#0b0e17]/85 backdrop-blur-xl shadow-2xl">
-          <div className="flex items-center justify-between mb-3">
+        <div className="glass-panel p-4 rounded-3xl shadow-2xl border-white/40 dark:border-white/10 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 blur-2xl -mr-12 -mt-12" />
+          <div className="flex items-center justify-between mb-3 relative z-10">
             <div className="flex items-center gap-2">
               <FlaskConical className="h-3.5 w-3.5 text-violet-500" />
               <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 tracking-wider uppercase">Quiz Testing</span>
             </div>
             <span className="text-[9px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded font-black tracking-wide">+5 XP</span>
           </div>
-          <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">What is the primary function of the core extraction loop?</p>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-[#1a1e30]/50 px-2 py-1.5 rounded-lg border border-slate-100 dark:border-[#383e59]/50 opacity-60">
+          <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-3 leading-relaxed relative z-10">What is the primary function of the core extraction loop?</p>
+          <div className="space-y-2 relative z-10">
+            <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-white/5 px-2 py-1.5 rounded-xl border border-slate-100 dark:border-white/5 opacity-60">
                <div className="h-3 w-3 rounded-full border border-slate-300 dark:border-slate-500 shrink-0" />
-               <div className="h-1.5 w-3/4 bg-slate-300 dark:bg-slate-500/50 rounded-full" />
+               <div className="h-1.5 w-3/4 bg-slate-200 dark:bg-white/10 rounded-full" />
             </div>
-            <div className="flex items-center gap-2.5 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-500/30">
-               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 bg-white dark:bg-transparent rounded-full" />
-               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">Maintains signal-to-noise</span>
+            <div className="flex items-center gap-2.5 bg-emerald-500/10 px-2 py-1.5 rounded-xl border border-emerald-500/30">
+               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Maintains signal-to-noise</span>
             </div>
           </div>
         </div>
@@ -391,135 +407,197 @@ export default function Home() {
     <div className="space-y-20 pb-24 relative">
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden w-full max-w-[1400px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-        {/* Deep background & spotlight */}
-        <div className="absolute inset-0 -z-10 bg-transparent">
-          <div className="absolute inset-0 bg-[#fdfcfb] dark:bg-transparent" />
+      <section className="relative overflow-hidden w-full max-w-[2700px] mx-auto mt-4 px-4 sm:px-6 lg:px-24 lg:rounded-[3rem] border border-transparent dark:border-white/5 bg-transparent overflow-hidden">
+        {/* Deep background & atmospheric layers */}
+        <div className="absolute inset-0 -z-10 bg-transparent overflow-hidden">
+          {/* Base cinematic dark gradient (only visible in dark mode) */}
+          <div className="absolute inset-0 bg-[#fdfcfb] dark:bg-[#020203]" />
 
-          {/* Animated Blobs */}
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-[120px] animate-blob mix-blend-multiply dark:mix-blend-normal" />
-          <div className="absolute top-[20%] right-[-5%] w-[35%] h-[35%] rounded-full bg-cyan-500/10 dark:bg-cyan-500/5 blur-[120px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-normal" />
-          <div className="absolute bottom-[-10%] left-[20%] w-[30%] h-[30%] rounded-full bg-violet-500/10 dark:bg-violet-500/5 blur-[120px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-normal" />
+          {/* Animated Atmospheric Blobs - Cinema Mobile Style */}
+          <motion.div 
+            animate={{ 
+              x: [0, 100, 0], 
+              y: [0, -50, 0],
+              scale: [1, 1.2, 1] 
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute top-[-15%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-500/20 dark:bg-indigo-600/10 blur-[140px] mix-blend-screen opacity-60" 
+          />
+          <motion.div 
+            animate={{ 
+              x: [0, -80, 0], 
+              y: [0, 100, 0],
+              scale: [1, 1.3, 1] 
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] rounded-full bg-cyan-500/20 dark:bg-violet-600/10 blur-[140px] mix-blend-screen opacity-50" 
+          />
+          <motion.div 
+            animate={{ 
+              opacity: [0.3, 0.6, 0.3] 
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full bg-blue-500/10 dark:bg-blue-400/5 blur-[160px] mix-blend-overlay" 
+          />
 
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200/40 via-white/0 to-white/0 dark:from-white/10 dark:via-[#09090b]/0 dark:to-transparent opacity-80 pointer-events-none" />
-          <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]"
-            style={{ backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)", backgroundSize: "32px 32px" }}
+          {/* Grid Pattern with subtle mask */}
+          <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+            style={{ 
+              backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)", 
+              backgroundSize: "40px 40px",
+              maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 80%)',
+              WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 80%)'
+            }}
           />
         </div>
 
-        <div className="pt-20 pb-16 lg:pt-32 lg:pb-24 grid lg:grid-cols-12 gap-16 items-center">
-          
-          {/* Left Column - Centered Copy & Input */}
-          <div className="lg:col-span-7 flex flex-col items-center text-center relative z-20">
-            <motion.div initial="hidden" animate="visible" variants={stagger} className="w-full flex flex-col items-center">
-              
-              {/* Eyebrow pill */}
-              <motion.div variants={fadeUp} className="flex justify-center mb-8 z-20">
-                <div className="relative group cursor-pointer">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-                  <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[#0c0f18] border border-slate-200/80 dark:border-[#383e59]/80 text-slate-800 dark:text-slate-300 text-xs font-black tracking-widest uppercase shadow-xl min-w-max">
-                    <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                    Welcome to VibeLearn!
-                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white leading-[0.98] drop-shadow-sm">
-                Turn any content <br />
-                <span className="inline-block mt-3 text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 drop-shadow-lg pb-2">
-                  into mastery.
-                </span>
-              </motion.h1>
-
-              <motion.p variants={fadeUp} className="mt-8 text-lg align-center tracking-tight text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed font-bold">
-                The problem isn’t a lack of information; it’s the cost of too much. Inspired by <span className="text-slate-900 dark:text-white font-bold opacity-100 italic">"Vibecoding,"</span> VibeLearn is the ultimate ingestion engine—a high-performance, 360-degree knowledge cycle.
-              </motion.p>
-
-              <motion.p variants={fadeUp} className="mt-4 text-[13px] text-slate-400 dark:text-slate-500 max-w-xl font-bold uppercase tracking-[0.2em] opacity-80">
-                Don't just watch it. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Vibe Learn it.</span>
-              </motion.p>
-
-              {/* Source type pills */}
-              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap justify-center gap-2.5 max-w-2xl">
-                {SOURCE_TYPES.map(s => (
-                  <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-[#383e59]/50 text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:scale-105 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50">
-                    <span className={cn("opacity-100 drop-shadow-sm", s.color)}>{s.icon}</span> {s.label}
-                  </span>
-                ))}
-              </motion.div>
-
-              {/* URL input Hero Spotlight */}
-              <motion.div variants={fadeUp} className="mt-10 w-full max-w-2xl relative z-30 group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 rounded-[2rem] blur-lg opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                <div className="relative bg-white/40 dark:bg-black/20 backdrop-blur-2xl p-2 rounded-[2rem] border border-white/20 dark:border-white/10 shadow-2xl">
-                  <UrlInput />
-                </div>
-              </motion.div>
-
-              {/* Differentiators */}
-              <motion.div variants={fadeUp} className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 opacity-80">
-                {DIFFERENTIATORS.map(d => (
-                  <div key={d.label} className="flex items-center gap-2 text-sm">
-                    <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-indigo-500 dark:text-indigo-400 shadow-inner dark:shadow-black/20">
-                      {d.icon}
-                    </div>
-                    <div className="flex flex-col text-left">
-                      <span className="font-bold text-slate-700 dark:text-zinc-300 block text-xs tracking-tight">{d.label}</span>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
-          </div>
-
-          {/* Right Column - Demo Interactive UI (Flanking the right) */}
-          <div className="lg:col-span-5 hidden lg:flex relative justify-end items-center perspective-[2000px]">
-            {/* Massive Ambient Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-indigo-600/20 via-purple-600/10 to-sky-500/20 blur-[100px] rounded-[100%] pointer-events-none" />
+        <div className="max-w-[1400px] mx-auto relative z-20">
+          <div className="pt-14 pb-10 lg:pt-20 lg:pb-18 grid lg:grid-cols-12 gap-20 items-center">
             
-            <motion.div 
-              initial={{ opacity: 0, x: 50, rotateY: -15, scale: 0.95 }} 
-              animate={{ opacity: 1, x: 0, rotateY: -10, scale: 1 }} 
-              transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-              className="relative w-full max-w-[420px] hover:rotate-y-[0deg] transition-transform duration-1000 ease-out z-10"
-              style={{ transformStyle: 'preserve-3d' }}
-            >
-              <div className="scale-[1.15] origin-right transform-gpu">
-                <DemoPreview />
-              </div>
-              
-              {/* Floating aesthetic elements */}
-              <motion.div 
-                animate={{ y: [-10, 10, -10] }} 
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -bottom-8 -left-16 h-24 w-24 bg-white/90 dark:bg-[#1a1e30]/90 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-[#383e59] shadow-2xl flex items-center justify-center -translate-z-10"
-              >
-                <div className="text-center">
-                  <span className="block text-2xl font-black text-indigo-500">A+</span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Score</span>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                animate={{ y: [10, -10, 10] }} 
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute top-10 -right-8 w-40 bg-white/90 dark:bg-[#1a1e30]/90 backdrop-blur-2xl p-3.5 rounded-3xl border border-slate-200 dark:border-[#383e59] shadow-2xl translate-z-10"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+            {/* Left Column - High-Dominance Marketing (75%) */}
+            <div className="lg:col-span-9 flex flex-col items-center lg:items-start text-center lg:text-left">
+              <motion.div initial="hidden" animate="visible" variants={stagger} className="w-full">
+                
+                {/* Eyebrow pill */}
+                <motion.div variants={fadeUp} className="flex justify-center lg:justify-start mb-8 z-20">
+                  <div className="relative group cursor-pointer">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                    <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[#0c0f18] border border-slate-200/80 dark:border-[#383e59]/80 text-slate-800 dark:text-slate-300 text-xs font-black tracking-widest uppercase shadow-xl min-w-max">
+                      <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+                      Welcome to VibeLearn!
+                      <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fact Checked</div>
-                </div>
-                <div className="space-y-1.5 opacity-60">
-                  <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full" />
-                  <div className="h-1.5 w-4/5 bg-slate-200 dark:bg-slate-700 rounded-full" />
-                </div>
+                </motion.div>
+
+                <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.05em] text-slate-900 dark:text-white leading-tight drop-shadow-xl text-balance">
+                  Turn any content <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 drop-shadow-2xl filter group-hover:brightness-110 transition-all duration-700">into mastery.</span>
+                </motion.h1>
+
+                <motion.p variants={fadeUp} className="mt-8 text-lg lg:text-xl tracking-[0.01em] text-slate-600 dark:text-slate-200 max-w-2xl leading-relaxed font-bold">
+                  The problem isn’t a lack of information; it’s the cost of too much. Inspired by <span className="text-slate-900 dark:text-white font-bold opacity-100 italic">"Vibecoding,"</span> VibeLearn is the ultimate ingestion engine—a high-performance, 360-degree knowledge cycle.
+                </motion.p>
+
+                <motion.p variants={fadeUp} className="mt-4 text-[13px] text-slate-500 dark:text-slate-300 max-w-xl font-bold uppercase tracking-[0.25em] opacity-100">
+                  Don't just watch it. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Vibe Learn it.</span>
+                </motion.p>
+
+                {/* URL input Hero Spotlight */}
+                <motion.div variants={fadeUp} className="mt-12 w-full max-w-2xl relative z-30 group">
+                  <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-500 rounded-[2.5rem] blur-2xl opacity-15 group-hover:opacity-30 transition duration-1000"></div>
+                  <div className="relative glass-panel p-2.5 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
+                    <UrlInput />
+                  </div>
+                  {/* Privacy Disclaimer - The text that was yanked */}
+                  <div className="mt-4 text-center lg:text-left px-6">
+                    <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase opacity-80">
+                      <span className="text-emerald-500 dark:text-emerald-400 mr-1.5 leading-none">●</span>
+                      100% Private. Nothing leaves unless you send it to your own APIs.
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Combined Capabilities Cloud - Sources */}
+                <motion.div variants={fadeUp} className="mt-8 flex flex-wrap justify-center gap-2.5 max-w-3xl">
+                  {SOURCE_TYPES.map(s => (
+                    <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-[#383e59]/50 text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:scale-105 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 group/pill">
+                      <span className={cn("opacity-100 drop-shadow-sm group-hover/pill:scale-110 transition-transform", s.color)}>{s.icon}</span> {s.label}
+                    </span>
+                  ))}
+                </motion.div>
+
+                {/* Technical Differentiators - Restored Original Icon Style */}
+                <motion.div variants={fadeUp} className="mt-10 flex flex-wrap justify-center lg:justify-start gap-x-10 gap-y-6 opacity-90">
+                  {DIFFERENTIATORS.map(d => (
+                    <div key={d.label} className="flex items-center gap-3.5 group/item">
+                      <div className="h-9 w-9 rounded-xl bg-slate-100/80 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-indigo-500 dark:text-indigo-400 shadow-sm transition-all group-hover/item:scale-110 group-hover/item:bg-indigo-500 group-hover/item:text-white dark:group-hover/item:bg-indigo-600">
+                        {d.icon}
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="font-bold text-slate-800 dark:text-zinc-200 block text-xs tracking-tight uppercase">{d.label}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold tracking-widest uppercase opacity-70">Verified</span>
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
               </motion.div>
-            </motion.div>
+            </div>
+
+            {/* Right Column - Demo Interactive UI (25%) */}
+            <div className="lg:col-span-3 hidden lg:flex relative justify-end items-center perspective-[3000px]">
+              {/* Pulsating Cinematic Glow */}
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.1, 0.25, 0.1]
+                }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-r from-indigo-600/30 via-violet-600/10 to-sky-500/30 blur-[120px] rounded-[100%] pointer-events-none" 
+              />
+              
+              <motion.div 
+                initial={{ opacity: 0, x: 80, rotateY: -20, rotateX: 5, scale: 0.9 }} 
+                animate={{ 
+                    opacity: 1, 
+                    x: -20, 
+                    rotateY: [-10, -5, -10],
+                    rotateX: [2, 7, 2],
+                    y: [-15, 10, -15],
+                    scale: 1 
+                }} 
+                transition={{ 
+                    opacity: { duration: 1.2, delay: 0.2 },
+                    x: { duration: 1.2, delay: 0.2 },
+                    scale: { duration: 1.2, delay: 0.2 },
+                    rotateY: { duration: 8, repeat: Infinity, ease: "linear" },
+                    rotateX: { duration: 10, repeat: Infinity, ease: "linear" },
+                    y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                }}
+                className="relative w-full max-w-[400px] z-10"
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <div className="scale-[1.4] origin-right transform-gpu drop-shadow-[0_45px_70px_rgba(0,0,0,0.45)]">
+                  <DemoPreview />
+                </div>
+                
+                {/* Floating aesthetic elements - Enhanced Drift */}
+                <motion.div 
+                  animate={{ 
+                    y: [-15, 15, -15],
+                    rotate: [-3, 3, -3]
+                  }} 
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -bottom-8 -left-20 h-28 w-28 bg-white/95 dark:bg-[#1a1e30]/95 backdrop-blur-3xl rounded-[32px] border border-slate-200/50 dark:border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] flex items-center justify-center -translate-z-20"
+                >
+                  <div className="text-center">
+                    <span className="block text-3xl font-black text-indigo-500 drop-shadow-sm">A+</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-full mt-1 inline-block">Score</span>
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  animate={{ 
+                    y: [15, -15, 15],
+                    rotate: [2, -2, 2]
+                  }} 
+                  transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                  className="absolute top-10 -right-12 w-44 bg-white/95 dark:bg-[#1a1e30]/95 backdrop-blur-3xl p-4 rounded-[32px] border border-slate-200/50 dark:border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] translate-z-20"
+                >
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="h-7 w-7 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    </div>
+                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400">Fact Checked</div>
+                  </div>
+                  <div className="space-y-2 opacity-60">
+                    <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700/50 rounded-full" />
+                    <div className="h-1.5 w-5/6 bg-slate-200 dark:bg-slate-700/50 rounded-full" />
+                  </div>
+                </motion.div>
+              </motion.div>
+            </div>
+            
           </div>
-          
         </div>
       </section>
 
@@ -560,7 +638,7 @@ export default function Home() {
                   {card.icon}
                 </div>
                 <h3 className="font-semibold tracking-tight text-slate-900 dark:text-zinc-100 mb-2">{card.title}</h3>
-                <p className="text-sm text-slate-500 dark:text-zinc-500 leading-relaxed">{card.body}</p>
+                <p className="text-sm text-slate-500 dark:text-zinc-400 leading-relaxed">{card.body}</p>
               </div>
             </SpotlightCard>
           ))}
@@ -577,7 +655,7 @@ export default function Home() {
       >
         <motion.div variants={fadeUp} className="max-w-xl mb-12">
           <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-[-0.03em]">Everything you need to go deep</h2>
-          <p className="mt-3 text-slate-500 dark:text-zinc-500 leading-relaxed">One URL. Five powerful outputs. Infinite possibilities built on the foundation of the best AI models.</p>
+          <p className="mt-3 text-slate-600 dark:text-zinc-300 leading-relaxed">One URL. Five powerful outputs. Infinite possibilities built on the foundation of the best AI models.</p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
@@ -611,7 +689,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 mb-2 tracking-tight">{f.title}</h3>
-                <p className="text-sm text-slate-600 dark:text-zinc-500 leading-relaxed">{f.body}</p>
+                <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed">{f.body}</p>
               </div>
             </SpotlightCard>
           ))}
@@ -631,7 +709,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200 dark:border-[#383e59]">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Your Learning History</h2>
-              <p className="text-slate-500 dark:text-zinc-500 text-sm mt-1">Pick up where you left off</p>
+              <p className="text-slate-500 dark:text-zinc-300 text-sm mt-1">Pick up where you left off</p>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -656,7 +734,7 @@ export default function Home() {
           <div className="space-y-12">
             {projectGroups.map(group => (
               <div key={group.id}>
-                <h3 className="text-[13px] font-semibold tracking-wide uppercase text-slate-400 dark:text-zinc-500 mb-5 flex items-center gap-2">
+                <h3 className="text-[13px] font-semibold tracking-wide uppercase text-slate-400 dark:text-zinc-300 mb-5 flex items-center gap-2">
                   {group.name}
                   <span className="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-zinc-400 px-1.5 rounded-md">{group.projects.length}</span>
                 </h3>
@@ -675,7 +753,7 @@ export default function Home() {
                               </div>
                               <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-[15px] tracking-tight leading-snug line-clamp-2 mb-2">{project.title}</h3>
                               {project.first_source_url && (
-                                <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-500 truncate mb-1">
+                                <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-300 truncate mb-1">
                                   {project.first_source_url.replace(/^https?:\/\/(www\.)?/, "")}
                                 </div>
                               )}

@@ -36,7 +36,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
     }, [input]);
 
     return (
-        <div className="border-t border-slate-200/70 dark:border-[#383e59] bg-white/70 dark:bg-[#1a1e30]/55 backdrop-blur-xl p-3 sm:p-4 transition-colors duration-300">
+        <div className="border-t border-white/5 dark:border-white/5 bg-white/70 dark:bg-black/40 backdrop-blur-3xl p-3 sm:p-5 transition-colors duration-300">
 
             {suggestions.length > 0 && (
                 <>
@@ -47,14 +47,14 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                                 key={i}
                                 onClick={() => onSend(suggestion)}
                                 disabled={disabled}
-                                className="flex items-center gap-1.5 w-full px-3 py-2 rounded-lg text-xs font-medium text-left
+                                className="flex items-center gap-1.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-left
                                            text-slate-700 dark:text-slate-300
-                                           border border-slate-200 dark:border-[#383e59]
-                                           bg-slate-50 dark:bg-slate-800/60
+                                           border border-slate-200 dark:border-white/5
+                                           bg-slate-50 dark:bg-white/5
                                            hover:bg-indigo-50 dark:hover:bg-indigo-900/20
-                                           hover:border-indigo-200 dark:hover:border-indigo-800
+                                           hover:border-indigo-200 dark:hover:border-white/10
                                            hover:text-indigo-700 dark:hover:text-indigo-300
-                                           disabled:opacity-50 transition-colors"
+                                           disabled:opacity-50 transition-all duration-300"
                             >
                                 <Sparkles className="h-3 w-3 flex-shrink-0 text-indigo-400" />
                                 <span>{suggestion}</span>
@@ -69,14 +69,14 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                                 key={i}
                                 onClick={() => onSend(suggestion)}
                                 disabled={disabled}
-                                className="flex items-start gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-left
-                                           text-slate-700 dark:text-slate-300
-                                           border border-slate-200 dark:border-[#383e59]
-                                           bg-slate-50 dark:bg-slate-800/60
+                                className="flex items-start gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-left
+                                           text-slate-600 dark:text-slate-300
+                                           border border-slate-100 dark:border-white/5
+                                           bg-slate-50 dark:bg-white/5 backdrop-blur-md
                                            hover:bg-indigo-50 dark:hover:bg-indigo-900/20
-                                           hover:border-indigo-200 dark:hover:border-indigo-800
+                                           hover:border-indigo-200 dark:hover:border-white/10
                                            hover:text-indigo-700 dark:hover:text-indigo-300
-                                           disabled:opacity-50 transition-colors"
+                                           disabled:opacity-50 transition-all duration-300 shadow-sm"
                             >
                                 <Sparkles className="h-3 w-3 flex-shrink-0 text-indigo-400 mt-0.5" />
                                 <span>{suggestion}</span>
@@ -92,7 +92,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask a question about this content..."
+                    placeholder="Curious about something? Ask away..."
                     disabled={disabled}
                     className="max-h-32 min-h-[44px] w-full resize-none rounded-xl px-4 py-3 pr-12 text-sm
                                bg-white dark:bg-slate-800/80
@@ -107,10 +107,10 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                 <button
                     type="submit"
                     disabled={!input.trim() || disabled}
-                    className="absolute bottom-1.5 right-1.5 rounded-lg p-2
+                    className="absolute bottom-2 right-2 rounded-xl p-2.5
                                bg-indigo-600 dark:bg-indigo-500 text-white
                                hover:bg-indigo-700 dark:hover:bg-indigo-400
-                               disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                               disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-[0_4px_12px_-2px_rgba(79,70,229,0.4)] dark:shadow-none"
                     aria-label="Send message"
                 >
                     <Send className="h-4 w-4" />

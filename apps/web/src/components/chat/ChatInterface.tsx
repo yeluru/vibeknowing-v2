@@ -5,6 +5,17 @@ import { MessageList, Message } from "./MessageList";
 import { API_BASE } from "@/lib/api";
 import { ChatInput } from "./ChatInput";
 import { v4 as uuidv4 } from "uuid";
+import { motion, Variants } from "framer-motion";
+
+const fadeUp: Variants = { 
+    hidden: { opacity: 0, y: 15, filter: 'blur(8px)' }, 
+    visible: { 
+        opacity: 1, 
+        y: 0, 
+        filter: 'blur(0px)',
+        transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } 
+    } 
+};
 
 interface ChatInterfaceProps {
     sourceId: string;
@@ -141,8 +152,30 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
     };
 
     return (
-        <div className="flex h-full flex-col bg-slate-50 dark:bg-[#0f1117] relative">
-            <MessageList messages={messages} isLoading={isLoading} />
+        <div className="flex h-full flex-col bg-slate-50 dark:bg-[#020203] relative overflow-hidden transition-colors duration-500">
+            {/* Dark Mode Background Blobs */}
+            <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden opacity-0 dark:opacity-100 transition-opacity duration-1000">
+                <motion.div 
+                    animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.2, 1] }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[120px] rounded-full" 
+                />
+                <motion.div 
+                    animate={{ x: [0, -40, 0], y: [0, -20, 0], scale: [1, 1.1, 1] }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-violet-600/10 blur-[100px] rounded-full" 
+                />
+            </div>
+            
+            <motion.div 
+                initial="hidden" 
+                animate="visible" 
+                variants={fadeUp}
+                className="flex-1 flex flex-col min-h-0"
+            >
+                <MessageList messages={messages} isLoading={isLoading} />
+            </motion.div>
+            
             <ChatInput onSend={handleSend} disabled={isLoading} suggestions={messages.length === 0 ? suggestions : []} />
         </div>
     );

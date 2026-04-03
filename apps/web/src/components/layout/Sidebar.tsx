@@ -296,8 +296,8 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
     /* ── Render ─────────────────────────────────────────────────────────── */
     return (
         <aside className={cn(
-            "bg-white/40 dark:bg-[#09090b]/40 backdrop-blur-3xl border-r border-slate-200/50 dark:border-[#383e59] flex flex-col h-full transition-all duration-300 overflow-hidden",
-            isCollapsed ? "w-16" : "w-64"
+            "glass-panel border-r border-white/20 dark:border-white/5 flex flex-col h-full transition-all duration-500 overflow-hidden shadow-2xl",
+            isCollapsed ? "w-16" : "w-72"
         )}>
 
             {/* Logo */}
@@ -377,7 +377,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                 placeholder="Search projects..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full pl-8 pr-3 py-1.5 text-sm bg-secondary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground transition-all"
+                                className="w-full pl-8 pr-3 py-1.5 text-sm bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 transition-all shadow-inner"
                             />
                         </div>
                     </div>
@@ -414,7 +414,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             }
                             <Folder className="h-3.5 w-3.5 flex-shrink-0" />
                             <span className="flex-1 text-left truncate">Uncategorized</span>
-                            <span className="text-xs font-bold bg-secondary px-2 py-0.5 rounded-full">{uncategorizedProjects.length}</span>
+                            <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full">{uncategorizedProjects.length}</span>
                         </button>
                         {expanded.has("uncategorized") && (
                             <div className="ml-3 mt-0.5 space-y-0.5 pl-2">
@@ -447,7 +447,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                     }
                                     <Folder className="h-3.5 w-3.5 flex-shrink-0 text-accent/70" />
                                     <span className="flex-1 text-left truncate">{category.name}</span>
-                                    <span className="text-xs font-bold bg-secondary px-2 py-0.5 rounded-full">{catProjects.length}</span>
+                                    <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full">{catProjects.length}</span>
                                 </button>
                                 <button
                                     onClick={e => handleDeleteCategory(category.id, e)}

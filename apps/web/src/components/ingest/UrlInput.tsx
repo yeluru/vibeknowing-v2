@@ -201,7 +201,7 @@ export function UrlInput() {
                         <input
                             type="text"
                             placeholder="Paste link (YouTube, Instagram, X/Twitter, TED, Web) or upload..."
-                            className="flex-1 border-none bg-transparent px-3 py-4 h-14 text-base md:text-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 w-full"
+                            className="flex-1 border-none bg-transparent px-3 py-3 h-12 text-base text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 w-full font-medium"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={!!file}
@@ -213,7 +213,7 @@ export function UrlInput() {
                         type="submit"
                         disabled={!canSubmit}
                         className={cn(
-                            "vk-btn vk-btn-primary h-14 md:h-auto md:py-3 flex items-center justify-center rounded-2xl px-8 text-base font-bold shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/35 hover:scale-[1.01] active:scale-[0.99] w-full md:w-auto shrink-0",
+                            "vk-btn vk-btn-primary h-12 md:h-12 flex items-center justify-center rounded-xl px-8 text-sm font-black uppercase tracking-widest shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/35 hover:scale-[1.01] active:scale-[0.99] w-full md:w-auto shrink-0",
                             !canSubmit && "cursor-not-allowed opacity-50 grayscale"
                         )}
                         aria-busy={isLoading}
@@ -231,11 +231,11 @@ export function UrlInput() {
                     </button>
                 </div>
 
-                {/* Helper Text and Options */}
-                <div className="mt-6 flex flex-col items-center gap-2">
-                    <p className="text-xs text-gray-500 dark:text-slate-400 text-center leading-relaxed">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Supported Links:</span> YouTube, Instagram, X/Twitter, TikTok, LinkedIn, TED Talks, and Web.<br/>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Supported Files:</span> Audio/Video (MP3, MP4, WAV), Documents (PDF, DOCX), and Data (TXT, CSV, JSON).
+                {/* Helper Text and Options - User Preferred Wording */}
+                <div className="mt-5 flex flex-col items-center gap-2">
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400 text-center leading-relaxed font-medium">
+                        <span className="font-bold text-slate-700 dark:text-slate-300">Supported Links:</span> YouTube, Instagram, X/Twitter, TikTok, LinkedIn, TED Talks, and Web.<br/>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">Supported Files:</span> Audio/Video (MP3, MP4, WAV), Documents (PDF, DOCX), and Data (TXT, CSV, JSON).
                     </p>
 
                     {file && file.name.toLowerCase().endsWith('.pdf') && (

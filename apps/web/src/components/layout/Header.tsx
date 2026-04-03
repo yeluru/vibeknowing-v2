@@ -15,7 +15,7 @@ export function Header({ onMenuClick, title = "VibeLearn", subtitle }: HeaderPro
     const { theme, toggleTheme } = useTheme();
 
     return (
-        <header className="relative z-[100] flex-none h-[60px] bg-white/40 dark:bg-[#09090b]/40 backdrop-blur-3xl border-b border-slate-200/50 dark:border-[#383e59] flex items-center justify-between px-6 transition-colors duration-300">
+        <header className="relative z-[100] flex-none h-[64px] glass-panel border-b border-white/40 dark:border-white/5 flex items-center justify-between px-6 transition-all duration-500 shadow-sm">
 
             {/* Left */}
             <div className="flex items-center gap-3 min-w-0">
@@ -26,12 +26,12 @@ export function Header({ onMenuClick, title = "VibeLearn", subtitle }: HeaderPro
                 >
                     <Menu className="h-5 w-5" />
                 </button>
-                <div className="min-w-0 leading-tight">
-                    <span className="block text-[13px] font-semibold text-slate-800 dark:text-slate-100 tracking-tight truncate">
+                <div className="min-w-0 leading-tight group cursor-default">
+                    <span className="block text-[14px] font-black text-slate-900 dark:text-white tracking-tight truncate group-hover:text-primary transition-colors">
                         {title}
                     </span>
                     {subtitle && (
-                        <span className="block text-[11px] text-slate-400 dark:text-slate-500 truncate hidden sm:block">
+                        <span className="block text-[11px] text-slate-500 dark:text-slate-300 font-medium truncate hidden sm:block">
                             {subtitle}
                         </span>
                     )}

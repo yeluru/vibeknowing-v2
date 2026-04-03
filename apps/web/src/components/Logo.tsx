@@ -9,19 +9,18 @@ interface LogoProps {
 
 export function Logo({ className }: LogoProps) {
     return (
-        <div className={cn("flex flex-col items-center gap-1 select-none", className)}>
-            {/* Brain Icon */}
-            <div className="relative transform hover:scale-105 transition-transform duration-300">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <Brain className="h-6 w-6 text-white" />
+        <div className={cn("flex flex-col items-center gap-1.5 select-none", className)}>
+            {/* Brain Icon - Deep Field Gradient */}
+            <div className="relative group transition-all duration-500 hover:scale-110">
+                <div className="absolute -inset-2 bg-indigo-500/20 dark:bg-indigo-400/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(79,70,229,0.5)] dark:shadow-[0_8px_20px_-6px_rgba(30,27,75,0.8)] border border-white/20">
+                    <Brain className="h-6 w-6 text-white drop-shadow-md" />
                 </div>
-                <div className="absolute -top-1 -right-1">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-400 fill-amber-400 animate-pulse" />
+                <div className="absolute -top-1.5 -right-1.5">
+                    <Sparkles className="h-4 w-4 text-amber-300 fill-amber-300 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
                 </div>
             </div>
-
-            {/* Smallest Text Underneath */}
-            <span className="text-[10px] font-bold tracking-[0.15em] text-slate-400 dark:text-slate-500 uppercase leading-none">
+            <span className="text-[10px] font-black tracking-[0.25em] text-slate-800 dark:text-slate-100 uppercase leading-none filter drop-shadow-sm transition-colors">
                 VibeLearn
             </span>
         </div>
