@@ -334,37 +334,41 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
 
                                 {/* Category Picker Dropdown */}
                                 {pickerUrl === rec.url && (
-                                    <div className="absolute right-0 top-12 z-50 w-56 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                                        <p className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-white/5 mb-1">
+                                    <div className="absolute right-0 top-12 z-50 w-56 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col max-h-72">
+                                        {/* Header — always visible */}
+                                        <p className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-white/5 shrink-0">
                                             Add to learning path
                                         </p>
 
-                                        {allCategories.length === 0 && !isCreatingCategory ? (
-                                            <p className="px-3 py-2 text-xs text-slate-500">No learning paths yet.</p>
-                                        ) : (
-                                            allCategories.map(cat => (
-                                                <button
-                                                    key={cat.id}
-                                                    onClick={() => handleAddSource(rec.url, cat.id, cat.name)}
-                                                    className={cn(
-                                                        "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-                                                        cat.id === currentCategoryId
-                                                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold"
-                                                            : "text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                                    )}
-                                                >
-                                                    <FolderOpen className={cn("h-3.5 w-3.5 shrink-0", cat.id === currentCategoryId ? "text-emerald-500" : "text-slate-400")} />
-                                                    <span className="truncate font-medium">{cat.name}</span>
-                                                    {cat.id === currentCategoryId && (
-                                                        <span className="ml-auto text-[9px] font-black text-emerald-500 shrink-0">current</span>
-                                                    )}
-                                                </button>
-                                            ))
-                                        )}
+                                        {/* Scrollable list */}
+                                        <div className="overflow-y-auto flex-1 py-1">
+                                            {allCategories.length === 0 && !isCreatingCategory ? (
+                                                <p className="px-3 py-2 text-xs text-slate-500">No learning paths yet.</p>
+                                            ) : (
+                                                allCategories.map(cat => (
+                                                    <button
+                                                        key={cat.id}
+                                                        onClick={() => handleAddSource(rec.url, cat.id, cat.name)}
+                                                        className={cn(
+                                                            "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                                                            cat.id === currentCategoryId
+                                                                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold"
+                                                                : "text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                                        )}
+                                                    >
+                                                        <FolderOpen className={cn("h-3.5 w-3.5 shrink-0", cat.id === currentCategoryId ? "text-emerald-500" : "text-slate-400")} />
+                                                        <span className="truncate font-medium">{cat.name}</span>
+                                                        {cat.id === currentCategoryId && (
+                                                            <span className="ml-auto text-[9px] font-black text-emerald-500 shrink-0">current</span>
+                                                        )}
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
 
-                                        {/* Create new category */}
+                                        {/* Create new — always pinned at bottom */}
                                         {isCreatingCategory ? (
-                                            <div className="px-3 py-2 space-y-2 border-t border-slate-100 dark:border-white/5">
+                                            <div className="px-3 py-2 space-y-2 border-t border-slate-100 dark:border-white/5 shrink-0">
                                                 <input
                                                     autoFocus
                                                     type="text"
@@ -392,7 +396,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                                         ) : (
                                             <button
                                                 onClick={() => setIsCreatingCategory(true)}
-                                                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-t border-slate-100 dark:border-white/5 mt-1 transition-colors"
+                                                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-t border-slate-100 dark:border-white/5 shrink-0 transition-colors"
                                             >
                                                 <Plus className="h-3.5 w-3.5" />
                                                 Create new learning path
