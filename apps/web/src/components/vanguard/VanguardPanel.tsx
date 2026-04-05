@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, ArrowRight, Loader2, Link as LinkIcon, Youtube, Globe, CheckCircle2, Plus, RefreshCw, Route, ChevronDown, X } from "lucide-react";
-import { API_BASE, buildAIHeaders, projectsApi, Project } from "@/lib/api";
+import { Sparkles, ArrowRight, Loader2, Link as LinkIcon, Youtube, Globe, CheckCircle2, Plus, RefreshCw, Route, ChevronDown, X, FolderOpen } from "lucide-react";
+import { API_BASE, buildAIHeaders, categoriesApi, Category } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -36,10 +36,13 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
     const [newPathName, setNewPathName] = useState("");
     const [isNamingPath, setIsNamingPath] = useState(false);
     const [pathTitle, setPathTitle] = useState("");
-    // Path picker state
-    const [allPaths, setAllPaths] = useState<Project[]>([]);
+    // Category (learning path) picker state
+    const [allCategories, setAllCategories] = useState<Category[]>([]);
+    const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null);
     const [pickerUrl, setPickerUrl] = useState<string | null>(null); // which URL is awaiting path selection
     const [addedUrls, setAddedUrls] = useState<Set<string>>(new Set());
+    const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState("");
 
     const loadRecommendations = async () => {
         try {
@@ -51,13 +54,14 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                 setData(resData);
             }
 
-            // Also check current project title to see if it needs initialization
+            // Also check current project title and category
             const projRes = await fetch(`${API_BASE}/sources/projects/${projectId}/details`, {
                 headers: buildAIHeaders()
             });
             if (projRes.ok) {
                 const proj = await projRes.json();
                 setPathTitle(proj.title);
+                setCurrentCategoryId(proj.category_id ?? null);
                 // If title is a UUID or generic, trigger naming mode
                 if (proj.title.length > 30 || proj.title.toLowerCase().includes("new project")) {
                     setIsNamingPath(true);
@@ -94,8 +98,8 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
 
     useEffect(() => {
         loadRecommendations();
-        // Also load all learning paths for the path picker
-        projectsApi.list().then(setAllPaths).catch(() => {});
+        // Load categories (learning paths) for the picker
+        categoriesApi.list().then(setAllCategories).catch(() => {});
         const interval = setInterval(() => {
             if (!data || data.status !== 'ready') {
                 loadRecommendations();
@@ -105,37 +109,33 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
     }, [sourceId, data?.status]);
 
 
-    // Step 1: clicking + on a Vanguard rec opens the path picker
+    // Step 1: clicking + on a Vanguard rec opens the category picker
     const handlePickPath = (url: string) => {
-        if (allPaths.length === 0) {
-            toast.error("No Learning Paths yet", {
-                description: "Create a Learning Path first from the left sidebar.",
-            });
-            return;
-        }
         setPickerUrl(url);
+        setIsCreatingCategory(false);
+        setNewCategoryName("");
     };
 
-    // Step 2: user picks a path — ingest resource into it
-    const handleAddSource = async (url: string, targetPathId: string) => {
+    // Step 2: user picks a category — ingest resource into a new project under that category
+    const handleAddSource = async (url: string, categoryId: string, categoryName: string) => {
         setPickerUrl(null);
+        setIsCreatingCategory(false);
         setAddingUrl(url);
         try {
             const response = await fetch(`${API_BASE}/ingest/web`, {
                 method: 'POST',
                 headers: { ...buildAIHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url, project_id: targetPathId })
+                body: JSON.stringify({ url, project_id: "default", category_id: categoryId })
             });
             const resData = await response.json();
             if (response.ok) {
                 if (resData.status === 'exists') {
-                    toast.info("Already in that Path", { description: "This resource is already there." });
+                    toast.info("Already in your library", { description: "This resource has already been added." });
                 } else {
-                    const targetPath = allPaths.find(p => p.id === targetPathId);
                     setAddedUrls(prev => new Set([...prev, url]));
-                    toast.success(`Added to "${targetPath?.title || 'Path'}"`, {
+                    toast.success(`Added to "${categoryName}"`, {
                         description: "Resource ingested and linked.",
-                        action: { label: "View Path", onClick: () => router.push(`/paths/${targetPathId}`) }
+                        action: { label: "View Path", onClick: () => router.push(`/paths?category=${categoryId}`) }
                     });
                     if (onAdded) onAdded();
                     window.dispatchEvent(new Event('refresh-sidebar'));
@@ -147,6 +147,20 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
             toast.error("Network error — could not add resource");
         } finally {
             setAddingUrl(null);
+        }
+    };
+
+    // Create a new category then add the source to it
+    const handleCreateCategoryAndAdd = async (url: string) => {
+        if (!newCategoryName.trim()) return;
+        try {
+            const category = await categoriesApi.create(newCategoryName.trim());
+            setAllCategories(prev => [...prev, category]);
+            await handleAddSource(url, category.id, category.name);
+            setNewCategoryName("");
+            setIsCreatingCategory(false);
+        } catch {
+            toast.error("Failed to create learning path");
         }
     };
 
@@ -318,30 +332,71 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                                     </button>
                                 )}
 
-                                {/* Path Picker Dropdown */}
+                                {/* Category Picker Dropdown */}
                                 {pickerUrl === rec.url && (
-                                    <div className="absolute right-0 top-12 z-50 w-52 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="absolute right-0 top-12 z-50 w-56 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                                         <p className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-white/5 mb-1">
-                                            Add to which path?
+                                            Add to learning path
                                         </p>
-                                        {allPaths.length === 0 ? (
-                                            <p className="px-3 py-2 text-xs text-slate-500">No paths yet. Create one first.</p>
+
+                                        {allCategories.length === 0 && !isCreatingCategory ? (
+                                            <p className="px-3 py-2 text-xs text-slate-500">No learning paths yet.</p>
                                         ) : (
-                                            allPaths.map(path => (
+                                            allCategories.map(cat => (
                                                 <button
-                                                    key={path.id}
-                                                    onClick={() => handleAddSource(rec.url, path.id)}
-                                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                                    key={cat.id}
+                                                    onClick={() => handleAddSource(rec.url, cat.id, cat.name)}
+                                                    className={cn(
+                                                        "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                                                        cat.id === currentCategoryId
+                                                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold"
+                                                            : "text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                                    )}
                                                 >
-                                                    <Route className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                                                    <span className="truncate font-medium">{path.title}</span>
-                                                    {path.source_count > 0 && (
-                                                        <span className="ml-auto text-[9px] font-black text-slate-400 bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded-full shrink-0">
-                                                            {path.source_count}
-                                                        </span>
+                                                    <FolderOpen className={cn("h-3.5 w-3.5 shrink-0", cat.id === currentCategoryId ? "text-emerald-500" : "text-slate-400")} />
+                                                    <span className="truncate font-medium">{cat.name}</span>
+                                                    {cat.id === currentCategoryId && (
+                                                        <span className="ml-auto text-[9px] font-black text-emerald-500 shrink-0">current</span>
                                                     )}
                                                 </button>
                                             ))
+                                        )}
+
+                                        {/* Create new category */}
+                                        {isCreatingCategory ? (
+                                            <div className="px-3 py-2 space-y-2 border-t border-slate-100 dark:border-white/5">
+                                                <input
+                                                    autoFocus
+                                                    type="text"
+                                                    placeholder="Path name..."
+                                                    value={newCategoryName}
+                                                    onChange={e => setNewCategoryName(e.target.value)}
+                                                    onKeyDown={e => { if (e.key === 'Enter') handleCreateCategoryAndAdd(rec.url); if (e.key === 'Escape') setIsCreatingCategory(false); }}
+                                                    className="w-full text-xs px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                                                />
+                                                <div className="flex gap-1.5">
+                                                    <button
+                                                        onClick={() => handleCreateCategoryAndAdd(rec.url)}
+                                                        className="flex-1 text-[10px] font-black uppercase tracking-wide py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                                                    >
+                                                        Create & Add
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setIsCreatingCategory(false)}
+                                                        className="px-2 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                                    >
+                                                        <X className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => setIsCreatingCategory(true)}
+                                                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-t border-slate-100 dark:border-white/5 mt-1 transition-colors"
+                                            >
+                                                <Plus className="h-3.5 w-3.5" />
+                                                Create new learning path
+                                            </button>
                                         )}
                                     </div>
                                 )}

@@ -17,6 +17,7 @@ router = APIRouter(
 class UrlRequest(BaseModel):
     url: str
     project_id: str
+    category_id: Optional[str] = None
 
 def truncate_title(title: str, max_length: int = 30) -> str:
     """Truncate title to max_length characters, adding '...' if truncated"""
@@ -66,7 +67,8 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
             title="New Project", # Will be updated to source title later
             description="Created from URL",
             owner_id=owner_id,
-            is_auto_created=True
+            is_auto_created=True,
+            category_id=request.category_id
         )
         db.add(project)
         db.commit()
