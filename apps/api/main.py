@@ -16,8 +16,15 @@ from routers import ingest, ai, create, sources, categories, auth, oauth, settin
 from config import settings as app_settings
 import force_reset_db
 import seed_db
+import hotfix_migration
 
 load_dotenv()
+
+# Run hotfix migrations (safely adds missing columns)
+try:
+    hotfix_migration.run_hotfix()
+except Exception as e:
+    print(f"Hotfix migration skipped or failed: {e}")
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)
