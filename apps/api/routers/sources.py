@@ -36,10 +36,48 @@ async def list_projects(
         "created_at": p.created_at,
         "updated_at": p.updated_at,
         "source_count": len(p.sources),
+        "sources": [{
+            "id": s.id,
+            "title": s.title,
+            "type": s.type,
+            "created_at": s.created_at
+        } for s in p.sources],
         "first_source_id": p.sources[0].id if p.sources else None,
         "first_source_url": p.sources[0].url if p.sources else None,
-        "first_source_preview": (p.sources[0].content_text or "").replace('\n', ' ').strip()[:200] + "..." if p.sources and p.sources[0].content_text else None
     } for p in projects]
+
+
+class ProjectCreate(BaseModel):
+    title: str
+    description: str = ""
+
+@router.post("/projects/")
+async def create_project(
+    body: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Create a new empty Learning Path."""
+    import uuid
+    project = models.Project(
+        id=str(uuid.uuid4()),
+        title=body.title,
+        description=body.description,
+        owner_id=current_user.id,
+    )
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+    return {
+        "id": project.id,
+        "title": project.title,
+        "description": project.description,
+        "category_id": project.category_id,
+        "created_at": project.created_at,
+        "updated_at": project.updated_at,
+        "source_count": 0,
+        "sources": [],
+    }
 
 
 @router.get("/{source_id}")
@@ -133,6 +171,61 @@ async def delete_source(
     db.commit()
     
     return {"status": "deleted", "source_id": source_id}
+
+
+class MoveSourceRequest(BaseModel):
+    project_id: str
+
+@router.put("/{source_id}/project")
+async def move_source_to_project(
+    source_id: str,
+    body: MoveSourceRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Move a source from its current project to a different project.
+    If the old project becomes empty and was auto-created (title starts with
+    a UUID pattern or 'default'), it is deleted automatically.
+    """
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+
+    # Verify user owns the source's current project
+    old_project = db.query(models.Project).filter(models.Project.id == source.project_id).first()
+    if not old_project or old_project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Verify user owns the target project
+    target_project = db.query(models.Project).filter(
+        models.Project.id == body.project_id,
+        models.Project.owner_id == current_user.id
+    ).first()
+    if not target_project:
+        raise HTTPException(status_code=404, detail="Target project not found")
+
+    old_project_id = source.project_id
+
+    # Move the source
+    source.project_id = body.project_id
+    db.commit()
+
+    # Clean up orphaned auto-project: delete if now empty
+    remaining = db.query(models.Source).filter(
+        models.Source.project_id == old_project_id
+    ).count()
+    if remaining == 0 and old_project_id != body.project_id:
+        orphan = db.query(models.Project).filter(models.Project.id == old_project_id).first()
+        if orphan and orphan.is_auto_created:
+            db.delete(orphan)
+            db.commit()
+
+    db.refresh(source)
+    return {
+        "status": "moved",
+        "source_id": source_id,
+        "project_id": body.project_id
+    }
 
 
 class CategoryUpdate(BaseModel):

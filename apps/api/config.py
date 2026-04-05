@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     GOOGLE_AI_API_KEY: str = os.getenv("GOOGLE_AI_API_KEY", "")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY", "")
     DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "openai")
     
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")

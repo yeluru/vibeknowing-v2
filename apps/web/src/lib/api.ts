@@ -94,6 +94,12 @@ export interface Project {
     created_at: string;
     updated_at: string;
     source_count: number;
+    sources?: {
+        id: string;
+        title: string;
+        type: string;
+        created_at: string;
+    }[];
     first_source_id?: string;
     first_source_url?: string;
     first_source_preview?: string;
@@ -144,6 +150,11 @@ export const projectsApi = {
 
     async claim(projectIds: string[]): Promise<void> {
         await api.post('/sources/projects/claim', { project_ids: projectIds });
+    },
+
+    async create(title: string): Promise<Project> {
+        const res = await api.post('/sources/projects/', { title });
+        return res.data;
     },
 };
 

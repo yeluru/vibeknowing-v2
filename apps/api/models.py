@@ -46,6 +46,7 @@ class Project(Base):
     description = Column(Text, nullable=True)
     owner_id = Column(String, ForeignKey("users.id"))
     category_id = Column(String, ForeignKey("categories.id"), nullable=True)
+    is_auto_created = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -101,12 +102,14 @@ class ChatMessage(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     source_id = Column(String, ForeignKey("sources.id"), nullable=True)  # NULL for global chat
+    category_id = Column(String, ForeignKey("categories.id"), nullable=True) # Learning Path grouping
     user_id = Column(String, ForeignKey("users.id"), nullable=True)
     role = Column(String)  # 'user' or 'assistant'
     content = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     source = relationship("Source", backref="chat_messages")
+    category = relationship("Category", backref="chat_messages")
     user = relationship("User", backref="chat_messages")
 
 class OTP(Base):

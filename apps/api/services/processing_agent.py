@@ -1,4 +1,5 @@
 import json
+import asyncio
 from typing import Any
 from .agent_base import AgentBase
 from database import SessionLocal
@@ -90,7 +91,14 @@ class ProcessingAgent(AgentBase):
             else:
                 self.add_memory("system", "Vector embeddings already exist.")
 
-            self.add_memory("system", "Ingestion complete. Artifacts will be generated on-demand.")
+            self.add_memory("system", "Ingestion complete. Triggering Vibe-Vanguard research...")
+            
+            # 2. VIBE-VANGUARD AGENT (Autonomous Discovery)
+            from .vanguard import VanguardService
+            try:
+                await VanguardService.research_and_recommend(self.source_id)
+            except Exception as v_err:
+                print(f"Vanguard Research error: {v_err}")
 
             return "Processing completed successfully"
 

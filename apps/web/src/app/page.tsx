@@ -335,9 +335,9 @@ export default function Home() {
       return;
     }
     try {
-      const [projs, cats] = await Promise.all([projectsApi.list(), categoriesApi.list()]);
+      const projs = await projectsApi.list();
       setProjects(projs);
-      setCategories(cats);
+      setCategories([]);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {

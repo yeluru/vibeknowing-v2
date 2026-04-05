@@ -15,6 +15,7 @@ import { ReviewSession } from "@/components/flashcards/ReviewSession";
 import { StudioInterface } from "@/components/studio/StudioInterface";
 import { ContentViewer } from "@/components/content/ContentViewer";
 import { PodcastInterface } from "@/components/podcast/PodcastInterface";
+import { VanguardPanel } from "@/components/vanguard/VanguardPanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { API_BASE, buildAIHeaders } from "@/lib/api";
@@ -697,152 +698,163 @@ export default function SourcePage() {
             {/* ── Tab content ─────────────────────────────────────────── */}
             <div className="flex-1 overflow-y-auto min-h-0">
 
-                {/* Transcript */}
-                {activeTab === 'transcript' && (
-                    <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm p-6 sm:p-8">
-                        <div className="flex items-center justify-between mb-5">
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <FileText className="h-4.5 w-4.5 text-indigo-400" />Transcript
-                            </h2>
-                            <div className="flex items-center gap-2">
-                                {!isProcessing && !showTranscriptUpload && source.content_text && (
-                                    <button onClick={() => { navigator.clipboard.writeText(source.content_text); setCopiedTranscript(true); setTimeout(() => setCopiedTranscript(false), 2000); }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-all">
-                                        {copiedTranscript ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
-                                    </button>
-                                )}
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
+                <div className="flex-1 min-w-0 w-full space-y-6">
+                    {/* Transcript */}
+                    {activeTab === 'transcript' && (
+                        <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm p-6 sm:p-8">
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <FileText className="h-4.5 w-4.5 text-indigo-400" />Transcript
+                                </h2>
+                                <div className="flex items-center gap-2">
+                                    {!isProcessing && !showTranscriptUpload && source.content_text && (
+                                        <button onClick={() => { navigator.clipboard.writeText(source.content_text); setCopiedTranscript(true); setTimeout(() => setCopiedTranscript(false), 2000); }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-all">
+                                            {copiedTranscript ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
+                                        </button>
+                                    )}
 
+                                </div>
                             </div>
+
+                            {/* Paste content panel */}
+                            {showTranscriptUpload && (
+                                <div className="mb-6 rounded-2xl border-2 border-indigo-200 bg-indigo-50/60 p-5">
+                                    <div className="flex items-start gap-3 mb-4">
+                                        <div className="h-9 w-9 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                            <Upload className="h-4.5 w-4.5 text-indigo-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-900 mb-0.5">
+                                                Could not extract content from this URL
+                                            </p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">
+                                                Some pages are login-protected or JavaScript-rendered. Open the page in your browser,
+                                                select all the text (<kbd className="px-1 py-0.5 bg-white rounded border border-slate-200 text-[10px]">Cmd+A</kbd> then{" "}
+                                                <kbd className="px-1 py-0.5 bg-white rounded border border-slate-200 text-[10px]">Cmd+C</kbd>), then paste it below.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <textarea
+                                        value={manualTranscript}
+                                        onChange={(e) => setManualTranscript(e.target.value)}
+                                        placeholder="Paste the page content here..."
+                                        rows={10}
+                                        className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
+                                    />
+                                    <div className="flex items-center gap-3 mt-3">
+                                        <button
+                                            onClick={handleManualTranscriptUpload}
+                                            disabled={uploading || !manualTranscript.trim()}
+                                            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                                            {uploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</> : <>Use this content</>}
+                                        </button>
+                                        <button
+                                            onClick={() => { setShowTranscriptUpload(false); setManualTranscript(""); }}
+                                            className="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {isProcessing ? (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="h-14 w-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
+                                        <Loader2 className="h-7 w-7 animate-spin text-indigo-500" />
+                                    </div>
+                                    <h3 className="text-base font-semibold text-slate-900 mb-1">Processing your content</h3>
+                                    <p className="text-sm text-slate-500 mb-5">This usually takes under 30 seconds.</p>
+                                    <button onClick={fetchSource}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-all">
+                                        <RefreshCw className="h-3.5 w-3.5" />Check status
+                                    </button>
+                                </div>
+                            ) : !showTranscriptUpload && (
+                                <div className="prose prose-sm max-w-none">
+                                    <p className="whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed text-sm">{source.content_text}</p>
+                                </div>
+                            )}
                         </div>
+                    )}
 
-                        {/* Paste content panel */}
-                        {showTranscriptUpload && (
-                            <div className="mb-6 rounded-2xl border-2 border-indigo-200 bg-indigo-50/60 p-5">
-                                <div className="flex items-start gap-3 mb-4">
-                                    <div className="h-9 w-9 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                        <Upload className="h-4.5 w-4.5 text-indigo-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-900 mb-0.5">
-                                            Could not extract content from this URL
-                                        </p>
-                                        <p className="text-xs text-slate-500 leading-relaxed">
-                                            Some pages are login-protected or JavaScript-rendered. Open the page in your browser,
-                                            select all the text (<kbd className="px-1 py-0.5 bg-white rounded border border-slate-200 text-[10px]">Cmd+A</kbd> then{" "}
-                                            <kbd className="px-1 py-0.5 bg-white rounded border border-slate-200 text-[10px]">Cmd+C</kbd>), then paste it below.
-                                        </p>
-                                    </div>
-                                </div>
-                                <textarea
-                                    value={manualTranscript}
-                                    onChange={(e) => setManualTranscript(e.target.value)}
-                                    placeholder="Paste the page content here..."
-                                    rows={10}
-                                    className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 placeholder-slate-400 resize-none leading-relaxed"
-                                />
-                                <div className="flex items-center gap-3 mt-3">
-                                    <button
-                                        onClick={handleManualTranscriptUpload}
-                                        disabled={uploading || !manualTranscript.trim()}
-                                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
-                                        {uploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</> : <>Use this content</>}
-                                    </button>
-                                    <button
-                                        onClick={() => { setShowTranscriptUpload(false); setManualTranscript(""); }}
-                                        className="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
-                                        Cancel
+                    {/* Summary */}
+                    {activeTab === 'summary' && (
+                        <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm p-6 sm:p-8">
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Sparkles className="h-4.5 w-4.5 text-indigo-400" />AI Summary
+                                </h2>
+                                <div className="flex items-center gap-2">
+                                    {source.summary && (
+                                        <button onClick={() => { navigator.clipboard.writeText(source.summary || ''); setCopiedSummary(true); setTimeout(() => setCopiedSummary(false), 2000); }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
+                                            {copiedSummary ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
+                                        </button>
+                                    )}
+                                    <button onClick={handleGenerateSummary} disabled={generating}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                                        {generating ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generating…</> : <><RefreshCw className="h-3.5 w-3.5" />{source.summary ? 'Regenerate' : 'Generate'}</>}
                                     </button>
                                 </div>
                             </div>
-                        )}
-
-                        {isProcessing ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-center">
-                                <div className="h-14 w-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
-                                    <Loader2 className="h-7 w-7 animate-spin text-indigo-500" />
+                            {source.summary ? (
+                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm, remarkMath]}
+                                        rehypePlugins={[rehypeKatex]}
+                                        components={{
+                                            h1: ({ node, ...props }) => <h1 className="!text-xl !font-bold !mt-6 !mb-3 !text-slate-900 dark:!text-white" {...props} />,
+                                            h2: ({ node, ...props }) => <h2 className="!text-lg !font-bold !mt-5 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
+                                            h3: ({ node, ...props }) => <h3 className="!text-base !font-semibold !mt-4 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
+                                            p: ({ node, ...props }) => <p className="!mb-3 !text-slate-700 dark:!text-slate-300 !leading-relaxed" {...props} />,
+                                            ul: ({ node, ...props }) => <ul className="!list-disc !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                            ol: ({ node, ...props }) => <ol className="!list-decimal !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                            li: ({ node, ...props }) => <li className="!ml-4 !text-slate-700 dark:!text-slate-300" {...props} />,
+                                            strong: ({ node, ...props }) => <strong className="!font-semibold !text-slate-900 dark:!text-white" {...props} />,
+                                            blockquote: ({ node, ...props }) => <blockquote className="!border-l-4 !border-indigo-400 !pl-4 !italic !text-slate-600 dark:!text-slate-400 !my-4" {...props} />,
+                                            pre: ({ node, ...props }) => <pre className="not-prose bg-slate-50 dark:bg-[#1a1e30] rounded-xl overflow-x-auto border border-slate-200 dark:border-[#383e59] my-4" {...props} />,
+                                            code: ({ node, inline, className, children, ...props }: any) => !inline
+                                                ? <code className={cn("!block !p-4 !text-sm !font-mono !text-slate-800 dark:!text-slate-200 whitespace-pre", className)} {...props}>{children}</code>
+                                                : <code className="!px-1.5 !py-0.5 !bg-indigo-50 dark:!bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400 !rounded !text-xs !font-mono" {...props}>{children}</code>,
+                                            img: ({ node, ...props }) => <img className="rounded-xl border border-slate-200 dark:border-[#383e59] my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />,
+                                        }}
+                                    >
+                                        {source.summary}
+                                    </ReactMarkdown>
                                 </div>
-                                <h3 className="text-base font-semibold text-slate-900 mb-1">Processing your content</h3>
-                                <p className="text-sm text-slate-500 mb-5">This usually takes under 30 seconds.</p>
-                                <button onClick={fetchSource}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-all">
-                                    <RefreshCw className="h-3.5 w-3.5" />Check status
-                                </button>
-                            </div>
-                        ) : !showTranscriptUpload && (
-                            <div className="prose prose-sm max-w-none">
-                                <p className="whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed text-sm">{source.content_text}</p>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
+                                        <Sparkles className="h-7 w-7 text-indigo-400" />
+                                    </div>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm">No summary yet — click Generate above.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Chat */}
+                    {activeTab === 'chat' && <ChatInterface sourceId={source.id} />}
+
+                    {/* Podcast */}
+                    {activeTab === 'podcast' && <PodcastInterface sourceId={source.id} />}
+
+                    {/* Studio — handles Diagrams, Articles, Quiz, Flashcards, Social internally */}
+                    {activeTab === 'studio' && <StudioInterface sourceId={source.id} />}
+
+                    {/* View */}
+                    {activeTab === 'view' && <ContentViewer url={source.url || ''} title={source.title || 'Untitled'} />}
+                </div>
+
+                {/* Vibe-Vanguard Sidebar (Mastery Sidepanel) */}
+                {(activeTab === 'summary' || activeTab === 'transcript' || activeTab === 'view') && (
+                    <div className="lg:w-[340px] flex-none sticky top-4">
+                        <VanguardPanel sourceId={source.id} projectId={source.project_id || ''} />
                     </div>
                 )}
-
-                {/* Summary */}
-                {activeTab === 'summary' && (
-                    <div className="bg-white/80 dark:bg-[#1a1e30]/60 backdrop-blur-xl rounded-2xl border border-slate-200/70 dark:border-[#383e59] shadow-sm p-6 sm:p-8">
-                        <div className="flex items-center justify-between mb-5">
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Sparkles className="h-4.5 w-4.5 text-indigo-400" />AI Summary
-                            </h2>
-                            <div className="flex items-center gap-2">
-                                {source.summary && (
-                                    <button onClick={() => { navigator.clipboard.writeText(source.summary || ''); setCopiedSummary(true); setTimeout(() => setCopiedSummary(false), 2000); }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all">
-                                        {copiedSummary ? <><Check className="h-3.5 w-3.5 text-emerald-500" />Copied</> : <><Copy className="h-3.5 w-3.5" />Copy</>}
-                                    </button>
-                                )}
-                                <button onClick={handleGenerateSummary} disabled={generating}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                                    {generating ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generating…</> : <><RefreshCw className="h-3.5 w-3.5" />{source.summary ? 'Regenerate' : 'Generate'}</>}
-                                </button>
-                            </div>
-                        </div>
-                        {source.summary ? (
-                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm, remarkMath]}
-                                    rehypePlugins={[rehypeKatex]}
-                                    components={{
-                                        h1: ({ node, ...props }) => <h1 className="!text-xl !font-bold !mt-6 !mb-3 !text-slate-900 dark:!text-white" {...props} />,
-                                        h2: ({ node, ...props }) => <h2 className="!text-lg !font-bold !mt-5 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
-                                        h3: ({ node, ...props }) => <h3 className="!text-base !font-semibold !mt-4 !mb-2 !text-slate-900 dark:!text-white" {...props} />,
-                                        p: ({ node, ...props }) => <p className="!mb-3 !text-slate-700 dark:!text-slate-300 !leading-relaxed" {...props} />,
-                                        ul: ({ node, ...props }) => <ul className="!list-disc !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="!list-decimal !list-inside !mb-3 !space-y-1 !text-slate-700 dark:!text-slate-300" {...props} />,
-                                        li: ({ node, ...props }) => <li className="!ml-4 !text-slate-700 dark:!text-slate-300" {...props} />,
-                                        strong: ({ node, ...props }) => <strong className="!font-semibold !text-slate-900 dark:!text-white" {...props} />,
-                                        blockquote: ({ node, ...props }) => <blockquote className="!border-l-4 !border-indigo-400 !pl-4 !italic !text-slate-600 dark:!text-slate-400 !my-4" {...props} />,
-                                        pre: ({ node, ...props }) => <pre className="not-prose bg-slate-50 dark:bg-[#1a1e30] rounded-xl overflow-x-auto border border-slate-200 dark:border-[#383e59] my-4" {...props} />,
-                                        code: ({ node, inline, className, children, ...props }: any) => !inline
-                                            ? <code className={cn("!block !p-4 !text-sm !font-mono !text-slate-800 dark:!text-slate-200 whitespace-pre", className)} {...props}>{children}</code>
-                                            : <code className="!px-1.5 !py-0.5 !bg-indigo-50 dark:!bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400 !rounded !text-xs !font-mono" {...props}>{children}</code>,
-                                        img: ({ node, ...props }) => <img className="rounded-xl border border-slate-200 dark:border-[#383e59] my-4 max-w-full h-auto mx-auto shadow-sm" {...props} />,
-                                    }}
-                                >
-                                    {source.summary}
-                                </ReactMarkdown>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-20 text-center">
-                                <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
-                                    <Sparkles className="h-7 w-7 text-indigo-400" />
-                                </div>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm">No summary yet — click Generate above.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Chat */}
-                {activeTab === 'chat' && <ChatInterface sourceId={source.id} />}
-
-                {/* Podcast */}
-                {activeTab === 'podcast' && <PodcastInterface sourceId={source.id} />}
-
-                {/* Studio — handles Diagrams, Articles, Quiz, Flashcards, Social internally */}
-                {activeTab === 'studio' && <StudioInterface sourceId={source.id} />}
-
-                {/* View */}
-                {activeTab === 'view' && <ContentViewer url={source.url || ''} title={source.title || 'Untitled'} />}
+            </div>
 
             </div>
         </div>

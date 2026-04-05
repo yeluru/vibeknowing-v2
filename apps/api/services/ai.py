@@ -688,3 +688,12 @@ Source Transcript:
         out_buffer = BytesIO()
         combined_audio.export(out_buffer, format="mp3")
         return out_buffer.getvalue()
+    @staticmethod
+    def generate_text(prompt: str, **kwargs) -> str:
+        """Expose the _generate logic to other services."""
+        return _generate(prompt=prompt, **kwargs)
+
+    @staticmethod
+    def generate_json(prompt: str, **kwargs) -> str:
+        """Expose the _generate_json logic to other services."""
+        return _generate_json(prompt=prompt, **kwargs)

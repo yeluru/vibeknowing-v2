@@ -65,7 +65,8 @@ async def ingest_url(request: UrlRequest, background_tasks: BackgroundTasks, db:
         project = models.Project(
             title="New Project", # Will be updated to source title later
             description="Created from URL",
-            owner_id=owner_id
+            owner_id=owner_id,
+            is_auto_created=True
         )
         db.add(project)
         db.commit()
@@ -762,7 +763,8 @@ async def ingest_file(
         project = models.Project(
             title=final_title,
             description="Created from file upload",
-            owner_id=owner_id
+            owner_id=owner_id,
+            is_auto_created=True
         )
         db.add(project)
         db.commit()

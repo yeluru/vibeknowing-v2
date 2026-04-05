@@ -101,8 +101,9 @@ def _get_ai_params(request: Request, task: str = "chat") -> dict:
 
 class ChatRequest(BaseModel):
     source_id: Optional[str] = None
+    category_id: Optional[str] = None
     message: str
-    scope: str = "source" # "source" or "all"
+    scope: str = "source" # "source", "category", or "all"
 
 
 @router.post("/chat")
@@ -113,13 +114,16 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
         if not source or not source.content_text:
             raise HTTPException(status_code=404, detail="Source content not found")
 
-    # If no source_id, force scope to "all" (global chat)
-    if not request_body.source_id:
+    # Determine scope based on inputs
+    if request_body.category_id:
+        request_body.scope = "category"
+    elif not request_body.source_id:
         request_body.scope = "all"
 
-    # Save user message (source_id can be NULL for global chat)
+    # Save user message (source_id and category_id can be NULL for global chat)
     user_message = models.ChatMessage(
         source_id=request_body.source_id,
+        category_id=request_body.category_id,
         user_id=current_user.id if current_user else None,
         role="user",
         content=request_body.message
@@ -157,12 +161,14 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
                     .join(models.Source, models.SourceChunk.source_id == models.Source.id)\
                     .join(models.Project, models.Source.project_id == models.Project.id)\
                     .filter(models.Project.owner_id == current_user.id).all()
-            elif source:
-                chunks = db.query(models.SourceChunk).filter(
-                    models.SourceChunk.project_id == source.project_id
-                ).all()
             else:
                 chunks = []
+        elif request_body.scope == "category" and request_body.category_id:
+            # Filter by Learning Path (Category)
+            chunks = db.query(models.SourceChunk)\
+                .join(models.Source, models.SourceChunk.source_id == models.Source.id)\
+                .join(models.Project, models.Source.project_id == models.Project.id)\
+                .filter(models.Project.category_id == request_body.category_id).all()
         else:
             # scope == "source" — requires a valid source
             if source:
@@ -268,17 +274,16 @@ async def chat(request_body: ChatRequest, request: Request, db: Session = Depend
             # Save assistant message after streaming completes
             from database import SessionLocal
             new_db = SessionLocal()
-            try:
-                assistant_message = models.ChatMessage(
-                    source_id=request_body.source_id,
-                    user_id=current_user.id if current_user else None,
-                    role="assistant",
-                    content=''.join(full_response),
-                )
-                new_db.add(assistant_message)
-                new_db.commit()
-            finally:
-                new_db.close()
+            asst_msg = models.ChatMessage(
+                source_id=request_body.source_id,
+                category_id=request_body.category_id,
+                user_id=current_user.id if current_user else None,
+                role="assistant",
+                content="".join(full_response)
+            )
+            new_db.add(asst_msg)
+            new_db.commit()
+            new_db.close()
 
     return StreamingResponse(iter_stream(), media_type="text/plain")
 
@@ -300,12 +305,33 @@ async def get_chat_history(source_id: str, db: Session = Depends(get_db)):
 
 @router.get("/chat/history-global")
 async def get_global_chat_history(db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_user)):
-    """Retrieve global chat history (messages with no source_id)"""
+    """Retrieve global chat history (messages with no source_id and no category_id)"""
     if not current_user:
         raise HTTPException(status_code=401, detail="Authentication required for global chat history")
         
     messages = db.query(models.ChatMessage).filter(
         models.ChatMessage.source_id == None,
+        models.ChatMessage.category_id == None,
+        models.ChatMessage.user_id == current_user.id
+    ).order_by(models.ChatMessage.created_at).all()
+    
+    return [
+        {
+            "role": msg.role,
+            "content": msg.content,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None
+        } for msg in messages
+    ]
+
+
+@router.get("/chat/history-path/{category_id}")
+async def get_category_chat_history(category_id: str, db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_user)):
+    """Retrieve chat history for a specific Learning Path"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required for path chat history")
+        
+    messages = db.query(models.ChatMessage).filter(
+        models.ChatMessage.category_id == category_id,
         models.ChatMessage.user_id == current_user.id
     ).order_by(models.ChatMessage.created_at).all()
     
@@ -727,4 +753,43 @@ async def get_podcast_status(source_id: str, db: Session = Depends(get_db)):
         "audio_url": artifact.content.get("audio_url"),
         "segments": artifact.content.get("segments")
     }
+
+
+@router.get("/vanguard/{source_id}")
+async def get_vanguard_recommendations(source_id: str, db: Session = Depends(get_db)):
+    """Retrieve the latest Vanguard Mastery Recommendations for a source"""
+    artifact = db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "recommendation"
+    ).order_by(models.Artifact.created_at.desc()).first()
+    
+    if not artifact:
+        # If not found, trigger research in the background (handles legacy/skipped sources)
+        from services.vanguard import VanguardService
+        # We can fire and forget here as the FastAPI loop is persistent
+        asyncio.create_task(VanguardService.research_and_recommend(source_id))
+        return {"status": "processing", "recommendations": []}
+    
+    return {
+        "id": artifact.id,
+        "status": artifact.content.get("status", "ready"),
+        "recommendations": artifact.content.get("recommendations", []),
+        "agent_commentary": artifact.content.get("agent_commentary", "")
+    }
+
+@router.post("/vanguard/{source_id}/refresh")
+async def refresh_vanguard_recommendations(source_id: str, db: Session = Depends(get_db)):
+    """Force a new research pass for the Vibe-Vanguard agent"""
+    # Delete existing recommendation artifacts to trigger new pass on next fetch
+    db.query(models.Artifact).filter(
+        models.Artifact.source_id == source_id,
+        models.Artifact.type == "recommendation"
+    ).delete()
+    db.commit()
+    
+    # Trigger a new research pass
+    from services.vanguard import VanguardService
+    asyncio.create_task(VanguardService.research_and_recommend(source_id))
+    
+    return {"status": "processing", "message": "Mastery refresh initiated"}
 
