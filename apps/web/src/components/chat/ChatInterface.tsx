@@ -152,20 +152,7 @@ export function ChatInterface({ sourceId, initialMessage }: ChatInterfaceProps) 
     };
 
     return (
-        <div className="flex h-full flex-col bg-slate-50 dark:bg-[#020203] relative overflow-hidden transition-colors duration-500">
-            {/* Dark Mode Background Blobs */}
-            <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden opacity-0 dark:opacity-100 transition-opacity duration-1000">
-                <motion.div 
-                    animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.2, 1] }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[120px] rounded-full" 
-                />
-                <motion.div 
-                    animate={{ x: [0, -40, 0], y: [0, -20, 0], scale: [1, 1.1, 1] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-violet-600/10 blur-[100px] rounded-full" 
-                />
-            </div>
+        <div className="flex h-full flex-col bg-slate-50/50 dark:bg-transparent relative overflow-hidden transition-colors duration-500">
             
             <motion.div 
                 initial="hidden" 

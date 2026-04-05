@@ -230,11 +230,11 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             "flex-1 flex items-center gap-2 py-1.5 pr-8 rounded-lg text-[12px] font-semibold transition-all duration-150 min-w-0",
                             indent ? "pl-4" : "pl-2",
                             isActive
-                                ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
+                                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
                         )}
                     >
-                        <Route className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-indigo-500" : "text-slate-300 dark:text-slate-600")} />
+                        <Route className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-emerald-500" : "text-slate-300 dark:text-slate-600")} />
                         <EditableTitle
                             initialValue={project.title}
                             onSave={v => handleUpdateTitle(project.id, v)}
@@ -244,7 +244,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                         {project.source_count > 0 && (
                             <span className={cn(
                                 "text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 tabular-nums",
-                                isActive ? "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400"
+                                isActive ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
                                     : "bg-slate-100 dark:bg-white/8 text-slate-400 dark:text-slate-500"
                             )}>
                                 {project.source_count}
@@ -287,13 +287,13 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                 isCollapsed ? "justify-center p-4" : "px-4 py-4 gap-3"
             )}>
                 <Link href="/" onClick={onNavigate} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
-                    <div className="flex-shrink-0 h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
+                    <div className="flex-shrink-0 h-8 w-8 rounded-xl bg-gradient-to-br from-emerald-400 to-indigo-600 flex items-center justify-center shadow-lg dark:sidebar-logo-glow">
                         <Route className="h-4 w-4 text-white" />
                     </div>
                     {!isCollapsed && (
                         <div className="min-w-0">
-                            <span className="block font-black text-[15px] tracking-tight text-slate-900 dark:text-white leading-tight">Mastery Path</span>
-                            <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.18em] mt-0.5">VibeLearn System</span>
+                            <span className="block font-mono font-black text-[15px] tracking-tight text-slate-900 dark:text-white leading-tight">VibeKnowing</span>
+                            <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.18em] mt-0.5">Mastery System</span>
                         </div>
                     )}
                 </Link>
@@ -369,7 +369,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                             <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">My Mastery Paths</span>
                                             <button 
                                                 onClick={() => setCreatingCollection(true)}
-                                                className="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all"
+                                                className="p-1 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all"
                                                 title="New Learning Path"
                                             >
                                                 <Plus className="h-3 w-3" />
@@ -386,17 +386,17 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                                 exit={{ opacity: 0, height: 0 }}
                                                 className="px-2 pb-3 overflow-hidden"
                                             >
-                                                <form onSubmit={handleCreateCollection} className="flex gap-1.5 p-1.5 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-xl border border-indigo-500/10">
-                                                    <input 
-                                                        autoFocus 
-                                                        type="text" 
-                                                        value={newCollectionName} 
-                                                        onChange={e => setNewCollectionName(e.target.value)} 
+                                                <form onSubmit={handleCreateCollection} className="flex gap-1.5 p-1.5 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl border border-emerald-500/15">
+                                                    <input
+                                                        autoFocus
+                                                        type="text"
+                                                        value={newCollectionName}
+                                                        onChange={e => setNewCollectionName(e.target.value)}
                                                         onKeyDown={e => e.key === "Escape" && setCreatingCollection(false)}
-                                                        placeholder="Path name..." 
-                                                        className="flex-1 px-2.5 py-1 text-xs bg-white dark:bg-[#1a1e30] border-none rounded-lg focus:ring-1 focus:ring-indigo-500" 
+                                                        placeholder="Path name..."
+                                                        className="flex-1 px-2.5 py-1 text-xs bg-white dark:bg-[#0a0f1e] border-none rounded-lg focus:ring-1 focus:ring-emerald-500"
                                                     />
-                                                    <button type="submit" className="px-2.5 py-1 bg-indigo-600 text-white text-[10px] rounded-lg font-bold">Add</button>
+                                                    <button type="submit" className="px-2.5 py-1 bg-emerald-600 text-white text-[10px] rounded-lg font-bold">Add</button>
                                                 </form>
                                             </motion.div>
                                         )}
@@ -412,13 +412,13 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                             >
                                                 <div className={cn(
                                                     "group/cat flex items-center gap-1.5 px-2 py-1.5 rounded-xl mb-0.5 border transition-all",
-                                                    "bg-indigo-500/5 dark:bg-indigo-500/10 border-indigo-500/10 hover:border-indigo-500/30",
-                                                    draggedProjectId && "ring-1 ring-indigo-500/20 bg-indigo-500/10" // Simpler visual hint during any drag
+                                                    "bg-emerald-500/5 dark:bg-emerald-500/8 border-emerald-500/10 hover:border-emerald-500/30",
+                                                    draggedProjectId && "ring-1 ring-emerald-500/20 bg-emerald-500/10"
                                                 )}>
-                                                    <button onClick={() => toggleGroup(cat.id)} className="flex-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 text-left">
-                                                        <MapIcon className={cn("h-3.5 w-3.5", isOpen ? "text-indigo-500" : "text-slate-400")} />
+                                                    <button onClick={() => toggleGroup(cat.id)} className="flex-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 text-left">
+                                                        <MapIcon className={cn("h-3.5 w-3.5", isOpen ? "text-emerald-500" : "text-slate-400")} />
                                                         <span className="truncate">{cat.name}</span>
-                                                        <span className="ml-auto text-[9px] font-bold bg-white/50 dark:bg-indigo-500/10 px-1.5 py-0.5 rounded-md tabular-nums">
+                                                        <span className="ml-auto text-[9px] font-bold bg-white/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md tabular-nums">
                                                             {catPaths.length}
                                                         </span>
                                                         <ChevronDown className={cn("h-3 w-3 transition-transform duration-300", isOpen && "rotate-180")} />
@@ -428,7 +428,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                                     </button>
                                                 </div>
                                                 {isOpen && (
-                                                    <div className="ml-3 pl-2 border-l-2 border-indigo-500/10 space-y-0.5 py-1">
+                                                    <div className="ml-3 pl-2 border-l-2 border-emerald-500/10 space-y-0.5 py-1">
                                                         {catPaths.length === 0 ? (
                                                             <p className="px-2 py-2 text-[10px] text-slate-400 italic">No resources yet.</p>
                                                         ) : (
@@ -459,7 +459,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                     <div className="flex flex-col items-center py-3 gap-1">
                         {projects.slice(0, 10).map(p => (
                             <Link key={p.id} href={`/paths/${p.id}`} onClick={onNavigate} title={p.title}
-                                className={cn("p-2.5 rounded-xl transition-all", pathname === `/paths/${p.id}` ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5")}
+                                className={cn("p-2.5 rounded-xl transition-all", pathname === `/paths/${p.id}` ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5")}
                             >
                                 <Route className="h-4 w-4" />
                             </Link>
@@ -636,7 +636,7 @@ function NavLink({ href, icon, label, active, isCollapsed, onNavigate }: {
             className={cn(
                 "flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[12px] font-semibold transition-all",
                 isCollapsed && "justify-center px-0 py-3",
-                active ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+                active ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
             )}>
             {icon}
             {!isCollapsed && <span>{label}</span>}

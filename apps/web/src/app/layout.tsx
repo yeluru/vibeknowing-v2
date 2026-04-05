@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Fira_Code, Fira_Sans } from "next/font/google";
 import "./globals.css";
 import "./ui.v2.css";
 import AppShell from "@/components/layout/AppShell";
@@ -12,8 +12,22 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-fira-code",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+const firaSans = Fira_Sans({
+  subsets: ["latin"],
+  variable: "--font-fira-sans",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "VibeLearn",
+  title: "VibeKnowing",
   description: "Turn any content into mastery.",
 };
 
@@ -23,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={`${jakarta.variable} font-sans antialiased vk-ui-v2`}>
+      <body className={`${jakarta.variable} ${firaCode.variable} ${firaSans.variable} font-sans antialiased vk-ui-v2`}>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

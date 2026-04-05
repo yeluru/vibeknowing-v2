@@ -36,49 +36,51 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
     }, [input]);
 
     return (
-        <div className="border-t border-white/5 dark:border-white/5 bg-white/70 dark:bg-black/40 backdrop-blur-3xl p-3 sm:p-5 transition-colors duration-300">
+        <div className="border-t border-slate-200/50 dark:border-white/[0.05]
+                        bg-white/60 dark:bg-[#020617]/70
+                        backdrop-blur-2xl p-3 sm:p-5 transition-colors duration-300">
 
             {suggestions.length > 0 && (
                 <>
-                    {/* Mobile: first 2 chips only, stacked */}
+                    {/* Mobile: first 2 chips */}
                     <div className="mb-3 flex flex-col gap-1.5 sm:hidden">
                         {suggestions.slice(0, 2).map((suggestion, i) => (
                             <button
                                 key={i}
                                 onClick={() => onSend(suggestion)}
                                 disabled={disabled}
-                                className="flex items-center gap-1.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold text-left
+                                className="flex items-center gap-1.5 w-full px-3 py-2 rounded-xl text-xs font-medium text-left
                                            text-slate-700 dark:text-slate-300
-                                           border border-slate-200 dark:border-white/5
-                                           bg-slate-50 dark:bg-white/5
-                                           hover:bg-indigo-50 dark:hover:bg-indigo-900/20
-                                           hover:border-indigo-200 dark:hover:border-white/10
-                                           hover:text-indigo-700 dark:hover:text-indigo-300
-                                           disabled:opacity-50 transition-all duration-300"
+                                           border border-slate-200 dark:border-white/[0.06]
+                                           bg-slate-50 dark:bg-white/[0.03]
+                                           hover:bg-emerald-50 dark:hover:bg-emerald-500/8
+                                           hover:border-emerald-200 dark:hover:border-emerald-500/20
+                                           hover:text-emerald-700 dark:hover:text-emerald-400
+                                           disabled:opacity-50 transition-all duration-200 cursor-pointer"
                             >
-                                <Sparkles className="h-3 w-3 flex-shrink-0 text-indigo-400" />
+                                <Sparkles className="h-3 w-3 flex-shrink-0 text-emerald-500" />
                                 <span>{suggestion}</span>
                             </button>
                         ))}
                     </div>
 
-                    {/* Desktop: 2×2 grid, fills full width */}
+                    {/* Desktop: 2×2 grid */}
                     <div className="mb-3 hidden sm:grid grid-cols-2 gap-2">
                         {suggestions.map((suggestion, i) => (
                             <button
                                 key={i}
                                 onClick={() => onSend(suggestion)}
                                 disabled={disabled}
-                                className="flex items-start gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-left
+                                className="flex items-start gap-2 px-4 py-2.5 rounded-xl text-xs font-medium text-left
                                            text-slate-600 dark:text-slate-300
-                                           border border-slate-100 dark:border-white/5
-                                           bg-slate-50 dark:bg-white/5 backdrop-blur-md
-                                           hover:bg-indigo-50 dark:hover:bg-indigo-900/20
-                                           hover:border-indigo-200 dark:hover:border-white/10
-                                           hover:text-indigo-700 dark:hover:text-indigo-300
-                                           disabled:opacity-50 transition-all duration-300 shadow-sm"
+                                           border border-slate-100 dark:border-white/[0.06]
+                                           bg-slate-50/80 dark:bg-white/[0.03] backdrop-blur-sm
+                                           hover:bg-emerald-50 dark:hover:bg-emerald-500/8
+                                           hover:border-emerald-200 dark:hover:border-emerald-500/20
+                                           hover:text-emerald-700 dark:hover:text-emerald-400
+                                           disabled:opacity-50 transition-all duration-200 shadow-sm cursor-pointer"
                             >
-                                <Sparkles className="h-3 w-3 flex-shrink-0 text-indigo-400 mt-0.5" />
+                                <Sparkles className="h-3 w-3 flex-shrink-0 text-emerald-500 mt-0.5" />
                                 <span>{suggestion}</span>
                             </button>
                         ))}
@@ -94,13 +96,15 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                     onKeyDown={handleKeyDown}
                     placeholder="Curious about something? Ask away..."
                     disabled={disabled}
-                    className="max-h-32 min-h-[44px] w-full resize-none rounded-xl px-4 py-3 pr-12 text-sm
-                               bg-white dark:bg-slate-800/80
-                               border border-slate-200 dark:border-[#383e59]
+                    className="max-h-32 min-h-[48px] w-full resize-none rounded-2xl px-4 py-3 pr-14 text-sm
+                               bg-white/80 dark:bg-white/[0.04]
+                               border border-slate-200 dark:border-white/[0.08]
                                text-slate-900 dark:text-slate-100
-                               placeholder-slate-400 dark:placeholder-slate-500
-                               focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-500
-                               disabled:opacity-50 transition-colors"
+                               placeholder-slate-400 dark:placeholder-slate-600
+                               focus:outline-none focus:ring-2 focus:ring-emerald-400/50 dark:focus:ring-emerald-500/40
+                               focus:border-emerald-300 dark:focus:border-emerald-500/30
+                               backdrop-blur-sm
+                               disabled:opacity-50 transition-all duration-200"
                     rows={1}
                     aria-label="Chat message"
                 />
@@ -108,19 +112,20 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
                     type="submit"
                     disabled={!input.trim() || disabled}
                     className="absolute bottom-2 right-2 rounded-xl p-2.5
-                               bg-indigo-600 dark:bg-indigo-500 text-white
-                               hover:bg-indigo-700 dark:hover:bg-indigo-400
-                               disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-[0_4px_12px_-2px_rgba(79,70,229,0.4)] dark:shadow-none"
+                               bg-emerald-600 dark:bg-emerald-500 text-white
+                               hover:bg-emerald-700 dark:hover:bg-emerald-400
+                               disabled:opacity-30 disabled:cursor-not-allowed
+                               transition-all shadow-lg shadow-emerald-500/20
+                               cursor-pointer"
                     aria-label="Send message"
                 >
                     <Send className="h-4 w-4" />
                 </button>
             </form>
 
-            <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-[#383e59] text-[10px]">Enter</kbd> to send,{" "}
-                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-[#383e59] text-[10px]">Shift</kbd>{" "}+{" "}
-                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-[#383e59] text-[10px]">Enter</kbd> for a new line.
+            <div className="mt-2 text-[10px] text-slate-400 dark:text-slate-600">
+                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-white/[0.04] rounded border border-slate-200 dark:border-white/[0.06] text-[10px]">Enter</kbd> to send &nbsp;·&nbsp;
+                <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-white/[0.04] rounded border border-slate-200 dark:border-white/[0.06] text-[10px]">Shift+Enter</kbd> for new line
             </div>
         </div>
     );
