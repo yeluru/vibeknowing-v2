@@ -22,6 +22,7 @@ def run_hotfix():
             conn.commit()
             logger.info("Successfully added 'is_auto_created' to 'projects' table.")
         except Exception as e:
+            conn.rollback()
             logger.info(f"Skipped 'is_auto_created' on 'projects' (might already exist): {e}")
 
         # 2. Add owner_id to categories (if missing)
@@ -30,6 +31,7 @@ def run_hotfix():
             conn.commit()
             logger.info("Successfully added 'owner_id' to 'categories' table.")
         except Exception as e:
+            conn.rollback()
             logger.info(f"Skipped 'owner_id' on 'categories' (might already exist): {e}")
 
         # 3. Add category_id to chat_messages (if missing)
@@ -38,6 +40,7 @@ def run_hotfix():
             conn.commit()
             logger.info("Successfully added 'category_id' to 'chat_messages' table.")
         except Exception as e:
+            conn.rollback()
             logger.info(f"Skipped 'category_id' on 'chat_messages' (might already exist): {e}")
 
     logger.info("Hotfix migration complete.")
