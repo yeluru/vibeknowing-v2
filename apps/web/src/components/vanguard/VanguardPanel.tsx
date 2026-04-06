@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sparkles, ArrowRight, Loader2, Link as LinkIcon, Youtube, Globe, CheckCircle2, Plus, RefreshCw, Route, ChevronDown, X, FolderOpen } from "lucide-react";
 import { API_BASE, buildAIHeaders, categoriesApi, Category } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -39,10 +39,12 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
     // Category (learning path) picker state
     const [allCategories, setAllCategories] = useState<Category[]>([]);
     const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null);
-    const [pickerUrl, setPickerUrl] = useState<string | null>(null); // which URL is awaiting path selection
+    const [pickerUrl, setPickerUrl] = useState<string | null>(null);
+    const [pickerAnchor, setPickerAnchor] = useState<{ x: number; y: number } | null>(null);
     const [addedUrls, setAddedUrls] = useState<Set<string>>(new Set());
     const [isCreatingCategory, setIsCreatingCategory] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
+    const pickerRef = useRef<HTMLDivElement>(null);
 
     const loadRecommendations = async () => {
         try {
@@ -109,9 +111,51 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
     }, [sourceId, data?.status]);
 
 
+    // Close picker on outside click or scroll
+    useEffect(() => {
+        if (!pickerUrl) return;
+        const close = (e: MouseEvent) => {
+            if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+                setPickerUrl(null);
+                setPickerAnchor(null);
+            }
+        };
+        const closeOnScroll = () => { setPickerUrl(null); setPickerAnchor(null); };
+        document.addEventListener("mousedown", close);
+        window.addEventListener("scroll", closeOnScroll, true);
+        return () => {
+            document.removeEventListener("mousedown", close);
+            window.removeEventListener("scroll", closeOnScroll, true);
+        };
+    }, [pickerUrl]);
+
     // Step 1: clicking + on a Vanguard rec opens the category picker
-    const handlePickPath = (url: string) => {
+    const handlePickPath = (url: string, btnEl: HTMLButtonElement) => {
+        if (pickerUrl === url) {
+            setPickerUrl(null);
+            setPickerAnchor(null);
+            return;
+        }
+        const rect = btnEl.getBoundingClientRect();
+        const dropdownWidth = 224; // w-56
+        const margin = 8;
+        const vw = window.innerWidth;
+
+        // Prefer opening to the left of the button; fall back to right if needed
+        let x = rect.left - dropdownWidth - 6;
+        if (x < margin) x = rect.right + 6;
+        // Clamp to viewport right edge
+        if (x + dropdownWidth > vw - margin) x = vw - dropdownWidth - margin;
+
+        // Vertical: open below button, clamp if near bottom
+        const dropdownMaxH = 288;
+        let y = rect.bottom + 4;
+        if (y + dropdownMaxH > window.innerHeight - margin) {
+            y = Math.max(margin, rect.top - dropdownMaxH - 4);
+        }
+
         setPickerUrl(url);
+        setPickerAnchor({ x, y });
         setIsCreatingCategory(false);
         setNewCategoryName("");
     };
@@ -312,7 +356,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => pickerUrl === rec.url ? setPickerUrl(null) : handlePickPath(rec.url)}
+                                        onClick={(e) => handlePickPath(rec.url, e.currentTarget)}
                                         disabled={addingUrl === rec.url}
                                         className={cn(
                                             "h-10 w-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 disabled:opacity-50",
@@ -332,78 +376,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                                     </button>
                                 )}
 
-                                {/* Category Picker Dropdown */}
-                                {pickerUrl === rec.url && (
-                                    <div className="absolute right-0 top-12 z-50 w-56 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col max-h-72">
-                                        {/* Header — always visible */}
-                                        <p className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-white/5 shrink-0">
-                                            Add to learning path
-                                        </p>
-
-                                        {/* Scrollable list */}
-                                        <div className="overflow-y-auto flex-1 py-1">
-                                            {allCategories.length === 0 && !isCreatingCategory ? (
-                                                <p className="px-3 py-2 text-xs text-slate-500">No learning paths yet.</p>
-                                            ) : (
-                                                allCategories.map(cat => (
-                                                    <button
-                                                        key={cat.id}
-                                                        onClick={() => handleAddSource(rec.url, cat.id, cat.name)}
-                                                        className={cn(
-                                                            "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-                                                            cat.id === currentCategoryId
-                                                                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold"
-                                                                : "text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                                        )}
-                                                    >
-                                                        <FolderOpen className={cn("h-3.5 w-3.5 shrink-0", cat.id === currentCategoryId ? "text-emerald-500" : "text-slate-400")} />
-                                                        <span className="truncate font-medium">{cat.name}</span>
-                                                        {cat.id === currentCategoryId && (
-                                                            <span className="ml-auto text-[9px] font-black text-emerald-500 shrink-0">current</span>
-                                                        )}
-                                                    </button>
-                                                ))
-                                            )}
-                                        </div>
-
-                                        {/* Create new — always pinned at bottom */}
-                                        {isCreatingCategory ? (
-                                            <div className="px-3 py-2 space-y-2 border-t border-slate-100 dark:border-white/5 shrink-0">
-                                                <input
-                                                    autoFocus
-                                                    type="text"
-                                                    placeholder="Path name..."
-                                                    value={newCategoryName}
-                                                    onChange={e => setNewCategoryName(e.target.value)}
-                                                    onKeyDown={e => { if (e.key === 'Enter') handleCreateCategoryAndAdd(rec.url); if (e.key === 'Escape') setIsCreatingCategory(false); }}
-                                                    className="w-full text-xs px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                                                />
-                                                <div className="flex gap-1.5">
-                                                    <button
-                                                        onClick={() => handleCreateCategoryAndAdd(rec.url)}
-                                                        className="flex-1 text-[10px] font-black uppercase tracking-wide py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
-                                                    >
-                                                        Create & Add
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setIsCreatingCategory(false)}
-                                                        className="px-2 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                                                    >
-                                                        <X className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                onClick={() => setIsCreatingCategory(true)}
-                                                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-t border-slate-100 dark:border-white/5 shrink-0 transition-colors"
-                                            >
-                                                <Plus className="h-3.5 w-3.5" />
-                                                Create new learning path
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
+                                {/* Dropdown is now rendered at panel root via fixed portal — see below */}
                             </div>
                         </div>
 
@@ -430,6 +403,87 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                     Continuous Mastery Loop Active
                 </p>
             </div>
+
+            {/* ── Fixed-position picker — escapes all stacking contexts ── */}
+            {pickerUrl && pickerAnchor && (
+                <div
+                    ref={pickerRef}
+                    className="fixed z-[9999] w-56 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-72 overflow-hidden"
+                    style={{ left: pickerAnchor.x, top: pickerAnchor.y }}
+                    onClick={e => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <p className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-white/5 shrink-0">
+                        Add to learning path
+                    </p>
+
+                    {/* Scrollable list */}
+                    <div className="overflow-y-auto flex-1 py-1">
+                        {allCategories.length === 0 && !isCreatingCategory ? (
+                            <p className="px-3 py-2 text-xs text-slate-500">No learning paths yet.</p>
+                        ) : (
+                            allCategories.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => handleAddSource(pickerUrl, cat.id, cat.name)}
+                                    className={cn(
+                                        "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors cursor-pointer",
+                                        cat.id === currentCategoryId
+                                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold"
+                                            : "text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                    )}
+                                >
+                                    <FolderOpen className={cn("h-3.5 w-3.5 shrink-0", cat.id === currentCategoryId ? "text-emerald-500" : "text-slate-400")} />
+                                    <span className="truncate font-medium">{cat.name}</span>
+                                    {cat.id === currentCategoryId && (
+                                        <span className="ml-auto text-[9px] font-black text-emerald-500 shrink-0">current</span>
+                                    )}
+                                </button>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Create new — pinned at bottom */}
+                    {isCreatingCategory ? (
+                        <div className="px-3 py-2 space-y-2 border-t border-slate-100 dark:border-white/5 shrink-0">
+                            <input
+                                autoFocus
+                                type="text"
+                                placeholder="Path name..."
+                                value={newCategoryName}
+                                onChange={e => setNewCategoryName(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') handleCreateCategoryAndAdd(pickerUrl);
+                                    if (e.key === 'Escape') setIsCreatingCategory(false);
+                                }}
+                                className="w-full text-xs px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                            />
+                            <div className="flex gap-1.5">
+                                <button
+                                    onClick={() => handleCreateCategoryAndAdd(pickerUrl)}
+                                    className="flex-1 text-[10px] font-black uppercase tracking-wide py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors cursor-pointer"
+                                >
+                                    Create & Add
+                                </button>
+                                <button
+                                    onClick={() => setIsCreatingCategory(false)}
+                                    className="px-2 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => setIsCreatingCategory(true)}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-t border-slate-100 dark:border-white/5 shrink-0 transition-colors cursor-pointer"
+                        >
+                            <Plus className="h-3.5 w-3.5" />
+                            Create new learning path
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
