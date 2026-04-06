@@ -27,7 +27,7 @@ const firaSans = Fira_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "VibeKnowing",
+  title: "VibeLearn",
   description: "Turn any content into mastery.",
 };
 

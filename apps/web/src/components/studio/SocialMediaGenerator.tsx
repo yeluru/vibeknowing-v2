@@ -115,7 +115,7 @@ export function SocialMediaGenerator({ sourceId, title = "Social Media Generator
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[#383e59]/40 p-6 shadow-sm min-h-[300px] transition-colors duration-300">
                     {loading ? (
                         <div className="h-full flex flex-col items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400 mb-4" />
                             <p className="text-gray-500 dark:text-slate-400">Drafting your post...</p>
                         </div>
                     ) : content ? (
@@ -123,19 +123,19 @@ export function SocialMediaGenerator({ sourceId, title = "Social Media Generator
                             <textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                className="w-full h-64 p-4 border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                className="w-full h-64 p-4 border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                             />
                             <div className="flex justify-end gap-2">
                                 <button
                                     onClick={copyToClipboard}
-                                    className="flex items-center px-4 py-2 text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                    className="flex items-center px-4 py-2 text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
                                 >
                                     {copied ? <Check className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" /> : <Copy className="h-4 w-4 mr-2" />}
                                     {copied ? "Copied!" : "Copy Text"}
                                 </button>
                                 <button
                                     onClick={generateContent}
-                                    className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                                    className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer"
                                 >
                                     <Share2 className="h-4 w-4 mr-2" />
                                     Regenerate
@@ -151,7 +151,7 @@ export function SocialMediaGenerator({ sourceId, title = "Social Media Generator
                             </p>
                             <button
                                 onClick={generateContent}
-                                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors duration-300"
                             >
                                 Generate Draft
                             </button>

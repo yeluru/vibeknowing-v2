@@ -282,7 +282,7 @@ export function PodcastInterface({ sourceId }: { sourceId: string }) {
                                     href={API_BASE + data.audio_url} 
                                     download 
                                     target="_blank"
-                                    className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="p-3 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                                 >
                                     <Download className="h-5 w-5" />
                                 </a>

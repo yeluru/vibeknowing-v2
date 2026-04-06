@@ -144,9 +144,9 @@ const DIFFERENTIATORS = [
 // ─── floating constellation demo component ────────────────────────────────────
 function DemoPreview() {
   return (
-    <div className="relative w-full max-w-[420px] h-[480px]">
-      {/* Deep glow orb behind the constellation */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-br from-indigo-500/20 via-sky-500/10 to-violet-500/20 blur-[80px] rounded-full pointer-events-none" />
+    <div className="relative w-full max-w-[520px] h-[580px]">
+      {/* Soft ambient glow — reduced opacity to avoid haze */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-indigo-400/10 via-sky-400/8 to-indigo-400/10 blur-[60px] rounded-full pointer-events-none" />
 
       {/* 5. Social Threads (Top Left) */}
       <motion.div
@@ -154,7 +154,7 @@ function DemoPreview() {
         transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 2.5 }}
         className="absolute -top-6 left-10 w-[240px] z-10"
       >
-        <div className="vk-card p-3 border-pink-200/60 dark:border-pink-700/40 bg-white/75 dark:bg-[#0b0e17]/75 backdrop-blur-xl shadow-lg">
+        <div className="vk-card p-3 border-pink-200 dark:border-pink-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
           <div className="flex items-center gap-2 mb-2 pb-2 border-b border-pink-100 dark:border-pink-900/30">
              <Share2 className="h-3.5 w-3.5 text-pink-500" />
              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Viral Thread</span>
@@ -179,7 +179,7 @@ function DemoPreview() {
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-10 right-0 w-[260px] z-20"
       >
-        <div className="vk-card p-3 border-emerald-200/60 dark:border-emerald-700/40 bg-white/70 dark:bg-[#0b0e17]/70 backdrop-blur-xl shadow-lg">
+        <div className="vk-card p-3 border-emerald-200 dark:border-emerald-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
           <div className="flex items-center gap-2 mb-2 border-b border-emerald-100 dark:border-emerald-900/30 pb-2">
             <Mic className="h-3.5 w-3.5 text-emerald-500" />
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Transcription</span>
@@ -200,7 +200,7 @@ function DemoPreview() {
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         className="absolute top-40 -left-6 w-[240px] z-30"
       >
-        <div className="vk-card p-4 border-indigo-200/60 dark:border-indigo-700/40 bg-white/70 dark:bg-[#0b0e17]/70 backdrop-blur-xl shadow-2xl">
+        <div className="vk-card p-4 border-indigo-200 dark:border-indigo-900 bg-white dark:bg-[#0f1117] shadow-[0_8px_30px_rgba(79,70,229,0.12)] dark:shadow-[0_8px_30px_rgba(79,70,229,0.2)]">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-2xl" />
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
@@ -226,7 +226,7 @@ function DemoPreview() {
         transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
         className="absolute top-48 -right-8 w-[230px] z-30"
       >
-        <div className="vk-card p-3 border-amber-200/60 dark:border-amber-700/40 bg-white/80 dark:bg-[#0b0e17]/80 backdrop-blur-xl shadow-xl">
+        <div className="vk-card p-3 border-amber-200 dark:border-amber-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
           <div className="flex items-center gap-2 mb-3 border-b border-amber-100 dark:border-amber-900/30 pb-2">
             <MessageCircle className="h-3.5 w-3.5 text-amber-500" />
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Chat with Doc</span>
@@ -258,7 +258,7 @@ function DemoPreview() {
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
         className="absolute bottom-16 right-4 w-[220px] z-40"
       >
-         <div className="vk-card p-3 border-sky-200/60 dark:border-sky-700/40 bg-white/70 dark:bg-[#0b0e17]/70 backdrop-blur-xl shadow-xl hover:scale-105 transition-transform cursor-pointer">
+         <div className="vk-card p-3 border-sky-200 dark:border-sky-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)] hover:scale-105 transition-transform cursor-pointer">
            <div className="flex items-center gap-2 mb-3">
               <BookOpen className="h-3.5 w-3.5 text-sky-500" />
               <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Flashcards Generated</span>
@@ -280,8 +280,8 @@ function DemoPreview() {
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
         className="absolute bottom-4 -left-2 w-[250px] z-50"
       >
-        <div className="glass-panel p-4 rounded-3xl shadow-2xl border-white/40 dark:border-white/10 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-violet-500/10 blur-2xl -mr-12 -mt-12" />
+        <div className="vk-card p-4 border-violet-200 dark:border-violet-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)] overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-violet-500/6 rounded-full -mr-8 -mt-8" />
           <div className="flex items-center justify-between mb-3 relative z-10">
             <div className="flex items-center gap-2">
               <FlaskConical className="h-3.5 w-3.5 text-violet-500" />
@@ -461,39 +461,79 @@ export default function Home() {
                 {/* Eyebrow pill */}
                 <motion.div variants={fadeUp} className="flex justify-center lg:justify-start mb-8 z-20">
                   <div className="relative group cursor-pointer">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-indigo-400 to-sky-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
                     <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[#0c0f18] border border-slate-200/80 dark:border-[#383e59]/80 text-slate-800 dark:text-slate-300 text-xs font-black tracking-widest uppercase shadow-xl min-w-max">
                       <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
-                      Welcome to VibeLearn!
-                      <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                      Welcome to <span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span>!
+                      <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform duration-150" />
                     </div>
                   </div>
                 </motion.div>
 
                 <motion.h1 variants={fadeUp} className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-[-0.05em] text-slate-900 dark:text-white leading-tight drop-shadow-xl text-balance">
-                  Turn any content <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 drop-shadow-2xl filter group-hover:brightness-110 transition-all duration-700">into mastery.</span>
+                  Turn any content <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 via-sky-400 to-indigo-400 drop-shadow-2xl filter transition-all duration-700">into mastery.</span>
                 </motion.h1>
 
-                <motion.p variants={fadeUp} className="mt-8 text-lg lg:text-xl tracking-[0.01em] text-slate-600 dark:text-slate-200 max-w-2xl leading-relaxed font-bold">
-                  The problem isn’t a lack of information; it’s the cost of too much. Inspired by <span className="text-slate-900 dark:text-white font-bold opacity-100 italic">"Vibecoding,"</span> VibeLearn is the ultimate ingestion engine—a high-performance, 360-degree knowledge cycle.
+                <motion.p variants={fadeUp} className="mt-8 text-lg lg:text-xl tracking-[0.01em] text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed font-normal">
+                  The problem isn’t a lack of information — it’s the cost of too much. <span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span> is the ultimate ingestion engine: paste any URL, drop any file, and get AI-generated summaries, flashcards, quizzes, and diagrams in seconds.
                 </motion.p>
 
-                <motion.p variants={fadeUp} className="mt-4 text-[13px] text-slate-500 dark:text-slate-300 max-w-xl font-bold uppercase tracking-[0.25em] opacity-100">
-                  Don't just watch it. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Vibe Learn it.</span>
+                <motion.p variants={fadeUp} className="mt-4 text-[13px] text-slate-400 dark:text-slate-400 max-w-xl font-medium uppercase tracking-[0.25em]">
+                  Don’t just watch it. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-sky-400">Vibe Learn it.</span>
                 </motion.p>
 
                 {/* URL input Hero Spotlight */}
                 <motion.div variants={fadeUp} className="mt-12 w-full max-w-2xl relative z-30 group">
-                  <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-500 rounded-[2.5rem] blur-2xl opacity-15 group-hover:opacity-30 transition duration-1000"></div>
+                  <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 via-sky-500 to-indigo-500 rounded-[2.5rem] blur-2xl opacity-15 group-hover:opacity-30 transition duration-700"></div>
                   <div className="relative glass-panel p-2.5 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
                     <UrlInput />
                   </div>
-                  {/* Privacy Disclaimer - The text that was yanked */}
+                  {/* Privacy disclaimer */}
                   <div className="mt-4 text-center lg:text-left px-6">
-                    <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase opacity-80">
-                      <span className="text-emerald-500 dark:text-emerald-400 mr-1.5 leading-none">●</span>
-                      100% Private. Nothing leaves unless you send it to your own APIs.
+                    <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 tracking-widest uppercase">
+                      <span className="text-emerald-500 dark:text-emerald-400 mr-1.5">●</span>
+                      100% Private · Your API keys · Your data
                     </p>
+                  </div>
+                </motion.div>
+
+                {/* ── Social proof strip ── */}
+                <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row items-center lg:items-start gap-4 lg:gap-8">
+                  {/* Avatar stack */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2.5">
+                      {["bg-gradient-to-br from-indigo-400 to-indigo-600","bg-gradient-to-br from-sky-400 to-sky-600","bg-gradient-to-br from-emerald-400 to-emerald-600","bg-gradient-to-br from-violet-400 to-violet-600","bg-gradient-to-br from-amber-400 to-amber-600"].map((g, i) => (
+                        <div key={i} className={`h-8 w-8 rounded-full ${g} border-2 border-white dark:border-[#020203] ring-1 ring-white/10 shadow-sm`} />
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">2,400+ learners</p>
+                      <div className="flex items-center gap-0.5 mt-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className="h-3 w-3 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        ))}
+                        <span className="ml-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">4.9/5</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="hidden sm:block h-10 w-px bg-slate-200 dark:bg-slate-700" />
+
+                  {/* Trust badges */}
+                  <div className="flex items-center gap-4 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                      Open source
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                      Self-hostable
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                      BYOK
+                    </span>
                   </div>
                 </motion.div>
 
@@ -519,40 +559,26 @@ export default function Home() {
 
             {/* Right Column - Demo Interactive UI (25%) */}
             <div className="lg:col-span-3 hidden lg:flex relative justify-end items-center perspective-[3000px]">
-              {/* Pulsating Cinematic Glow */}
-              <motion.div 
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.1, 0.25, 0.1]
-                }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-r from-indigo-600/30 via-violet-600/10 to-sky-500/30 blur-[120px] rounded-[100%] pointer-events-none" 
-              />
+              {/* Subtle ambient glow — kept tight to avoid bleed haze */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-gradient-to-r from-indigo-500/15 via-sky-400/8 to-indigo-500/15 blur-[90px] rounded-full pointer-events-none" />
               
-              <motion.div 
-                initial={{ opacity: 0, x: 80, rotateY: -20, rotateX: 5, scale: 0.9 }} 
-                animate={{ 
-                    opacity: 1, 
-                    x: -20, 
-                    rotateY: [-10, -5, -10],
-                    rotateX: [2, 7, 2],
-                    y: [-15, 10, -15],
-                    scale: 1 
-                }} 
-                transition={{ 
-                    opacity: { duration: 1.2, delay: 0.2 },
-                    x: { duration: 1.2, delay: 0.2 },
-                    scale: { duration: 1.2, delay: 0.2 },
-                    rotateY: { duration: 8, repeat: Infinity, ease: "linear" },
-                    rotateX: { duration: 10, repeat: Infinity, ease: "linear" },
-                    y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+              <motion.div
+                initial={{ opacity: 0, x: 60, scale: 0.92 }}
+                animate={{
+                    opacity: 1,
+                    x: 0,
+                    y: [-10, 8, -10],
+                    scale: 1
                 }}
-                className="relative w-full max-w-[400px] z-10"
-                style={{ transformStyle: 'preserve-3d' }}
+                transition={{
+                    opacity: { duration: 1.0, delay: 0.2 },
+                    x: { duration: 1.0, delay: 0.2 },
+                    scale: { duration: 1.0, delay: 0.2 },
+                    y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
+                }}
+                className="relative w-full max-w-[480px] z-10"
               >
-                <div className="scale-[1.4] origin-right transform-gpu drop-shadow-[0_45px_70px_rgba(0,0,0,0.45)]">
-                  <DemoPreview />
-                </div>
+                <DemoPreview />
                 
                 {/* Floating aesthetic elements - Enhanced Drift */}
                 <motion.div 
@@ -561,7 +587,7 @@ export default function Home() {
                     rotate: [-3, 3, -3]
                   }} 
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-8 -left-20 h-28 w-28 bg-white/95 dark:bg-[#1a1e30]/95 backdrop-blur-3xl rounded-[32px] border border-slate-200/50 dark:border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] flex items-center justify-center -translate-z-20"
+                  className="absolute -bottom-8 -left-20 h-28 w-28 bg-white dark:bg-[#131720] rounded-[28px] border border-slate-200 dark:border-[#252d3d] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center"
                 >
                   <div className="text-center">
                     <span className="block text-3xl font-black text-indigo-500 drop-shadow-sm">A+</span>
@@ -575,7 +601,7 @@ export default function Home() {
                     rotate: [2, -2, 2]
                   }} 
                   transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  className="absolute top-10 -right-12 w-44 bg-white/95 dark:bg-[#1a1e30]/95 backdrop-blur-3xl p-4 rounded-[32px] border border-slate-200/50 dark:border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] translate-z-20"
+                  className="absolute top-10 -right-12 w-44 bg-white dark:bg-[#131720] p-4 rounded-[28px] border border-slate-200 dark:border-[#252d3d] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
                 >
                   <div className="flex items-center gap-2.5 mb-3">
                     <div className="h-7 w-7 rounded-full bg-emerald-500/20 flex items-center justify-center">

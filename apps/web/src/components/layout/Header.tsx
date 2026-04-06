@@ -11,7 +11,7 @@ interface HeaderProps {
     subtitle?: string;
 }
 
-export function Header({ onMenuClick, title = "VibeKnowing", subtitle }: HeaderProps) {
+export function Header({ onMenuClick, title = "VibeLearn", subtitle }: HeaderProps) {
     const { theme, toggleTheme } = useTheme();
 
     return (
@@ -27,8 +27,12 @@ export function Header({ onMenuClick, title = "VibeKnowing", subtitle }: HeaderP
                     <Menu className="h-5 w-5" />
                 </button>
                 <div className="min-w-0 leading-tight">
-                    <span className="block text-[14px] font-mono font-bold text-slate-900 dark:text-white tracking-tight truncate">
-                        {title}
+                    <span className="block text-[14px] font-mono font-bold tracking-tight truncate">
+                        {title === "VibeLearn" ? (
+                            <><span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span></>
+                        ) : (
+                            <span className="text-slate-900 dark:text-white">{title}</span>
+                        )}
                     </span>
                     {subtitle && (
                         <span className="block text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate hidden sm:block">

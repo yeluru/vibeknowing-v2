@@ -168,7 +168,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                 <div className="p-6">
                     {loading ? (
                         <div className="h-full flex flex-col items-center justify-center py-24">
-                            <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400 mb-4" />
                             <p className="text-gray-900 dark:text-white">Writing article...</p>
                         </div>
                     ) : content ? (
@@ -177,14 +177,14 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setMode('edit')}
-                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'edit' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40'
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'edit' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40'
                                             }`}
                                     >
                                         Edit
                                     </button>
                                     <button
                                         onClick={() => setMode('preview')}
-                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'preview' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40'
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${mode === 'preview' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-200' : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-slate-200/30 dark:border-[#383e59]/40'
                                             }`}
                                     >
                                         Preview
@@ -213,7 +213,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                     </button>
                                     <button
                                         onClick={handleExport}
-                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-[#383e59] rounded-lg transition-colors"
+                                        className="flex items-center px-3 py-1.5 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-[#383e59] rounded-lg transition-colors cursor-pointer"
                                     >
                                         <Download className="h-4 w-4 mr-2" />
                                         Export
@@ -225,7 +225,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                                 <textarea
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
-                                    className="w-full min-h-[500px] p-4 font-mono text-sm border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                    className="w-full min-h-[500px] p-4 font-mono text-sm border border-slate-200/30 dark:border-[#383e59]/40 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
                                     style={{ fieldSizing: "content" } as any}
                                 />
                             ) : (
@@ -257,7 +257,7 @@ export function ArticleEditor({ sourceId, title = "Article Editor" }: ArticleEdi
                             </p>
                             <button
                                 onClick={generateArticle}
-                                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors duration-300"
                             >
                                 Generate Article
                             </button>

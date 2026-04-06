@@ -20,8 +20,8 @@ export function Logo({ className }: LogoProps) {
                     <Sparkles className="h-4 w-4 text-amber-300 fill-amber-300 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
                 </div>
             </div>
-            <span className="text-[10px] font-black tracking-[0.25em] text-slate-800 dark:text-slate-100 uppercase leading-none filter drop-shadow-sm transition-colors">
-                VibeLearn
+            <span className="text-[10px] font-black tracking-[0.25em] uppercase leading-none filter drop-shadow-sm transition-colors">
+                <span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span>
             </span>
         </div>
     );

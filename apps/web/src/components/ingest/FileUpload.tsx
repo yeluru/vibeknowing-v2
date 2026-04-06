@@ -69,8 +69,8 @@ export function FileUpload() {
                 className={cn(
                     "relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-xl transition-all cursor-pointer",
                     isDragActive
-                        ? "border-purple-500 bg-purple-50"
-                        : "border-gray-300 bg-white hover:border-purple-400 hover:bg-gray-50",
+                        ? "border-indigo-500 bg-indigo-50"
+                        : "border-gray-300 bg-white hover:border-indigo-400 hover:bg-gray-50",
                     uploading && "opacity-50 pointer-events-none"
                 )}
             >
@@ -79,7 +79,7 @@ export function FileUpload() {
                 <div className="flex flex-col items-center space-y-4 text-center">
                     <div className={cn(
                         "p-4 rounded-full",
-                        isDragActive ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-500"
+                        isDragActive ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-500"
                     )}>
                         {uploading ? (
                             <Loader2 className="w-8 h-8 animate-spin" />

@@ -260,7 +260,26 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             if (dropdownAnchor?.project.id === project.id) {
                                 setDropdownAnchor(null);
                             } else {
-                                setDropdownAnchor({ x: rect.right + 6, y: rect.top, project });
+                                const dropdownWidth = 256; // w-64
+                                const margin = 8;
+                                const vw = window.innerWidth;
+                                const vh = window.innerHeight;
+
+                                // Default: open to the right of the button
+                                let x = rect.right + 6;
+                                // If it would overflow the right edge, flip left
+                                if (x + dropdownWidth > vw - margin) {
+                                    x = Math.max(margin, rect.left - dropdownWidth - 6);
+                                }
+
+                                // Clamp vertically so the dropdown doesn't overflow the bottom
+                                const estimatedHeight = 420;
+                                let y = rect.top;
+                                if (y + estimatedHeight > vh - margin) {
+                                    y = Math.max(margin, vh - estimatedHeight - margin);
+                                }
+
+                                setDropdownAnchor({ x, y, project });
                             }
                         }}
                         className="absolute right-1 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary opacity-0 group-hover/path:opacity-100 transition-all z-10"
@@ -292,7 +311,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                     </div>
                     {!isCollapsed && (
                         <div className="min-w-0">
-                            <span className="block font-mono font-black text-[15px] tracking-tight text-slate-900 dark:text-white leading-tight">VibeKnowing</span>
+                            <span className="block font-mono font-black text-[15px] tracking-tight leading-tight"><span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span></span>
                             <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.18em] mt-0.5">Mastery System</span>
                         </div>
                     )}
@@ -501,7 +520,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.1 }}
-                        className="fixed z-[9999] w-64 bg-white dark:bg-[#1a1e30] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
+                        className="fixed z-[9999] w-64 bg-white dark:bg-[#1a1e30] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[85vh] overflow-y-auto"
                         style={{ 
                             left: dropdownAnchor.x, 
                             top: dropdownAnchor.y,

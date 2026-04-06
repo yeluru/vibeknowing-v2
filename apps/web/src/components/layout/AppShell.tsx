@@ -13,15 +13,15 @@ import { useTheme } from "@/contexts/ThemeContext";
 interface PageMeta { title: string; subtitle: string; }
 
 function getPageMeta(pathname: string): PageMeta {
-    if (pathname === "/")                    return { title: "VibeKnowing",      subtitle: "Your AI learning workspace" };
+    if (pathname === "/")                    return { title: "VibeLearn",      subtitle: "Your AI learning workspace" };
     if (pathname.startsWith("/source/"))     return { title: "Study Workspace",  subtitle: "Explore, summarize, and create from your source" };
     if (pathname.startsWith("/studio"))      return { title: "Content Studio",   subtitle: "Turn your knowledge into publishable content" };
     if (pathname.startsWith("/chat"))        return { title: "Knowledge Base",   subtitle: "Chat across all your uploaded documents" };
     if (pathname.startsWith("/flashcards"))  return { title: "Flashcard Decks",  subtitle: "Spaced-repetition review for every project" };
     if (pathname.startsWith("/projects"))    return { title: "Library",          subtitle: "All your learning goals in one place" };
     if (pathname.startsWith("/settings"))    return { title: "Settings",         subtitle: "API keys and model preferences" };
-    if (pathname.startsWith("/auth"))        return { title: "VibeKnowing",      subtitle: "Sign in to continue" };
-    return                                          { title: "VibeKnowing",      subtitle: "AI learning suite" };
+    if (pathname.startsWith("/auth"))        return { title: "VibeLearn",      subtitle: "Sign in to continue" };
+    return                                          { title: "VibeLearn",      subtitle: "AI learning suite" };
 }
 
 /* Ambient background orbs — only visible in dark mode */
@@ -49,7 +49,7 @@ function LandingNav() {
                 <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-emerald-400 to-indigo-600 flex items-center justify-center shadow-lg dark:sidebar-logo-glow flex-shrink-0">
                     <span className="text-white text-[12px] font-black">V</span>
                 </div>
-                <span className="font-mono">VibeKnowing</span>
+                <span className="font-mono"><span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span></span>
             </Link>
             <div className="flex items-center gap-2">
                 <button

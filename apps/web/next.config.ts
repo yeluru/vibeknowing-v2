@@ -5,6 +5,23 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   output: "standalone",
+  async redirects() {
+    return [
+      // Redirect old domain to new domain (301 permanent)
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "vibeknowing.com" }],
+        destination: "https://vibelern.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.vibeknowing.com" }],
+        destination: "https://vibelern.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

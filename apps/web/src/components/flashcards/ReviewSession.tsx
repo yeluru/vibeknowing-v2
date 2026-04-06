@@ -96,7 +96,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
             <div className="p-6">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-16">
-                        <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                        <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400 mb-4" />
                         <p className="text-gray-900 dark:text-white">Creating flashcards...</p>
                     </div>
                 ) : cards.length === 0 ? (
@@ -106,7 +106,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
                         <p className="text-gray-900 dark:text-white mb-6">Generate flashcards to memorize key concepts.</p>
                         <button
                             onClick={generateCards}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors duration-300"
                         >
                             Create Flashcards
                         </button>
@@ -122,7 +122,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
                         </p>
                         <button
                             onClick={() => { setCards([]); setCompleted(false); }}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors duration-300"
                         >
                             Back to Source
                         </button>

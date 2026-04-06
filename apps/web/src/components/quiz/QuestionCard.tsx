@@ -33,7 +33,7 @@ export function QuestionCard({
                     const isSelected = selectedAnswer === index;
                     const isCorrect = question.correctAnswer === index;
 
-                    let buttonStyle = "border-slate-200/30 dark:border-[#383e59]/40 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-600 text-gray-900 dark:text-white";
+                    let buttonStyle = "border-slate-200/30 dark:border-[#383e59]/40 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-indigo-200 dark:hover:border-indigo-600 text-gray-900 dark:text-white";
                     let icon = null;
 
                     if (showFeedback) {
@@ -47,7 +47,7 @@ export function QuestionCard({
                             buttonStyle = "opacity-50 border-slate-200/30 dark:border-[#383e59]/40 bg-white dark:bg-slate-800 text-gray-900 dark:text-white";
                         }
                     } else if (isSelected) {
-                        buttonStyle = "bg-purple-50 dark:bg-purple-900/30 border-purple-500 dark:border-purple-600 text-purple-900 dark:text-purple-200 ring-1 ring-purple-500 dark:ring-purple-600";
+                        buttonStyle = "bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 dark:border-indigo-600 text-indigo-900 dark:text-indigo-200 ring-1 ring-indigo-500 dark:ring-indigo-600";
                     }
 
                     return (

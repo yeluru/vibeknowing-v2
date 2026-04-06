@@ -277,34 +277,34 @@ export function UrlInput() {
             <form onSubmit={handleSubmit} className="relative">
                 {/* File Preview Badge */}
                 {file && (
-                    <div className="mb-2 inline-flex items-center gap-2 px-3 py-1.5 vk-pill vk-pill-muted text-sm">
-                        <Paperclip className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                        <span className="text-purple-900 dark:text-purple-200 font-medium">{file.name}</span>
+                    <div className="mb-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-sm">
+                        <Paperclip className="h-4 w-4 text-indigo-500 shrink-0" />
+                        <span className="text-indigo-800 dark:text-indigo-300 font-medium truncate max-w-[200px]">{file.name}</span>
                         <button
                             type="button"
                             onClick={removeFile}
-                            className="vk-btn vk-btn-ghost p-1 text-purple-600 dark:text-purple-400 hover:text-purple-800 transition-colors"
+                            className="ml-1 p-0.5 rounded text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-200 transition-colors cursor-pointer"
                             aria-label="Remove selected file"
                         >
-                            <X className="h-4 w-4" />
+                            <X className="h-3.5 w-3.5" />
                         </button>
                     </div>
                 )}
 
-                {/* Main Input Container - Premium Styling */}
-                <div className="vk-panel flex flex-col md:flex-row items-stretch md:items-center gap-3 p-2 rounded-3xl transition-all duration-300">
+                {/* Main Input Container */}
+                <div className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-2xl bg-white dark:bg-[#0f1117] border border-slate-200 dark:border-[#252d3d] shadow-sm focus-within:border-indigo-300 dark:focus-within:border-indigo-700 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all duration-200">
 
-                    {/* Input Wrapper */}
-                    <div className="flex-1 flex items-center bg-slate-50/80 dark:bg-[#141829]/30 rounded-2xl border border-transparent focus-within:border-purple-200 dark:focus-within:border-purple-800 focus-within:bg-white/70 dark:focus-within:bg-slate-950/40 transition-all duration-300">
-                        {/* File Upload Button */}
+                    {/* Input Row */}
+                    <div className="flex flex-1 items-center min-w-0">
+                        {/* Attach Button */}
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="vk-btn vk-btn-ghost p-3 ml-1 text-gray-400 dark:text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50/70 dark:hover:bg-purple-900/20 rounded-xl transition-colors"
-                            title="Upload file (audio, video, PDF, text)"
+                            className="flex-shrink-0 p-2.5 ml-0.5 rounded-xl text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
+                            title="Upload a file"
                             aria-label="Upload a file"
                         >
-                            <Paperclip className="h-5 w-5" />
+                            <Paperclip className="h-4.5 w-4.5 h-[18px] w-[18px]" />
                         </button>
                         <input
                             ref={fileInputRef}
@@ -314,66 +314,78 @@ export function UrlInput() {
                             onChange={handleFileSelect}
                         />
 
-                        {/* URL Icon - Desktop Only */}
-                        <div className="hidden md:flex items-center justify-center w-8">
-                            <Link2 className="h-5 w-5 text-gray-400 dark:text-slate-500" />
-                        </div>
+                        {/* Divider */}
+                        <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0" />
 
                         {/* Text Input */}
                         <input
                             type="text"
-                            placeholder="Paste link (YouTube, Instagram, X/Twitter, TED, Web) or upload..."
-                            className="flex-1 border-none bg-transparent px-3 py-3 h-12 text-base text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 w-full font-medium"
+                            placeholder="Paste a URL or drop a file…"
+                            className="flex-1 min-w-0 border-none bg-transparent px-3 py-2.5 h-11 text-[15px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0 font-normal"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={!!file}
                         />
                     </div>
 
-                    {/* Submit Button - Full Width Mobile, Auto Desktop */}
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={!canSubmit}
                         className={cn(
-                            "vk-btn vk-btn-primary h-12 md:h-12 flex items-center justify-center rounded-xl px-8 text-sm font-black uppercase tracking-widest shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/35 hover:scale-[1.01] active:scale-[0.99] w-full md:w-auto shrink-0",
-                            !canSubmit && "cursor-not-allowed opacity-50 grayscale"
+                            "flex items-center justify-center gap-2 h-11 px-6 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all duration-150 shrink-0 w-full sm:w-auto cursor-pointer",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
+                            !canSubmit && "opacity-40 cursor-not-allowed hover:bg-indigo-600"
                         )}
                         aria-busy={isLoading}
                     >
                         {isLoading ? (
-                            <div className="flex items-center gap-2">
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                <span className="md:hidden">Analyzing...</span>
-                            </div>
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>Analyzing…</span>
+                            </>
                         ) : (
-                            <span className="flex items-center gap-2">
-                                Analyze <span className="hidden md:inline">Now</span>
-                            </span>
+                            <span>Analyze</span>
                         )}
                     </button>
                 </div>
 
-                {/* Helper Text and Options - User Preferred Wording */}
-                <div className="mt-5 flex flex-col items-center gap-2">
-                    <p className="text-[11px] text-gray-500 dark:text-slate-400 text-center leading-relaxed font-medium">
-                        <span className="font-bold text-slate-700 dark:text-slate-300">Supported Links:</span> YouTube, Instagram, X/Twitter, TikTok, LinkedIn, TED Talks, and Web.<br/>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">Supported Files:</span> Audio/Video (MP3, MP4, WAV), Documents (PDF, DOCX), and Data (TXT, CSV, JSON).
-                    </p>
+                {/* Supported Sources — scannable chips */}
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+                    {[
+                        { label: "YouTube" },
+                        { label: "Instagram" },
+                        { label: "X / Twitter" },
+                        { label: "TikTok" },
+                        { label: "LinkedIn" },
+                        { label: "TED" },
+                        { label: "Any webpage" },
+                        { label: "PDF / DOCX" },
+                        { label: "MP3 / MP4" },
+                    ].map(({ label }) => (
+                        <span key={label} className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                            <span className="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                            {label}
+                        </span>
+                    ))}
+                </div>
 
-                    {file && file.name.toLowerCase().endsWith('.pdf') && (
+                {/* OCR toggle — only for PDF uploads */}
+                {file && file.name.toLowerCase().endsWith('.pdf') && (
+                    <div className="mt-3 flex justify-center">
                         <label className="flex items-center gap-2 cursor-pointer group">
                             <input
                                 type="checkbox"
                                 checked={forceOcr}
                                 onChange={(e) => setForceOcr(e.target.checked)}
-                                className="w-4 h-4 text-purple-600 dark:text-purple-400 rounded border-gray-300 dark:border-slate-600 focus:ring-purple-500 bg-white dark:bg-slate-800"
+                                className="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded border-slate-300 dark:border-slate-600 focus:ring-indigo-500 bg-white dark:bg-slate-800"
                             />
-                            <span className="text-xs text-gray-600 dark:text-slate-300 group-hover:text-purple-700 dark:text-purple-300 transition-colors">
-                                Force OCR (Use for scanned/complex PDFs)
+                            <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
+                                Force OCR <span className="text-slate-400">(for scanned or image-heavy PDFs)</span>
                             </span>
                         </label>
-                    )}
-                </div>
+                    </div>
+                )}
             </form>
         </div>
     );

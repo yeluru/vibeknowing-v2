@@ -113,7 +113,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mb-4" />
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400 mb-4" />
                 <p className="text-gray-500 dark:text-slate-400">Generating quiz from content...</p>
             </div>
         );
@@ -127,7 +127,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
                 <p className="text-gray-700 dark:text-slate-300 mb-6">Generate a quiz based on this content to reinforce your learning.</p>
                 <button
                     onClick={generateQuiz}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors duration-300"
                 >
                     Generate Quiz
                 </button>
@@ -143,7 +143,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Quiz Completed!</h2>
                 <p className="text-gray-900 dark:text-white mb-8">
-                    You scored <span className="font-bold text-purple-600 dark:text-purple-400">{score}</span> out of <span className="font-bold text-gray-900 dark:text-white">{questions.length}</span>
+                    You scored <span className="font-bold text-indigo-600 dark:text-indigo-400">{score}</span> out of <span className="font-bold text-gray-900 dark:text-white">{questions.length}</span>
                 </p>
                 <button
                     onClick={generateQuiz}
@@ -180,7 +180,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
                     <div className="flex justify-end">
                         <button
                             onClick={handleNextQuestion}
-                            className="flex items-center px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors duration-300"
+                            className="flex items-center px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors duration-300"
                         >
                             {currentQuestionIndex === questions.length - 1 ? "Finish Quiz" : "Next Question"}
                             <ArrowRight className="h-4 w-4 ml-2" />
