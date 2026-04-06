@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { UrlInput } from "@/components/ingest/UrlInput";
+import { getStats } from "@/lib/learnStats";
 import { Logo } from "@/components/Logo";
 import {
   FileText, Youtube, Globe, Sparkles, Brain, Zap, Palette,
   Clock, ArrowRight, Target, Search, Mic, Share2, Video, Folder,
-  Layers, PenTool, MoreHorizontal, Trash2, RefreshCcw,
+  Layers, PenTool, MoreHorizontal, Trash2, RefreshCcw, Flame,
   Twitter, Linkedin, Github, Instagram, Music, MessageCircle, File,
   BookOpen, FlaskConical, Lock, Server, CheckCircle2, ChevronRight
 } from "lucide-react";
@@ -313,6 +314,7 @@ export default function Home() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { isAuthenticated } = useAuth();
+  const learnStats = useMemo(() => (typeof window !== "undefined" ? getStats() : null), []);
 
   useEffect(() => {
     loadData();
@@ -717,6 +719,68 @@ export default function Home() {
       </motion.section>
 
       {/* ── PROJECTS ──────────────────────────────────────────────────────── */}
+      {/* ── LEARN STATS STRIP (authenticated + has activity) ──────────────── */}
+      {isAuthenticated && learnStats && (learnStats.streak > 0 || learnStats.totalCards > 0 || learnStats.totalQuizzes > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="max-w-6xl mx-auto px-4 mt-12"
+        >
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-[#0f1117] border border-slate-200 dark:border-[#252d3d] shadow-sm">
+            {learnStats.streak > 0 && (
+              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[#252d3d]">
+                <span className="flex items-center justify-center h-8 w-8 rounded-xl bg-amber-50 dark:bg-amber-500/10">
+                  <Flame className="h-4 w-4 text-amber-500" />
+                </span>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 leading-none mb-0.5">Streak</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{learnStats.streak} day{learnStats.streak !== 1 ? "s" : ""}</p>
+                </div>
+              </div>
+            )}
+            {learnStats.todayCards > 0 && (
+              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[#252d3d]">
+                <span className="flex items-center justify-center h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10">
+                  <Layers className="h-4 w-4 text-indigo-500" />
+                </span>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 leading-none mb-0.5">Today</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{learnStats.todayCards} card{learnStats.todayCards !== 1 ? "s" : ""}</p>
+                </div>
+              </div>
+            )}
+            {learnStats.totalCards > 0 && (
+              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[#252d3d]">
+                <span className="flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                  <BookOpen className="h-4 w-4 text-emerald-500" />
+                </span>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 leading-none mb-0.5">All time</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{learnStats.totalCards} cards</p>
+                </div>
+              </div>
+            )}
+            {learnStats.totalQuizzes > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center h-8 w-8 rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                  <FlaskConical className="h-4 w-4 text-violet-500" />
+                </span>
+                <div>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 leading-none mb-0.5">Quizzes</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{learnStats.totalQuizzes} done</p>
+                </div>
+              </div>
+            )}
+            {learnStats.bestStreak > 1 && learnStats.bestStreak > learnStats.streak && (
+              <div className="ml-auto text-xs text-slate-400 dark:text-slate-500 font-medium">
+                Best: {learnStats.bestStreak} days
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       {!loading && projects.length > 0 && (
         <motion.section
           initial="hidden"

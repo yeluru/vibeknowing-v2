@@ -26,7 +26,7 @@ export function QuestionCard({
 }: QuestionCardProps) {
     return (
         <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{question.question}</h3>
+            <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">{question.question}</h3>
 
             <div className="space-y-4">
                 {question.options.map((option, index) => {
@@ -56,11 +56,11 @@ export function QuestionCard({
                             onClick={() => !showFeedback && onSelectAnswer(index)}
                             disabled={showFeedback}
                             className={cn(
-                                "flex w-full items-center justify-between rounded-xl border p-5 text-left transition-all hover:shadow-md",
+                                "flex w-full items-center justify-between rounded-xl border p-3.5 sm:p-5 text-left transition-all hover:shadow-md cursor-pointer",
                                 buttonStyle
                             )}
                         >
-                            <span className="font-medium text-lg">{option}</span>
+                            <span className="font-medium text-base sm:text-lg">{option}</span>
                             {icon}
                         </button>
                     );

@@ -29,7 +29,7 @@ export function FlashcardDeck({ card, onNext }: FlashcardDeckProps) {
         <div className="w-full max-w-3xl mx-auto space-y-8">
             {/* Card */}
             <div
-                className="relative h-[460px] w-full cursor-pointer select-none"
+                className="relative h-[300px] sm:h-[380px] lg:h-[460px] w-full cursor-pointer select-none"
                 onClick={handleFlip}
                 style={{ perspective: "1200px" }}
             >
@@ -55,7 +55,7 @@ export function FlashcardDeck({ card, onNext }: FlashcardDeckProps) {
                             <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Question</span>
                         </div>
 
-                        <p className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white leading-relaxed tracking-tight">
+                        <p className="text-lg sm:text-2xl lg:text-3xl font-semibold text-slate-900 dark:text-white leading-relaxed tracking-tight">
                             {card.front}
                         </p>
 
@@ -78,7 +78,7 @@ export function FlashcardDeck({ card, onNext }: FlashcardDeckProps) {
                         <div className="absolute top-5 left-5">
                             <span className="text-[10px] font-black text-emerald-100/80 uppercase tracking-[0.2em]">Answer</span>
                         </div>
-                        <p className="text-2xl font-semibold text-white leading-relaxed tracking-tight">
+                        <p className="text-lg sm:text-2xl font-semibold text-white leading-relaxed tracking-tight">
                             {card.back}
                         </p>
                     </div>
