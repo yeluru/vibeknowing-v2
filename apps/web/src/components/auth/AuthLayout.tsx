@@ -39,51 +39,100 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                 </div>
             </div>
 
-            {/* Right Col - Art/Brand */}
-            <div className="hidden lg:flex flex-1 relative bg-[#13172e] text-white flex-col justify-between overflow-hidden p-12 lg:border-l lg:border-[#222744]">
-                {/* Abstract animated gradient background */}
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#242b59]/60 via-[#13172e] to-[#1d234a]/50 opacity-80" />
+            {/* Right Col - Art/Brand + Demo Video */}
+            <div className="hidden lg:flex flex-1 relative bg-[#0d1021] text-white flex-col overflow-hidden lg:border-l lg:border-[#1e2340]">
+                {/* Subtle ambient gradients */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-[#0d1021] to-purple-950/30" />
                     <motion.div
-                        animate={{ 
-                            transform: ["rotate(0deg) scale(1.2)", "rotate(180deg) scale(1.5)", "rotate(360deg) scale(1.2)"],
-                        }}
-                        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-                        className="absolute -top-[50%] -right-[50%] w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,_rgba(99,102,241,0.15)_0%,_transparent_50%)]"
+                        animate={{ transform: ["rotate(0deg) scale(1.2)", "rotate(360deg) scale(1.2)"] }}
+                        transition={{ duration: 90, repeat: Infinity, ease: "linear" }}
+                        className="absolute -top-[40%] -right-[40%] w-[130%] h-[130%] bg-[radial-gradient(circle_at_center,_rgba(99,102,241,0.08)_0%,_transparent_55%)]"
                     />
-                    <motion.div
-                        animate={{ 
-                            transform: ["translate(0%, 0%) scale(1)", "translate(-10%, 10%) scale(1.1)", "translate(0%, 0%) scale(1)"],
-                        }}
-                        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute bottom-0 left-0 w-[100%] h-[100%] bg-[radial-gradient(ellipse_at_bottom_left,_rgba(168,85,247,0.1)_0%,_transparent_60%)]"
-                    />
-                    {/* Subtle Grid overlay */}
-                    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
+                    <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
                 </div>
 
-                {/* Content Overlay */}
-                <div className="relative z-10">
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg border border-white/20">
-                        <span className="text-white text-base font-black">V</span>
+                {/* Top bar — logo */}
+                <div className="relative z-10 p-10 pb-0">
+                    <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg border border-white/10">
+                            <span className="text-white text-sm font-black">V</span>
+                        </div>
+                        <span className="text-sm font-semibold tracking-tight">
+                            <span className="text-indigo-400">Vibe</span><span className="text-sky-400">Learn</span>
+                        </span>
                     </div>
                 </div>
 
-                <div className="relative z-10 max-w-xl">
+                {/* Headline */}
+                <div className="relative z-10 px-10 pt-8">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
                     >
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-[1.1]">
-                            Master any subject<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-                                in record time.
+                        <h2 className="text-3xl font-bold tracking-tight leading-[1.15] mb-3">
+                            Turn anything you read<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-sky-400">
+                                into something you know.
                             </span>
                         </h2>
-                        <p className="text-lg text-slate-400 leading-relaxed max-w-md">
-                            Upload lectures, PDFs, or articles. Generate adaptive flashcards, deep summaries, and active recall quizzes instantly.
+                        <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
+                            Paste a YouTube video, PDF, or article. Get a summary, flashcards, and a quiz — instantly.
                         </p>
+                    </motion.div>
+                </div>
+
+                {/* Demo video — main content */}
+                <div className="relative z-10 flex-1 flex items-center justify-center px-10 py-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        className="w-full max-w-lg"
+                    >
+                        {/* Glow behind the video */}
+                        <div className="absolute inset-0 blur-[60px] bg-indigo-600/10 rounded-3xl pointer-events-none" />
+                        <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/5">
+                            {/* Top chrome bar */}
+                            <div className="bg-[#161929] px-4 py-2.5 flex items-center gap-1.5 border-b border-white/5">
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
+                                <div className="flex-1 mx-3 bg-[#1f2440] rounded-md px-3 py-1">
+                                    <span className="text-[10px] text-slate-500 font-mono">vibelern.com</span>
+                                </div>
+                            </div>
+                            <video
+                                src="/vibelearn-demo.mp4"
+                                autoPlay
+                                muted
+                                loop
+                                playsInline
+                                className="w-full block aspect-video object-cover object-top"
+                            />
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Bottom — three proof chips */}
+                <div className="relative z-10 px-10 pb-10">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.6, delay: 0.5 }}
+                        className="flex items-center gap-3 flex-wrap"
+                    >
+                        {[
+                            { emoji: "⚡", text: "60-second setup" },
+                            { emoji: "🧠", text: "Spaced repetition" },
+                            { emoji: "🎯", text: "Active recall quizzes" },
+                        ].map(({ emoji, text }) => (
+                            <div key={text} className="flex items-center gap-1.5 bg-white/5 border border-white/8 rounded-full px-3 py-1.5">
+                                <span className="text-xs">{emoji}</span>
+                                <span className="text-xs text-slate-300 font-medium">{text}</span>
+                            </div>
+                        ))}
                     </motion.div>
                 </div>
             </div>

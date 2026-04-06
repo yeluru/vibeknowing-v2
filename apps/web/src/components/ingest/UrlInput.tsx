@@ -320,6 +320,7 @@ export function UrlInput() {
                         {/* Text Input */}
                         <input
                             type="text"
+                            data-onboarding="url-input"
                             placeholder="Paste a URL or drop a file…"
                             className="flex-1 min-w-0 border-none bg-transparent px-3 py-2.5 h-11 text-[15px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-0 font-normal"
                             value={input}
@@ -331,6 +332,7 @@ export function UrlInput() {
                     {/* Submit Button */}
                     <button
                         type="submit"
+                        data-onboarding="submit-btn"
                         disabled={!canSubmit}
                         className={cn(
                             "flex items-center justify-center gap-2 h-11 px-6 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all duration-150 shrink-0 w-full sm:w-auto cursor-pointer",

@@ -384,7 +384,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
 
                                     {/* 2. My Learning Paths (Folders) */}
                                     {categories.length >= 0 && (
-                                        <div className="px-2 pb-1.5 pt-1 flex items-center justify-between">
+                                        <div data-onboarding="nav-paths" className="px-2 pb-1.5 pt-1 flex items-center justify-between">
                                             <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">My Mastery Paths</span>
                                             <button 
                                                 onClick={() => setCreatingCollection(true)}
@@ -497,8 +497,8 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                         Other Tools
                     </p>
                 )}
-                <NavLink href="/studio" icon={<Palette className="h-4 w-4" />} label="Content Studio" active={pathname === "/studio"} isCollapsed={isCollapsed} onNavigate={onNavigate} />
-                <NavLink href="/chat" icon={<BookOpen className="h-4 w-4" />} label="Knowledge Base" active={pathname === "/chat"} isCollapsed={isCollapsed} onNavigate={onNavigate} />
+                <NavLink href="/studio" icon={<Palette className="h-4 w-4" />} label="Content Studio" active={pathname === "/studio"} isCollapsed={isCollapsed} onNavigate={onNavigate} dataOnboarding="nav-studio" />
+                <NavLink href="/chat" icon={<BookOpen className="h-4 w-4" />} label="Knowledge Base" active={pathname === "/chat"} isCollapsed={isCollapsed} onNavigate={onNavigate} dataOnboarding="nav-chat" />
             </div>
 
             {/* Collapse button */}
@@ -647,11 +647,12 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
     );
 }
 
-function NavLink({ href, icon, label, active, isCollapsed, onNavigate }: {
-    href: string; icon: React.ReactNode; label: string; active: boolean; isCollapsed: boolean; onNavigate?: () => void;
+function NavLink({ href, icon, label, active, isCollapsed, onNavigate, dataOnboarding }: {
+    href: string; icon: React.ReactNode; label: string; active: boolean; isCollapsed: boolean; onNavigate?: () => void; dataOnboarding?: string;
 }) {
     return (
         <Link href={href} onClick={onNavigate} title={isCollapsed ? label : undefined}
+            data-onboarding={dataOnboarding}
             className={cn(
                 "flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-[12px] font-semibold transition-all",
                 isCollapsed && "justify-center px-0 py-3",

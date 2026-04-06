@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { OnboardingCoach } from "@/components/onboarding/OnboardingCoach";
 
 // ─── animation presets ───────────────────────────────────────────────────────
 const fadeUp: Variants = { 
@@ -885,17 +886,114 @@ export default function Home() {
 
       {/* ── EMPTY STATE ───────────────────────────────────────────────────── */}
       {!loading && projects.length === 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md mx-auto text-center py-16">
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center mb-4 border border-indigo-200/50 dark:border-indigo-800/50">
-            <Layers className="h-7 w-7 text-indigo-500" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="max-w-3xl mx-auto py-12 px-4"
+        >
+          {/* Headline */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20 rounded-full px-4 py-1.5 mb-5">
+              <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+              <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 tracking-wide uppercase">Your learning workspace is ready</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">
+              Paste anything. Learn it deeply.
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-base max-w-md mx-auto leading-relaxed">
+              Drop in a link or file above — VibeLearn turns it into a full study kit in about 60 seconds.
+            </p>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Start your first goal</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-            Paste a YouTube URL, drop a PDF, or share a website above.<br />
-            Your first learning workspace is 60 seconds away.
-          </p>
+
+          {/* 3-step value loop */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            {[
+              {
+                step: "1",
+                icon: <Globe className="h-5 w-5 text-sky-500" />,
+                color: "from-sky-500/10 to-sky-600/5 border-sky-200/60 dark:border-sky-700/30",
+                iconBg: "bg-sky-500/10",
+                title: "Paste anything",
+                desc: "YouTube videos, PDFs, articles, Instagram posts, TED talks — anything you want to learn.",
+                examples: ["youtube.com/watch?v=…", "arxiv.org/abs/…", "medium.com/article"],
+              },
+              {
+                step: "2",
+                icon: <Brain className="h-5 w-5 text-indigo-500" />,
+                color: "from-indigo-500/10 to-indigo-600/5 border-indigo-200/60 dark:border-indigo-700/30",
+                iconBg: "bg-indigo-500/10",
+                title: "Get your study kit",
+                desc: "AI generates a summary, flashcard deck, and quiz — tailored to what actually matters in the content.",
+                examples: ["AI Summary", "Flashcard deck", "Active recall quiz"],
+              },
+              {
+                step: "3",
+                icon: <Flame className="h-5 w-5 text-orange-500" />,
+                color: "from-orange-500/10 to-orange-600/5 border-orange-200/60 dark:border-orange-700/30",
+                iconBg: "bg-orange-500/10",
+                title: "Review & master",
+                desc: "Spaced repetition schedules your reviews automatically so what you learn actually sticks.",
+                examples: ["Daily streak", "Due card reminders", "Progress tracking"],
+              },
+            ].map(({ step, icon, color, iconBg, title, desc, examples }) => (
+              <div
+                key={step}
+                className={`relative bg-gradient-to-br ${color} border rounded-2xl p-5 flex flex-col gap-3`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`${iconBg} rounded-xl p-2.5 shrink-0`}>{icon}</div>
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-0.5">Step {step}</div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white">{title}</div>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
+                <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
+                  {examples.map((ex) => (
+                    <span key={ex} className="text-[10px] font-medium bg-white/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/8 text-slate-500 dark:text-slate-400 rounded-full px-2 py-0.5">{ex}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Try this example */}
+          <div className="bg-slate-50 dark:bg-[#111827]/60 border border-slate-200/60 dark:border-[#252d3d] rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="h-4 w-4 text-amber-500" />
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">Try a quick example</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">— paste one of these into the box above</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "🎥 TED: The Science of Sleep", url: "https://www.youtube.com/watch?v=5MuIMqhT8oM" },
+                { label: "📄 Wikipedia: Quantum Computing", url: "https://en.wikipedia.org/wiki/Quantum_computing" },
+                { label: "🎙️ Huberman: Focus & Attention", url: "https://www.youtube.com/watch?v=LG53Vxum0as" },
+              ].map(({ label, url }) => (
+                <button
+                  key={url}
+                  onClick={() => {
+                    const input = document.querySelector<HTMLInputElement>("input[placeholder*='URL'], input[placeholder*='Paste']");
+                    if (input) {
+                      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+                      nativeInputValueSetter?.call(input, url);
+                      input.dispatchEvent(new Event("input", { bubbles: true }));
+                      input.focus();
+                    }
+                  }}
+                  className="text-xs font-medium bg-white dark:bg-[#1a2035] border border-slate-200 dark:border-[#2a3355] text-slate-700 dark:text-slate-300 rounded-xl px-3 py-2 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </motion.div>
       )}
+
+      {/* ── ONBOARDING COACH (first-time authenticated users only) ────────── */}
+      {isAuthenticated && <OnboardingCoach />}
 
     </div>
   );
