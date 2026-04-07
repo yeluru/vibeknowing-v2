@@ -88,12 +88,13 @@ class VanguardService:
                     enhanced_query = f"{query} educational technical guide deep dive"
                 
                 search_results = await asyncio.to_thread(search.run, enhanced_query)
+                logger.info(f"Vanguard: Search for '{enhanced_query}' returned {len(search_results) if isinstance(search_results, list) else 'N/A'} results")
                 
                 if isinstance(search_results, list):
                     for res in search_results:
                         url = res.get("url", "")
                         is_yt = "youtube.com" in url or "youtu.be" in url
-                        if url and url not in existing_urls:
+                        if url:
                             results.append({
                                 "title": res.get("title", query),
                                 "url": url,
@@ -111,6 +112,12 @@ class VanguardService:
             tasks.append(search_query(q, site_filter="web"))
             
         await asyncio.gather(*tasks)
+        
+        # DEBUG: Log results before any filtering
+        logger.info(f"Vanguard RAW results found: {len(results)}")
+        for r in results[:3]:
+            logger.info(f"Sample Result: {r['url']}")
+
         return results
 
     @staticmethod
