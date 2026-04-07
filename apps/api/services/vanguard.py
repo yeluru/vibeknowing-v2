@@ -171,47 +171,70 @@ class VanguardService:
         """Full Agentic Loop for a single source."""
         logger.info(f"Vibe-Vanguard: Starting research loop for {source_id}")
         
-        # 1. Identify Gaps
-        queries = await VanguardService.identify_knowledge_gaps(source_id)
-        if not queries:
-            return
-        
-        # 2. Agentic Research
-        db = SessionLocal()
-        source = db.query(Source).filter(Source.id == source_id).first()
-        project_id = source.project_id if source else None
-        db.close()
-        
-        if not project_id:
-            return
-
-        research_data = await VanguardService.perform_agentic_research(queries, project_id)
-        
-        # 3. Synthesize
-        recommendations = await VanguardService.synthesize_recommendations(source_id, research_data)
-        
-        if not recommendations:
-            return
-
-        # 4. Save as Artifact
-        db = SessionLocal()
         try:
-            artifact = Artifact(
-                project_id=project_id,
-                source_id=source_id,
-                type="recommendation",
-                title="Vanguard Mastery Briefing",
-                content={
-                    "recommendations": recommendations,
-                    "status": "ready",
-                    "agent_commentary": "I've analyzed your source and identified these three technical frontiers that will accelerate your mastery of this topic."
-                }
-            )
-            db.add(artifact)
-            db.commit()
-            logger.info(f"Vibe-Vanguard: Research complete for {source_id}. Saved {len(recommendations)} recommendations.")
-        except Exception as e:
-            logger.error(f"Vanguard: Failed to save artifact: {e}")
-            db.rollback()
-        finally:
+            # 1. Identify Gaps
+            queries = await VanguardService.identify_knowledge_gaps(source_id)
+            if not queries:
+                logger.info(f"Vanguard: No queries generated for {source_id}")
+                return
+            
+            # 2. Agentic Research
+            db = SessionLocal()
+            source = db.query(Source).filter(Source.id == source_id).first()
+            project_id = source.project_id if source else None
             db.close()
+            
+            if not project_id:
+                logger.warning(f"Vanguard: Project ID not found for {source_id}")
+                return
+
+            logger.info(f"Vanguard: Starting research for {len(queries)} queries on {source_id}")
+            research_data = await VanguardService.perform_agentic_research(queries, project_id)
+            logger.info(f"Vanguard: Found {len(research_data)} candidates for {source_id}")
+            
+            # 3. Synthesize
+            recommendations = await VanguardService.synthesize_recommendations(source_id, research_data)
+            
+            if not recommendations:
+                logger.warning(f"Vanguard: No recommendations generated after synthesis for {source_id}")
+                return
+
+            # 4. Save as Artifact
+            db = SessionLocal()
+            try:
+                # Check for existing artifact to avoid duplicate creation
+                existing = db.query(Artifact).filter(
+                    Artifact.source_id == source_id,
+                    Artifact.type == "recommendation"
+                ).order_by(Artifact.created_at.desc()).first()
+
+                if existing:
+                    logger.info(f"Vanguard: Updating existing artifact {existing.id} for {source_id}")
+                    existing.content = {
+                        "recommendations": recommendations,
+                        "status": "ready",
+                        "agent_commentary": "I've deepened our study path. These resources will accelerate your mastery of this specific technical frontier."
+                    }
+                else:
+                    artifact = Artifact(
+                        project_id=project_id,
+                        source_id=source_id,
+                        type="recommendation",
+                        title="Vanguard Mastery Briefing",
+                        content={
+                            "recommendations": recommendations,
+                            "status": "ready",
+                            "agent_commentary": "I've analyzed your source and identified these three technical frontiers that will accelerate your mastery."
+                        }
+                    )
+                    db.add(artifact)
+                
+                db.commit()
+                logger.info(f"Vibe-Vanguard: Research complete and SAVED for {source_id}.")
+            except Exception as e:
+                logger.error(f"Vanguard: Failed to save or update artifact: {e}")
+                db.rollback()
+            finally:
+                db.close()
+        except Exception as e:
+            logger.error(f"Vanguard: Global research loop error: {e}")

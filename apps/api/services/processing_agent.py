@@ -76,8 +76,12 @@ class ProcessingAgent(AgentBase):
                 # Generate Math Vectors
                 chunks_created = 0
                 for chunk_text in chunk_groups:
-                    emb = AIService.generate_embedding(chunk_text, provider=embed_provider, api_key=embed_key)
+                    # Safety check: ensure chunk isn't somehow still too long for embedding models
+                    # 15,000 chars is roughly 3,500 - 4,000 tokens, well under the 8,192 limit.
+                    safe_chunk = chunk_text[:15000]
+                    emb = AIService.generate_embedding(safe_chunk, provider=embed_provider, api_key=embed_key)
                     new_chunk = SourceChunk(
+
                         source_id=source.id,
                         project_id=source.project_id,
                         content_text=chunk_text,
