@@ -87,21 +87,36 @@ class VanguardService:
                 else:
                     enhanced_query = f"{query} educational technical guide deep dive"
                 
-                search_results = await asyncio.to_thread(search.run, enhanced_query)
-                logger.info(f"Vanguard: Search for '{enhanced_query}' returned {len(search_results) if isinstance(search_results, list) else 'N/A'} results")
+                import json
+                raw_results = await asyncio.to_thread(search.run, enhanced_query)
+                logger.info(f"Vanguard RAW type for '{enhanced_query[:30]}...': {type(raw_results)}")
+                
+                # Parse if it's a JSON string
+                search_results = []
+                if isinstance(raw_results, str):
+                    try:
+                        search_results = json.loads(raw_results)
+                    except:
+                        # Fallback for old-style tools which might return a string representation of a list
+                        search_results = []
+                elif isinstance(raw_results, list):
+                    search_results = raw_results
+                
+                logger.info(f"Vanguard parsed: {len(search_results) if isinstance(search_results, list) else 0} results")
                 
                 if isinstance(search_results, list):
                     for res in search_results:
                         url = res.get("url", "")
+                        if not url: continue
+                        
                         is_yt = "youtube.com" in url or "youtu.be" in url
-                        if url:
-                            results.append({
-                                "title": res.get("title", query),
-                                "url": url,
-                                "snippet": res.get("content", ""),
-                                "query_context": query,
-                                "is_youtube_link": is_yt
-                            })
+                        results.append({
+                            "title": res.get("title", query),
+                            "url": url,
+                            "snippet": res.get("content", ""),
+                            "query_context": query,
+                            "is_youtube_link": is_yt
+                        })
             except Exception as e:
                 logger.error(f"Vanguard Search Error for '{query}': {e}")
 
