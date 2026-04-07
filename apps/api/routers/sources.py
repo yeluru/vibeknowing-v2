@@ -47,6 +47,40 @@ async def list_projects(
     } for p in projects]
 
 
+@router.get("/projects/{project_id}/details")
+async def get_project_details(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Get project details including all sources."""
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.owner_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    return {
+        "id": project.id,
+        "title": project.title,
+        "description": project.description,
+        "category_id": project.category_id,
+        "created_at": project.created_at,
+        "updated_at": project.updated_at,
+        "sources": [{
+            "id": s.id,
+            "title": s.title,
+            "type": s.type,
+            "url": s.url,
+            "summary": s.summary,
+            "created_at": s.created_at
+        } for s in project.sources]
+    }
+
+
+
 class ProjectCreate(BaseModel):
     title: str
     description: str = ""
