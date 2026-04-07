@@ -84,7 +84,7 @@ export default function SourcePage() {
     }, [searchParams]);
 
     // Handler to change tabs and persist selection
-    const handleTabChange = (tab: 'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast') => {
+    const handleTabChange = (tab: any) => {
         setActiveTab(tab);
         setStudioDropdownOpen(false); // Close dropdown when changing tabs
         if (typeof window !== 'undefined') {

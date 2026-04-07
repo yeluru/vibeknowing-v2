@@ -125,7 +125,7 @@ export function ProgressSteps({ progress }: ProgressStepsProps) {
 
 interface NudgeBarProps {
   progress: SourceProgress;
-  onTabChange: (tab: "transcript" | "summary" | "chat" | "quiz" | "flashcards" | "studio" | "view" | "podcast") => void;
+  onTabChange: (tab: string) => void;
 }
 
 const NUDGE_STYLES = {
