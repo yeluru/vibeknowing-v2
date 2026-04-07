@@ -241,21 +241,31 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
 
     if (!data || data.status === 'none' || data.recommendations.length === 0) {
         return (
-            <div className="p-6 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center text-center space-y-3 animate-pulse">
+            <div className="p-6 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center text-center space-y-4">
                 <div className="h-10 w-10 rounded-full bg-indigo-500/10 flex items-center justify-center">
                     <Sparkles className="h-5 w-5 text-indigo-400" />
                 </div>
                 <div>
                      <h4 className="text-xs font-black uppercase tracking-widest text-slate-800 dark:text-white">Active Discovery</h4>
                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-1">
-                        Vibe-Vanguard is currently scanning the web <br/> to identify your technical growth frontiers. 
+                        Vibe-Vanguard is ready to scan the web <br/> to identify your technical growth frontiers. 
                      </p>
                 </div>
-                <div className="flex gap-1">
-                    <div className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" />
-                    <div className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce delay-150" />
-                    <div className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce delay-300" />
-                </div>
+                
+                <button 
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-indigo-600/20"
+                >
+                    {loading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                        <>
+                            <RefreshCw className="h-3 w-3" />
+                            Launch Vanguard
+                        </>
+                    )}
+                </button>
             </div>
         );
     }
