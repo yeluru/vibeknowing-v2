@@ -764,11 +764,7 @@ async def get_vanguard_recommendations(source_id: str, db: Session = Depends(get
     ).order_by(models.Artifact.created_at.desc()).first()
     
     if not artifact:
-        # If not found, trigger research in the background (handles legacy/skipped sources)
-        from services.vanguard import VanguardService
-        # We can fire and forget here as the FastAPI loop is persistent
-        asyncio.create_task(VanguardService.research_and_recommend(source_id))
-        return {"status": "processing", "recommendations": []}
+        return {"status": "none", "recommendations": []}
     
     return {
         "id": artifact.id,
