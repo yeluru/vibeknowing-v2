@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { API_BASE, buildAIHeaders } from "@/lib/api";
 import { EditableTitle } from "@/components/ui/EditableTitle";
+import { useSourceProgress } from "@/hooks/useSourceProgress";
+import { MasteryRing, ProgressSteps, SmartNudgeBar, VanguardBadge } from "@/components/progress/SourceProgressUI";
 
 interface Source {
     id: string;
@@ -332,7 +334,11 @@ export default function SourcePage() {
     // Check if user is authenticated for UI conditional rendering
     const isAuthenticated = typeof window !== 'undefined' && !!localStorage.getItem('token');
 
+    // Phase 1: Mastery progress tracking (Mastery Ring, Nudge Bar, Vanguard Badge)
+    const progress = useSourceProgress(params.id as string, source);
+
     // loadChatHistory removed (handled by ChatInterface)
+
 
     const handleGenerateSummary = useCallback(async () => {
         setGenerating(true);
@@ -475,7 +481,30 @@ export default function SourcePage() {
                             </a>
                         )}
                     </div>
-                    <div className="flex items-center gap-1 pt-0.5 flex-shrink-0">
+                    <div className="flex items-center gap-2 pt-0.5 flex-shrink-0">
+                        {/* ── Vanguard Badge ── */}
+                        {isAuthenticated && progress.hasVanguard && (
+                            <VanguardBadge
+                                count={progress.vanguardCount}
+                                onOpen={() => handleTabChange('chat')}
+                                className="hidden sm:flex"
+                            />
+                        )}
+
+                        {/* ── Mastery Ring + Steps ── */}
+                        {isAuthenticated && !progress.loading && (
+                            <div className="hidden sm:flex items-center gap-2.5 pl-2 border-l border-slate-200 dark:border-slate-700">
+                                <ProgressSteps progress={progress} onTabChange={handleTabChange} />
+                                <MasteryRing
+                                    score={progress.masteryScore}
+                                    size={36}
+                                    strokeWidth={3}
+                                    showLabel
+                                />
+                            </div>
+                        )}
+
+                        {/* ── Nav + Delete ── */}
                         {isAuthenticated && prevProject && (
                             <a href={`/source/${prevProject}`}
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all" title="Previous">
@@ -496,6 +525,11 @@ export default function SourcePage() {
                         )}
                     </div>
                 </div>
+
+                {/* ── Smart Nudge Bar ── */}
+                {isAuthenticated && !isProcessing && (
+                    <SmartNudgeBar progress={progress} onTabChange={handleTabChange} />
+                )}
 
                 {/* ── Tab strip — underline style ── */}
                 <div className="border-t border-slate-100 dark:border-[#383e59]/80 relative">
