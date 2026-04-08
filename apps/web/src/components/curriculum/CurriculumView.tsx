@@ -1,20 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-    Route, 
-    ChevronRight, 
-    Lock, 
-    Unlock, 
-    CheckCircle2, 
-    Loader2, 
-    Sparkles, 
+import {
+    Route,
+    ChevronRight,
+    Lock,
+    Unlock,
+    CheckCircle2,
+    Loader2,
+    Sparkles,
     Search,
     Compass,
     Target,
     Zap,
     Youtube,
-    Globe
+    Globe,
+    RefreshCw,
+    BookOpen,
+    FlaskConical,
+    FileText,
+    GitBranch,
+    BookMarked
 } from "lucide-react";
 import { API_BASE, buildAIHeaders } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -49,6 +55,7 @@ export function CurriculumView({ projectId }: CurriculumViewProps) {
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [activeResourceId, setActiveResourceId] = useState<string | null>(null);
     const [scouting, setScouting] = useState(false);
+    const [regenerating, setRegenerating] = useState(false);
 
     const selectedNode = curriculum?.nodes.find(n => n.id === selectedNodeId);
     const activeResource = (selectedNode as any)?.suggested_resources?.find((r: any) => r.url === activeResourceId);
@@ -109,6 +116,26 @@ export function CurriculumView({ projectId }: CurriculumViewProps) {
         }
     };
 
+    const handleRegenerateLesson = async (nodeId: string) => {
+        setRegenerating(true);
+        try {
+            const res = await fetch(`${API_BASE}/ai/curriculum/node/${nodeId}/lesson`, {
+                method: "POST",
+                headers: buildAIHeaders()
+            });
+            if (res.ok) {
+                toast.success("Lesson synthesized successfully");
+                loadCurriculum();
+            } else {
+                toast.error("Lesson synthesis failed");
+            }
+        } catch {
+            toast.error("Failed to connect to synthesis service");
+        } finally {
+            setRegenerating(false);
+        }
+    };
+
     const handleMaster = async (nodeId: string) => {
         try {
             const res = await fetch(`${API_BASE}/ai/curriculum/node/${nodeId}/master`, {
@@ -123,6 +150,16 @@ export function CurriculumView({ projectId }: CurriculumViewProps) {
             }
         } catch {
             toast.error("Mastery failed to update");
+        }
+    };
+
+    const getResourceIcon = (type: string, size = "h-4 w-4") => {
+        switch (type) {
+            case "video":       return <Youtube className={size} />;
+            case "pdf":         return <FileText className={size} />;
+            case "project":     return <GitBranch className={size} />;
+            case "documentation": return <BookMarked className={size} />;
+            default:            return <Globe className={size} />;
         }
     };
 
@@ -242,10 +279,13 @@ export function CurriculumView({ projectId }: CurriculumViewProps) {
                                                             ? "bg-white/20 border-white/20" 
                                                             : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 group-hover:text-indigo-500"
                                                     )}>
-                                                        {res.type === 'video' ? <Youtube className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                                                        {getResourceIcon(res.type)}
                                                     </div>
-                                                    <div className="overflow-hidden">
+                                                    <div className="overflow-hidden flex-1">
                                                         <div className="text-[11px] font-black leading-tight line-clamp-1">{res.title}</div>
+                                                        {res.layer === "vanguard" && (
+                                                            <span className="text-[8px] font-black uppercase tracking-widest text-violet-400 dark:text-violet-300">Frontier</span>
+                                                        )}
                                                     </div>
                                                 </button>
                                             ))}
@@ -277,7 +317,7 @@ export function CurriculumView({ projectId }: CurriculumViewProps) {
                                 <div className="h-14 px-6 flex items-center justify-between border-b border-slate-100 dark:border-white/5 bg-white dark:bg-[var(--card)]">
                                     <div className="flex items-center gap-3 overflow-hidden">
                                         <div className="h-6 w-6 rounded-md bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
-                                            {activeResource.type === 'video' ? <Youtube className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
+                                            {getResourceIcon(activeResource.type, "h-3 w-3")}
                                         </div>
                                         <div className="text-xs font-black text-slate-900 dark:text-white truncate max-w-md">
                                             {activeResource.title}
@@ -302,12 +342,18 @@ export function CurriculumView({ projectId }: CurriculumViewProps) {
                                 {/* Main Viewer Area */}
                                 <div className="flex-1 w-full bg-white dark:bg-[var(--background)] relative">
                                     {activeResource.type === 'video' ? (
-                                        <iframe 
+                                        <iframe
                                             className="w-full h-full border-0"
                                             src={getEmbedUrl(activeResource.url)}
                                             title={activeResource.title}
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                             allowFullScreen
+                                        />
+                                    ) : activeResource.type === 'pdf' ? (
+                                        <iframe
+                                            className="w-full h-full border-0"
+                                            src={activeResource.url}
+                                            title={activeResource.title}
                                         />
                                     ) : (
                                         <div className="h-full w-full relative">
@@ -362,34 +408,151 @@ export function CurriculumView({ projectId }: CurriculumViewProps) {
 
                             <div className="px-8 pb-8 space-y-8 max-h-[70vh] overflow-y-auto no-scrollbar">
                                 <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{selectedNode.description}</p>
+
+                                {/* ── Synthesized Lesson ── */}
                                 <div className="space-y-4">
-                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2"><Compass className="h-3 w-3" /> Technical Resources</h4>
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                                            <BookOpen className="h-3 w-3" /> Synthesized Lesson
+                                        </h4>
+                                        <button
+                                            onClick={() => handleRegenerateLesson(selectedNode.id)}
+                                            disabled={regenerating}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-indigo-500/10 text-slate-500 dark:text-slate-400 hover:text-indigo-500 transition-colors text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                        >
+                                            <RefreshCw className={cn("h-3 w-3", regenerating && "animate-spin")} />
+                                            {regenerating ? "Synthesizing..." : "Regenerate"}
+                                        </button>
+                                    </div>
+
+                                    {(selectedNode as any).lesson_content ? (
+                                        <div className="space-y-5">
+                                            {/* Mission Brief */}
+                                            {(selectedNode as any).lesson_content.mission_brief && (
+                                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl p-4">
+                                                    {(selectedNode as any).lesson_content.mission_brief}
+                                                </p>
+                                            )}
+
+                                            {/* Core Concepts */}
+                                            {(selectedNode as any).lesson_content.core_concepts?.length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {(selectedNode as any).lesson_content.core_concepts.map((concept: string, i: number) => (
+                                                        <span key={i} className="px-2.5 py-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                                                            {concept}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Deep Dive Sections */}
+                                            {(selectedNode as any).lesson_content.deep_dive_sections?.length > 0 && (
+                                                <div className="space-y-5">
+                                                    {(selectedNode as any).lesson_content.deep_dive_sections.map((section: any, i: number) => (
+                                                        <div key={i} className="space-y-2 border-l-2 border-slate-200 dark:border-white/10 pl-4">
+                                                            <h5 className="text-xs font-black text-slate-900 dark:text-white">{section.title}</h5>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-wrap">{section.content}</p>
+                                                            {section.pro_tip && (
+                                                                <p className="text-[10px] italic text-indigo-500 dark:text-indigo-400 pl-3 border-l-2 border-indigo-500/30">
+                                                                    {section.pro_tip}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Deployment Lab */}
+                                            {(selectedNode as any).lesson_content.deployment_lab && (
+                                                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 space-y-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <FlaskConical className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Lab Mission</span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                                                        {(selectedNode as any).lesson_content.deployment_lab.mission}
+                                                    </p>
+                                                    {(selectedNode as any).lesson_content.deployment_lab.milestones?.length > 0 && (
+                                                        <div className="space-y-2 mt-2">
+                                                            {(selectedNode as any).lesson_content.deployment_lab.milestones.map((m: any, i: number) => (
+                                                                <div key={i} className="flex gap-3 text-xs">
+                                                                    <span className="font-black text-emerald-600 dark:text-emerald-400 shrink-0">{i + 1}.</span>
+                                                                    <div>
+                                                                        <span className="font-bold text-slate-800 dark:text-slate-200">{m.title}: </span>
+                                                                        <span className="text-slate-500 dark:text-slate-400">{m.task}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="p-8 rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/10 text-center space-y-3">
+                                            <BookOpen className="h-7 w-7 text-slate-300 mx-auto" />
+                                            <p className="text-xs text-slate-400 font-medium">No lesson synthesized yet</p>
+                                            <button onClick={() => handleRegenerateLesson(selectedNode.id)} disabled={regenerating} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
+                                                {regenerating ? "Synthesizing..." : "Synthesize Lesson"}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ── Resources ── */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                                            <Compass className="h-3 w-3" /> Resources
+                                        </h4>
+                                        {(selectedNode as any).suggested_resources?.length > 0 && (
+                                            <button
+                                                onClick={() => handleScout(selectedNode.id)}
+                                                disabled={scouting}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-violet-500/10 text-slate-500 dark:text-slate-400 hover:text-violet-500 transition-colors text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                            >
+                                                <Search className={cn("h-3 w-3", scouting && "animate-pulse")} />
+                                                {scouting ? "Researching..." : "Re-Scout"}
+                                            </button>
+                                        )}
+                                    </div>
                                     {(selectedNode as any).suggested_resources?.length > 0 ? (
                                         <div className="grid gap-3">
                                             {(selectedNode as any).suggested_resources.map((res: any, idx: number) => (
-                                                <button 
+                                                <button
                                                     key={idx}
                                                     onClick={() => setActiveResourceId(res.url)}
                                                     className="group flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all text-left"
                                                 >
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-8 w-8 rounded-lg bg-white dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/10 shadow-sm text-slate-400 group-hover:text-indigo-500">
-                                                            {res.type === 'video' ? <Youtube className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                                                        <div className={cn(
+                                                            "h-8 w-8 rounded-lg flex items-center justify-center border shadow-sm transition-colors",
+                                                            res.layer === "vanguard"
+                                                                ? "bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/20 text-violet-500 group-hover:text-violet-600"
+                                                                : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 group-hover:text-indigo-500"
+                                                        )}>
+                                                            {getResourceIcon(res.type)}
                                                         </div>
-                                                        <div>
-                                                            <div className="text-xs font-black text-slate-900 dark:text-white">{res.title}</div>
-                                                            <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{res.description}</div>
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="text-xs font-black text-slate-900 dark:text-white truncate">{res.title}</div>
+                                                                {res.layer === "vanguard" && (
+                                                                    <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-violet-100 dark:bg-violet-500/15 text-[8px] font-black uppercase tracking-widest text-violet-600 dark:text-violet-400">Frontier</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">{res.description}</div>
                                                         </div>
                                                     </div>
-                                                    <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1" />
+                                                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1 ml-2" />
                                                 </button>
                                             ))}
                                         </div>
                                     ) : (
                                         <div className="p-12 rounded-[2rem] bg-slate-50/50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/10 text-center space-y-4">
                                             <Search className={cn("h-8 w-8 text-slate-300 mx-auto", scouting && "animate-pulse")} />
-                                            <h5 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Resources missing</h5>
-                                            <button onClick={() => handleScout(selectedNode.id)} disabled={scouting} className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest">{scouting ? "Scouting..." : "Deploy Scout Agent"}</button>
+                                            <h5 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">No resources yet</h5>
+                                            <p className="text-xs text-slate-400 max-w-xs mx-auto">Scout + Vanguard will search the entire web — tutorials, papers, GitHub repos, YouTube masterclasses.</p>
+                                            <button onClick={() => handleScout(selectedNode.id)} disabled={scouting} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">{scouting ? "Researching..." : "Deploy Scout + Vanguard"}</button>
                                         </div>
                                     )}
                                 </div>

@@ -30,19 +30,21 @@ class ArchitectService:
                 db.add(node)
                 db.flush()
                 
-                # Automatically trigger a lesson generation and resource scouting for the VERY FIRST node
-                # to ensure the user sees 'Owned' content immediately.
-                if phase_idx == 0 and node_idx == 0:
+                # Auto-synthesize lesson + scout resources for every node in the first phase
+                # so the learner sees real content immediately without waiting.
+                if phase_idx == 0:
                     try:
-                        logger.info(f"[_create_nodes] Auto-synthesizing first lesson for {node.title}")
+                        logger.info(f"[_create_nodes] Auto-synthesizing lesson for {node.title}")
                         lesson = AIService.generate_node_lesson(node.title, node.description, phase_name, provider=settings.DEFAULT_PROVIDER)
-                        node.lesson_content = lesson
-                        
-                        # Trigger Scout Agent for first node resources
+                        node.lesson_content = json.loads(lesson)
+
+                        # Flush so the node has a persisted ID before scout references it
+                        db.flush()
+
                         logger.info(f"[_create_nodes] Auto-scouting resources for {node.title}")
                         await ScoutService.scout_for_node(node.id, db_session=db)
                     except Exception as le:
-                        logger.error(f"Failed to auto-generate first lesson or scout: {le}")
+                        logger.error(f"Failed to auto-generate lesson or scout for {node.title}: {le}")
 
     @staticmethod
     async def create_syllabus(project_id: str, db_session=None):
@@ -166,42 +168,60 @@ Rules:
         try:
             # Initial name attempt
             initial_name = theme or vision or "New Career Mission"
-            context = f"MISSION: Become expert in: {vision}" if vision else f"MISSION: Master JD:\n{job_description}"
+            context = f"TARGET ROLE / GOAL:\n{vision}" if vision else f"JOB DESCRIPTION TO MASTER:\n{job_description}"
 
-            prompt = f"""Design a professional mastery roadmap for the following goal:
+            prompt = f"""You are designing a complete, real-world mastery roadmap. There are no artificial limits on depth or breadth — build exactly as many phases and nodes as the role genuinely requires.
 
 {context}
 
-Step 1: Generate a short, punchy mission title (3-5 words, like "Cloud Security Architect" or "RAG Systems Engineer").
-Step 2: Create 4 sequential phases: Foundation → Core Skills → Advanced Application → Mastery & Integration.
-Step 3: Each phase must have 3-5 nodes. Each node is one concrete learning unit.
+--- DEPTH CALIBRATION ---
+Analyse the goal first. Then decide:
+- A narrow tool (e.g. "Learn Pandas") → 2-3 phases, 4-8 nodes total.
+- A mid-level role (e.g. "Backend Engineer") → 4-6 phases, 20-40 nodes total.
+- A senior / specialist role (e.g. "Staff ML Infrastructure Engineer at a FAANG") → 7-12 phases, 50-120 nodes total.
+- A multi-discipline goal (e.g. "CTO of a fintech startup") → 10-15 phases, 80-150 nodes total.
+There is NO upper cap. If the role demands 200 learning units, create 200.
 
-Return ONLY this JSON structure, no explanation, no markdown:
+--- NODE RULES ---
+Each node is one concrete, hireable skill. Rules:
+1. Title must name a real, specific skill or tool — never "Introduction", "Overview", or "Basics".
+2. Description: 2-3 sentences — what it covers, why it matters at this stage, what the learner can demonstrate after.
+3. search_requirements: 4-5 targeted queries, one per resource type. EACH query must be specific enough to find a single high-quality result:
+   - [video] e.g. "pytorch scaled dot-product attention implementation from scratch tutorial youtube 2024"
+   - [docs]  e.g. "pytorch nn.MultiheadAttention official documentation parameters"
+   - [project] e.g. "build transformer encoder from scratch python project github"
+   - [pdf]   e.g. "attention is all you need paper pdf arxiv 2017"
+   - [blog]  e.g. "andrej karpathy minGPT walkthrough annotated"
+4. Sequence nodes so every unit explicitly builds on the previous ones.
+5. Phase names must reflect what the learner can DO at the end, not generic labels. Good: "Ship Production-Grade REST APIs". Bad: "Advanced Application".
+
+Return ONLY this JSON structure. No markdown, no backticks, no preamble:
 {{
-  "mission_name": "Short punchy mission title",
+  "mission_name": "3-6 word punchy title that names the exact role (e.g. 'RAG Systems Engineer', 'Staff ML Infrastructure Lead')",
+  "estimated_hours": 120,
   "phases": [
     {{
-      "name": "Phase name",
+      "name": "Phase name — outcome-oriented",
       "nodes": [
         {{
-          "title": "Specific skill or concept title (not generic)",
-          "description": "2-3 sentences: what this covers, why it matters at this stage, what the learner can do after.",
-          "search_requirements": ["high-intent search query to find the best tutorial or documentation for this exact topic"]
+          "title": "Specific skill title",
+          "description": "2-3 sentences.",
+          "search_requirements": [
+            "video query specific enough to find one tutorial",
+            "official docs or spec query",
+            "hands-on project or exercise query",
+            "pdf textbook or paper query",
+            "engineering blog or deep-dive article query"
+          ]
         }}
       ]
     }}
   ]
 }}
 
-Rules:
-- Every node title must name a real, specific skill — not "Introduction" or "Basics".
-- Descriptions must explain practical value, not restate the title.
-- search_requirements must be specific enough to find real learning resources.
-- Sequence everything so each unit builds on the previous.
-- Minimum 3 nodes per phase, maximum 5.
-- Output valid JSON only. No backticks, no preamble."""
+Output valid JSON only. No explanation outside the JSON."""
 
-            response_json = AIService.generate_json(prompt, provider=settings.DEFAULT_PROVIDER, system_prompt="You are an expert curriculum designer and career coach. Output only valid JSON.", temperature=0.3)
+            response_json = AIService.generate_json(prompt, provider=settings.DEFAULT_PROVIDER, system_prompt="You are a world-class curriculum architect. You build deep, realistic mastery roadmaps calibrated to exactly what a real hiring bar requires. Output only valid JSON.", temperature=0.4, max_tokens=16000)
             data = json.loads(response_json)
             
             # Use AI's calculated name if we don't have a specific theme/vision

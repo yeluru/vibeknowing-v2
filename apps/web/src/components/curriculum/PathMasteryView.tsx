@@ -2,6 +2,11 @@
 
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { curriculumApi } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -38,7 +43,10 @@ import {
     Layers,
     X,
     ChevronLeft,
-    Check
+    Check,
+    GitBranch,
+    BookMarked,
+    Telescope
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -117,6 +125,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                 data = await curriculumApi.getPath(categoryId);
             }
             if (data) setCurriculum(data);
+            return data;
         } catch (err: any) {
             console.error("Failed to load curriculum:", err);
             setError(err?.response?.status === 404 ? "Mission not found" : "Failed to load neural path.");
@@ -151,12 +160,17 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
         }
     };
 
-    const handleGenerateLesson = async (nodeId: string) => {
+    const handleGenerateLesson = async (nodeId: string, autoScout = true) => {
         setGeneratingLesson(true);
         try {
             await curriculumApi.generateLesson(nodeId);
-            toast.success("Tactical Lesson Synthesized!");
-            loadCurriculum(); 
+            toast.success("Lesson synthesized — launching Scout + Vanguard...");
+            await loadCurriculum();
+            // Auto-trigger Scout immediately so the resources tab is populated
+            // as soon as the lesson is ready — the lesson is the intelligence Scout needs.
+            if (autoScout) {
+                handleScout(nodeId, false);
+            }
         } catch (err) {
             toast.error("Failed to synthesize lesson.");
         } finally {
@@ -221,6 +235,16 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
         if (!activeResourceId || !selectedNode) return null;
         return (Array.isArray(selectedNode.suggested_resources) ? selectedNode.suggested_resources : []).find((r: any) => r.url === activeResourceId);
     }, [activeResourceId, selectedNode]);
+
+    const getResourceIcon = (type: string, className = "h-4 w-4") => {
+        switch (type) {
+            case "video":         return <Youtube className={className} />;
+            case "pdf":           return <FileText className={className} />;
+            case "project":       return <GitBranch className={className} />;
+            case "documentation": return <BookMarked className={className} />;
+            default:              return <Globe className={className} />;
+        }
+    };
 
     if (loading) return (
         <div className="flex justify-center py-32 opacity-20">
@@ -383,15 +407,21 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                             {node.description}
                                         </p>
                                         <div className="flex flex-wrap items-center gap-2 pt-1">
-                                            {(node.suggested_resources || []).slice(0, 4).map((res: any, idx: number) => (
-                                                <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--card-hover)] border border-[var(--surface-border)] text-[var(--muted-foreground)]">
-                                                    {res.type === 'video' ? <Youtube className="h-3 w-3 text-red-500" /> : <Globe className="h-3 w-3 text-[var(--secondary)]" />}
+                                            {(node.suggested_resources || []).slice(0, 5).map((res: any, idx: number) => (
+                                                <div key={idx} className={cn(
+                                                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border",
+                                                    res.layer === "vanguard"
+                                                        ? "bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/20 text-violet-500"
+                                                        : "bg-[var(--card-hover)] border-[var(--surface-border)] text-[var(--muted-foreground)]"
+                                                )}>
+                                                    {getResourceIcon(res.type, "h-3 w-3")}
                                                     <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[110px]">
                                                         {(() => {
                                                             try { return new URL(res.url).host.replace('www.', ''); }
                                                             catch(e) { return 'SOURCE'; }
                                                         })()}
                                                     </span>
+                                                    {res.layer === "vanguard" && <span className="text-[7px] font-black">↑</span>}
                                                 </div>
                                             ))}
                                             {(!node.suggested_resources || node.suggested_resources.length === 0) && (
@@ -592,72 +622,127 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                         )}
 
                                         {activeTab === 'resources' && (
-                                            <motion.div 
+                                            <motion.div
                                                 key="resources"
                                                 initial={{ opacity: 0, x: 20 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 exit={{ opacity: 0, x: -20 }}
-                                                className="space-y-12"
+                                                className="space-y-8"
                                             >
-                                                {/* Scout Action Bar */}
+                                                {/* Scout + Vanguard Action Bar */}
                                                 <div className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
-                                                            <Search className="h-5 w-5" />
+                                                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 text-indigo-500 flex items-center justify-center">
+                                                            <Telescope className="h-5 w-5" />
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">External Scout Agent</div>
-                                                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Discovering high-fidelity catalysts</div>
+                                                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Scout + Vanguard Agents</div>
+                                                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                                {(selectedNode.suggested_resources || []).length > 0
+                                                                    ? `${selectedNode.suggested_resources.length} resources found — re-run to refresh`
+                                                                    : "YouTube · Papers · GitHub · Docs · Expert deep-dives"}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleScout(selectedNode.id, false)}
                                                         disabled={scouting}
-                                                        className="px-6 py-2.5 bg-indigo-600 hover:bg-slate-900 dark:hover:bg-white dark:hover:text-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 group"
+                                                        className="px-6 py-2.5 bg-indigo-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 group"
                                                     >
-                                                        {scouting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Compass className="h-4 w-4 group-hover:rotate-45 transition-transform" />}
-                                                        Launch Scout
+                                                        {scouting
+                                                            ? <RefreshCw className="h-4 w-4 animate-spin" />
+                                                            : <Telescope className="h-4 w-4 group-hover:scale-110 transition-transform" />}
+                                                        {scouting ? "Researching..." : (selectedNode.suggested_resources?.length > 0 ? "Re-Scout" : "Scout + Vanguard")}
                                                     </button>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    {(selectedNode.suggested_resources || []).map((res: any, idx: number) => (
-                                                        <button key={idx} onClick={() => setActiveResourceId(res.url)} className="text-left p-8 bg-slate-50 dark:bg-white/[0.01] rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-indigo-500 hover:bg-white dark:hover:bg-white/[0.05] transition-all group shadow-sm hover:shadow-2xl">
-                                                            <div className="h-12 w-12 mb-6 rounded-2xl bg-white dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-indigo-500 group-hover:text-white shadow-sm transition-all">
-                                                                {res.type === 'video' ? <Youtube className="h-5 w-5" /> : <Globe className="h-5 w-5" />}
-                                                            </div>
-                                                            <div className="space-y-4">
-                                                                <div className="text-[11px] font-black text-slate-900 dark:text-zinc-200 uppercase tracking-tight leading-snug group-hover:text-indigo-600 transition-colors line-clamp-3">{res.title}</div>
-                                                                <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                                                    <Layers className="h-3 w-3" />
-                                                                    {(() => {
-                                                                        try { return new URL(res.url).host; }
-                                                                        catch(e) { return 'SOURCE LINK'; }
-                                                                    })()}
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-
-                                                    {(!selectedNode.suggested_resources || selectedNode.suggested_resources.length === 0) && !scouting && (
-                                                        <div className="col-span-full flex flex-col items-center justify-center py-20 text-center space-y-6">
-                                                            <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-300">
-                                                                <Globe className="h-8 w-8 opacity-20" />
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <h4 className="text-lg font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest leading-none">Catalog Locked</h4>
-                                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest opacity-60">No external catalysts have been unearthed for this node yet.</p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {scouting && (
-                                                        <div className="col-span-full flex flex-col items-center justify-center py-32 space-y-6">
+                                                {/* Scouting spinner */}
+                                                {scouting && (
+                                                    <div className="flex flex-col items-center justify-center py-24 space-y-4">
+                                                        <div className="relative">
                                                             <RefreshCw className="h-8 w-8 animate-spin text-indigo-500" />
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Scout Agent Synchronizing External Catalysts...</p>
+                                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                                <div className="h-2 w-2 rounded-full bg-violet-500 animate-ping" />
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                </div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
+                                                            Scout hunting tutorials, papers, repos...<br />
+                                                            <span className="text-violet-400">Vanguard finding frontier resources...</span>
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Resource grid */}
+                                                {!scouting && (selectedNode.suggested_resources || []).length > 0 && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {(selectedNode.suggested_resources || []).map((res: any, idx: number) => (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => setActiveResourceId(res.url)}
+                                                                className={cn(
+                                                                    "text-left p-6 rounded-[2rem] border transition-all group shadow-sm hover:shadow-xl",
+                                                                    res.layer === "vanguard"
+                                                                        ? "bg-violet-50/50 dark:bg-violet-500/5 border-violet-200 dark:border-violet-500/20 hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10"
+                                                                        : "bg-slate-50 dark:bg-white/[0.01] border-slate-100 dark:border-white/5 hover:border-indigo-500 hover:bg-white dark:hover:bg-white/[0.05]"
+                                                                )}
+                                                            >
+                                                                <div className="flex items-start gap-4">
+                                                                    <div className={cn(
+                                                                        "h-10 w-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm transition-all",
+                                                                        res.layer === "vanguard"
+                                                                            ? "bg-violet-100 dark:bg-violet-500/20 text-violet-500 group-hover:bg-violet-500 group-hover:text-white"
+                                                                            : "bg-white dark:bg-white/5 text-slate-400 group-hover:bg-indigo-500 group-hover:text-white"
+                                                                    )}>
+                                                                        {getResourceIcon(res.type, "h-4 w-4")}
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0 space-y-2">
+                                                                        <div className="flex items-start gap-2">
+                                                                            <span className={cn(
+                                                                                "text-[11px] font-black uppercase tracking-tight leading-snug line-clamp-2 flex-1 transition-colors",
+                                                                                res.layer === "vanguard"
+                                                                                    ? "text-violet-900 dark:text-violet-200 group-hover:text-violet-600"
+                                                                                    : "text-slate-900 dark:text-zinc-200 group-hover:text-indigo-600"
+                                                                            )}>
+                                                                                {res.title}
+                                                                            </span>
+                                                                            {res.layer === "vanguard" && (
+                                                                                <span className="shrink-0 px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-[8px] font-black uppercase tracking-widest text-violet-600 dark:text-violet-300">
+                                                                                    Frontier
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        {res.description && (
+                                                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{res.description}</p>
+                                                                        )}
+                                                                        <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                                                            <span className="uppercase">{res.type}</span>
+                                                                            <span>·</span>
+                                                                            <span className="truncate max-w-[120px]">
+                                                                                {(() => { try { return new URL(res.url).host.replace('www.',''); } catch { return 'link'; } })()}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Empty state */}
+                                                {!scouting && (!selectedNode.suggested_resources || selectedNode.suggested_resources.length === 0) && (
+                                                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                                                        <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center">
+                                                            <Telescope className="h-9 w-9 text-indigo-400 dark:text-indigo-500" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <h4 className="text-lg font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest leading-none">No resources yet</h4>
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest max-w-xs leading-relaxed">
+                                                                Scout finds tutorials, docs, GitHub repos.<br />
+                                                                Vanguard finds papers, expert deep-dives, frontier tools.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
@@ -675,10 +760,18 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="relative w-full max-w-6xl h-[85vh] bg-black rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden flex flex-col">
                         <div className="flex-none px-6 py-4 bg-white/5 border-b border-white/5 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="h-8 w-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white">
-                                    {activeResource.type === 'video' ? <Youtube className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                                <div className={cn(
+                                    "h-8 w-8 rounded-lg flex items-center justify-center text-white",
+                                    activeResource.layer === "vanguard" ? "bg-violet-600" : "bg-indigo-500"
+                                )}>
+                                    {getResourceIcon(activeResource.type, "h-4 w-4")}
                                 </div>
-                                <div className="text-[10px] font-black text-white uppercase tracking-widest truncate max-w-md">{activeResource.title}</div>
+                                <div className="space-y-0.5">
+                                    <div className="text-[10px] font-black text-white uppercase tracking-widest truncate max-w-md">{activeResource.title}</div>
+                                    {activeResource.layer === "vanguard" && (
+                                        <div className="text-[8px] font-black text-violet-300 uppercase tracking-widest">Frontier Resource</div>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex items-center gap-3">
                                 <a 
@@ -693,7 +786,12 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                 <button onClick={() => setActiveResourceId(null)} className="px-5 py-2.5 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Close</button>
                             </div>
                         </div>
-                        <iframe src={activeResource.type === 'video' ? getEmbedUrl(activeResource.url) : activeResource.url} className="flex-1 w-full border-0" allowFullScreen />
+                        <iframe
+                            src={activeResource.type === 'video' ? getEmbedUrl(activeResource.url) : activeResource.url}
+                            className="flex-1 w-full border-0"
+                            allowFullScreen
+                            title={activeResource.title}
+                        />
                     </motion.div>
                 </div>,
                 document.body
@@ -718,9 +816,9 @@ function LessonCanvas({ lesson, activeIdx, onPrev, onNext }: { lesson: any, acti
                             <Brain className="h-4 w-4 text-indigo-500" />
                             <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Masterclass Brief</span>
                         </div>
-                        <h4 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none pr-12">
+                        <h3 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug pr-12">
                             {lesson.mission_brief}
-                        </h4>
+                        </h3>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -746,15 +844,18 @@ function LessonCanvas({ lesson, activeIdx, onPrev, onNext }: { lesson: any, acti
                         <div className="flex items-center gap-4">
                             <div className="text-[10px] font-black text-indigo-500 uppercase tracking-widest px-3 py-1 bg-indigo-500/5 rounded-lg border border-indigo-500/10">Section {activeIdx + 1} of {sections.length}</div>
                         </div>
-                        <h4 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-tight bg-gradient-to-r from-slate-900 via-indigo-600 to-indigo-400 bg-clip-text text-transparent dark:from-white dark:via-indigo-400 dark:to-indigo-300">
+                        <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight bg-gradient-to-r from-slate-900 via-indigo-600 to-indigo-400 bg-clip-text text-transparent dark:from-white dark:via-indigo-400 dark:to-indigo-300">
                             {currentSection.title}
-                        </h4>
+                        </h3>
                     </div>
 
-                    <div className="prose prose-slate dark:prose-invert max-w-none">
-                        <div className="text-lg text-slate-600 dark:text-zinc-400 font-medium leading-[2] whitespace-pre-wrap">
+                    <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-code:text-indigo-600 dark:prose-code:text-indigo-300 prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/10 prose-table:text-sm">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                        >
                             {currentSection.content}
-                        </div>
+                        </ReactMarkdown>
                     </div>
 
                     {/* PRO TIP / INSIGHT */}
@@ -765,28 +866,50 @@ function LessonCanvas({ lesson, activeIdx, onPrev, onNext }: { lesson: any, acti
                                 <Zap className="h-5 w-5 text-amber-500 fill-amber-500/20" />
                                 <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Neural Insight / Pro Tip</span>
                             </div>
-                            <p className="text-sm font-bold text-slate-800 dark:text-amber-200/80 leading-relaxed italic">{currentSection.pro_tip}</p>
+                            <div className="prose prose-sm prose-slate dark:prose-invert max-w-none italic">
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                                    {currentSection.pro_tip}
+                                </ReactMarkdown>
+                            </div>
                         </div>
                     )}
 
-                    {/* VIDEO CUE IF AVAILABLE */}
-                    {currentSection.youtube_search && (
-                        <a 
-                            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(currentSection.youtube_search)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-between p-6 rounded-2xl bg-indigo-600 hover:bg-red-600 text-white transition-all group shadow-xl shadow-indigo-600/20"
-                        >
-                            <div className="flex items-center gap-4">
-                                <Youtube className="h-6 w-6" />
-                                <div className="space-y-1">
-                                    <div className="text-[10px] font-black uppercase tracking-widest leading-none">External Catalyst Available</div>
-                                    <div className="text-[11px] font-bold opacity-80 group-hover:opacity-100">Deep-dive via AI Search Cue: "{currentSection.youtube_search}"</div>
+                    {/* VIDEO CUE + GRAPH BUTTON */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        {currentSection.youtube_search && (
+                            <a
+                                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(currentSection.youtube_search)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 flex items-center justify-between p-5 rounded-2xl bg-indigo-600 hover:bg-red-600 text-white transition-all group shadow-xl shadow-indigo-600/20"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Youtube className="h-5 w-5 shrink-0" />
+                                    <div className="space-y-0.5">
+                                        <div className="text-[9px] font-black uppercase tracking-widest leading-none opacity-70">Watch on YouTube</div>
+                                        <div className="text-[11px] font-bold line-clamp-1">"{currentSection.youtube_search}"</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                        </a>
-                    )}
+                                <ArrowRight className="h-4 w-4 shrink-0 group-hover:translate-x-1 transition-transform" />
+                            </a>
+                        )}
+                        {/* Desmos graph button — shown whenever the section content has a formula */}
+                        {/\$.*?\$/.test(currentSection.content || "") && (
+                            <a
+                                href="https://www.desmos.com/calculator"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all group shadow-xl shadow-emerald-600/20 sm:w-auto"
+                            >
+                                <BarChart3 className="h-5 w-5 shrink-0" />
+                                <div className="space-y-0.5">
+                                    <div className="text-[9px] font-black uppercase tracking-widest opacity-70">Graph It</div>
+                                    <div className="text-[10px] font-bold">Open Desmos</div>
+                                </div>
+                                <ArrowRight className="h-4 w-4 shrink-0 group-hover:translate-x-1 transition-transform" />
+                            </a>
+                        )}
+                    </div>
                 </motion.div>
             )}
 

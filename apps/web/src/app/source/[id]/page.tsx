@@ -326,11 +326,17 @@ export default function SourcePage() {
                         <EditableTitle initialValue={source.project?.title || source.title} onSave={handleUpdateTitle} isHeader={true} />
                         {source.url && <a href={source.url} target="_blank" className="text-xs text-[var(--secondary)] truncate block mt-0.5">{source.url}</a>}
                     </div>
-                    <div className="flex items-center gap-2">
-                        {isAuthenticated && progress.hasVanguard && <VanguardBadge count={progress.vanguardCount} onOpen={() => handleTabChange('chat')} />}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        {isAuthenticated && progress.hasVanguard && (
+                            <div className="hidden sm:block">
+                                <VanguardBadge count={progress.vanguardCount} onOpen={() => handleTabChange('chat')} />
+                            </div>
+                        )}
                         {isAuthenticated && !progress.loading && (
                             <div className="flex items-center gap-2.5 pl-2 border-l border-[var(--surface-border-strong)]">
-                                <ProgressSteps progress={progress} onTabChange={handleTabChange} />
+                                <div className="hidden md:flex">
+                                    <ProgressSteps progress={progress} onTabChange={handleTabChange} />
+                                </div>
                                 <MasteryRing score={progress.masteryScore} size={36} showLabel />
                             </div>
                         )}
@@ -345,17 +351,17 @@ export default function SourcePage() {
                 </div>
                 {isAuthenticated && !isProcessing && <SmartNudgeBar progress={progress} onTabChange={handleTabChange} />}
                 
-                <div className="border-t border-[var(--surface-border)] relative px-2">
-                    <div className="flex items-end">
+                <div className="border-t border-[var(--surface-border)] relative">
+                    <div className="flex items-end overflow-x-auto no-scrollbar">
                         {TABS.map(tab => (
                             <button key={tab.id} onClick={() => handleTabChange(tab.id)}
-                                className={cn("px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all",
+                                className={cn("px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all whitespace-nowrap flex-shrink-0",
                                 activeTab === tab.id ? "border-[var(--secondary)] text-[var(--secondary)] bg-[var(--secondary-light)]/30" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]")}>
                                 <span className="flex items-center gap-1.5">{tab.icon} {tab.label}</span>
                             </button>
                         ))}
-                        <div className="relative group" onMouseEnter={() => setStudioDropdownOpen(true)} onMouseLeave={() => setStudioDropdownOpen(false)}>
-                            <button className={cn("px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5", activeTab === 'studio' ? "border-[var(--secondary)] text-[var(--secondary)]" : "border-transparent text-[var(--muted-foreground)]")}>
+                        <div className="relative group flex-shrink-0" onMouseEnter={() => setStudioDropdownOpen(true)} onMouseLeave={() => setStudioDropdownOpen(false)}>
+                            <button className={cn("px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 whitespace-nowrap", activeTab === 'studio' ? "border-[var(--secondary)] text-[var(--secondary)]" : "border-transparent text-[var(--muted-foreground)]")}>
                                 <Palette className="h-4 w-4" /> Studio <ChevronRight className="h-3 w-3 rotate-90" />
                             </button>
                             {studioDropdownOpen && (
@@ -370,7 +376,7 @@ export default function SourcePage() {
                             )}
                         </div>
                         <button onClick={() => handleTabChange('view')}
-                            className={cn("px-4 py-2.5 text-sm font-medium border-b-2 -mb-px", activeTab === 'view' ? "border-[var(--secondary)] text-[var(--secondary)]" : "border-transparent text-[var(--muted-foreground)]")}>
+                            className={cn("px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap flex-shrink-0", activeTab === 'view' ? "border-[var(--secondary)] text-[var(--secondary)]" : "border-transparent text-[var(--muted-foreground)]")}>
                             <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" /> View</span>
                         </button>
                     </div>
