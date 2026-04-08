@@ -113,4 +113,14 @@ dump.rdb
 # *.jpg
 # *.png
 
+# Editor backup files
+*.bak
+*.orig
+*.swp
+*.swo
+
+# Cowork / Claude internal directories (keep PROJECT_MEMORY.md)
+.claude/skills/
+.claude/worktrees/
+
 
