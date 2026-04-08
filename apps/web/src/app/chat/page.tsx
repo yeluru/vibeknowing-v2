@@ -192,10 +192,10 @@ export default function GlobalChatPage() {
         : "Global Library";
 
     return (
-        <div className="h-full flex flex-col bg-white/40 dark:bg-[#1a1e30]/40 rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-500">
+        <div className="h-full flex flex-col bg-white/40 dark:bg-[var(--surface-input)]/40 rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-500">
             
             {/* Header / Context Selector */}
-            <div className="flex-none p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white/80 dark:bg-[#1a1e30]/80 backdrop-blur-md relative z-20">
+            <div className="flex-none p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white/80 dark:bg-[var(--surface-input)]/80 backdrop-blur-md relative z-20">
                 <div className="flex items-center gap-4">
                     <div className={cn(
                         "p-3 rounded-2xl shadow-lg transition-colors",
@@ -222,17 +222,17 @@ export default function GlobalChatPage() {
                             onChange={(e) => setSelectedPathId(e.target.value === "global" ? null : e.target.value)}
                             className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 appearance-none cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-white/10"
                         >
-                            <option value="global" className="bg-white dark:bg-[#1a1e30] py-2">🌍 Global Library</option>
-                            <optgroup label="Learning Paths" className="bg-white dark:bg-[#1a1e30] font-black text-indigo-500">
+                            <option value="global" className="bg-white dark:bg-[var(--surface-input)] py-2">🌍 Global Library</option>
+                            <optgroup label="Learning Paths" className="bg-white dark:bg-[var(--surface-input)] font-black text-[var(--secondary)]">
                                 {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id} className="bg-white dark:bg-[#1a1e30] py-2 font-bold">
+                                    <option key={cat.id} value={cat.id} className="bg-white dark:bg-[var(--surface-input)] py-2 font-bold">
                                         🛤 {cat.name}
                                     </option>
                                 ))}
                             </optgroup>
                         </select>
                         <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                            <Sparkles className="h-3.5 w-3.5 text-[var(--secondary)]" />
                         </div>
                         <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
                             <ChevronRight className="h-3.5 w-3.5 text-slate-400 rotate-90" />
@@ -250,7 +250,7 @@ export default function GlobalChatPage() {
                 {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center py-12 text-center max-w-lg mx-auto">
                         <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-500/10 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner border border-indigo-100 dark:border-indigo-500/20 rotate-3 animate-pulse">
-                            <MessageSquare className="h-10 w-10 text-indigo-500" />
+                            <MessageSquare className="h-10 w-10 text-[var(--secondary)]" />
                         </div>
                         <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Begin Mastery Chat</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-10 leading-relaxed">
@@ -294,7 +294,7 @@ export default function GlobalChatPage() {
                                             {m.metadata && m.metadata.length > 0 && (
                                                 <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                                                     <div className="flex items-center gap-1.5 mb-2.5">
-                                                        <BookOpen className="h-3 w-3 text-indigo-500" />
+                                                        <BookOpen className="h-3 w-3 text-[var(--secondary)]" />
                                                         <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Sources & Citations</span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-2">
@@ -351,7 +351,7 @@ export default function GlobalChatPage() {
             </div>
 
             {/* Input Area */}
-            <div className="flex-none p-6 md:px-12 bg-white/80 dark:bg-[#1a1e30]/80 border-t border-slate-100 dark:border-white/5 backdrop-blur-xl relative z-10">
+            <div className="flex-none p-6 md:px-12 bg-white/80 dark:bg-[var(--surface-input)]/80 border-t border-slate-100 dark:border-white/5 backdrop-blur-xl relative z-10">
                 <div className="max-w-4xl mx-auto relative group">
                     <textarea
                         value={input}

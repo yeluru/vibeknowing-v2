@@ -1,7 +1,8 @@
+import httpx
 from openai import OpenAI
 from config import settings
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+client = OpenAI(api_key=settings.OPENAI_API_KEY, http_client=httpx.Client())
 
 class SocialMediaService:
     @staticmethod

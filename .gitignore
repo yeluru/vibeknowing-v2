@@ -4,13 +4,10 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
-
 lib64/
 parts/
 sdist/
@@ -23,14 +20,11 @@ MANIFEST
 venv/
 env/
 ENV/
-.venv
+.venv/
+apps/api/.venv/
 
 # Node
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 .next/
 out/
 build/
@@ -39,24 +33,24 @@ dist/
 # IDEs
 .vscode/
 .idea/
-*.swp
-*.swo
 *~
-.DS_Store
 
-# Environment
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment — never commit secrets
 .env
-apps/api/.env
-apps/.env
 .env.local
 .env.*.local
 *.env
+apps/api/.env
+apps/.env
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
-vibeknowing.db
 
 # Logs
 logs/
@@ -64,6 +58,7 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # Testing
 .pytest_cache/
@@ -72,22 +67,16 @@ htmlcov/
 .tox/
 .hypothesis/
 
-# Temporary files
+# Temporary / editor backup files
 tmp/
 temp/
 *.tmp
 *.bak
+*.orig
 *.swp
+*.swo
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Extension
-apps/extension/*.zip
-apps/extension/node_modules/
-
-# Build artifacts
+# Python build artifacts
 *.pyc
 *.pyo
 *.pyd
@@ -106,21 +95,17 @@ dump.rdb
 *.index
 *.faiss
 
-# Media files (optional - uncomment if you don't want to track media)
+# Extension
+apps/extension/*.zip
+apps/extension/node_modules/
+
+# Media files (optional — uncomment to exclude from repo)
 # *.mp4
 # *.mp3
 # *.pdf
 # *.jpg
 # *.png
 
-# Editor backup files
-*.bak
-*.orig
-*.swp
-*.swo
-
-# Cowork / Claude internal directories (keep PROJECT_MEMORY.md)
+# Cowork / Claude internal (PROJECT_MEMORY.md is kept intentionally)
 .claude/skills/
 .claude/worktrees/
-
-

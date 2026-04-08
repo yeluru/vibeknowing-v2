@@ -4,7 +4,7 @@
 
 :root {
   /* VibeKnowing Design System — Light Mode */
-  --background: #f8fafc;
+  --background: #f0f2fa;
   --background-light: #ffffff;
   --background-elevated: #ffffff;
   --foreground: #0f172a;
@@ -12,6 +12,16 @@
   --card: #ffffff;
   --card-hover: #f1f5f9;
   --card-border: #e2e8f0;
+
+  /* Surface tokens — form elements, inputs, overlays */
+  --surface-input: rgba(248, 250, 252, 0.8);
+  --surface-overlay: #ffffff;
+  --surface-border: rgba(15, 23, 42, 0.1);
+  --surface-border-strong: #e2e8f0;
+
+  /* Auth panel token */
+  --panel-dark-bg: #0d1021;
+  --panel-dark-border: #1e2340;
 
   --primary: #10b981;
   --primary-hover: #059669;
@@ -34,6 +44,7 @@
   --border: #e2e8f0;
   --border-light: #f1f5f9;
   --ring: #10b981;
+  --ring-secondary: #6366f1;
   --ring-offset: #ffffff;
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -88,9 +99,9 @@ html {
 }
 
 body {
-  background-color: #f4f5fb;
+  background-color: var(--background);
   background-attachment: fixed;
-  color: #0f172a;
+  color: var(--foreground);
   font-family: var(--font-fira-sans), var(--font-jakarta), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -98,9 +109,9 @@ body {
 
 /* ── Dark Mode: Cinematic Space Theme ────────────────────────────────── */
 .dark body {
-  background-color: #020617;
+  background-color: var(--background);
   background-attachment: fixed;
-  color: #f1f5f9;
+  color: var(--foreground);
 }
 
 .dark {
@@ -112,6 +123,16 @@ body {
   --card: #0a0f1e;
   --card-hover: #0f172a;
   --card-border: rgba(255, 255, 255, 0.06);
+
+  /* Surface tokens — dark mode overrides */
+  --surface-input: #1a1e30;
+  --surface-overlay: #0f172a;
+  --surface-border: #383e59;
+  --surface-border-strong: #383e59;
+
+  /* Auth panel token — same as light (already dark) */
+  --panel-dark-bg: #0d1021;
+  --panel-dark-border: #1e2340;
 
   --primary: #22c55e;
   --primary-hover: #16a34a;

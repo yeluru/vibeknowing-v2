@@ -198,7 +198,7 @@ export function UrlInput() {
                         <motion.div
                             initial={{ scale: 0.95 }}
                             animate={{ scale: 1 }}
-                            className="w-full max-w-md bg-white dark:bg-[#1a1e30] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
+                            className="w-full max-w-md bg-white dark:bg-[var(--surface-input)] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
                         >
                             <div className="px-6 pt-6 pb-4 border-b border-slate-100 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-1">
@@ -292,7 +292,7 @@ export function UrlInput() {
                 )}
 
                 {/* Main Input Container */}
-                <div className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-2xl bg-white dark:bg-[#0f1117] border border-slate-200 dark:border-[#252d3d] shadow-sm focus-within:border-indigo-300 dark:focus-within:border-indigo-700 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all duration-200">
+                <div className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-2xl bg-white dark:bg-[var(--background-elevated)] border border-slate-200 dark:border-[var(--surface-border)] shadow-sm focus-within:border-indigo-300 dark:focus-within:border-indigo-700 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all duration-200">
 
                     {/* Input Row */}
                     <div className="flex flex-1 items-center min-w-0">

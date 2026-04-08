@@ -15,6 +15,7 @@ import json
 def _get_client(provider: str = "openai", api_key: str = ""):
     """Create the right AI client based on provider."""
     if provider == "anthropic":
+        import httpx
         import anthropic
         return anthropic.Anthropic(api_key=api_key)
     elif provider == "google":
@@ -22,8 +23,9 @@ def _get_client(provider: str = "openai", api_key: str = ""):
         genai.configure(api_key=api_key)
         return genai
     else:
+        import httpx
         from openai import OpenAI
-        return OpenAI(api_key=api_key)
+        return OpenAI(api_key=api_key, http_client=httpx.Client())
 
 
 def _resolve_key(provider: str, api_key: Optional[str] = None) -> str:
@@ -69,6 +71,7 @@ def _generate(
 
     try:
         if provider == "anthropic":
+            import httpx
             import anthropic
             client = anthropic.Anthropic(api_key=key)
             kwargs = {
@@ -100,7 +103,8 @@ def _generate(
         else:
             # OpenAI (default)
             from openai import OpenAI
-            client = OpenAI(api_key=key)
+            import httpx
+            client = OpenAI(api_key=key, http_client=httpx.Client())
             messages = []
             if system_prompt:
                 messages.append({"role": "system", "content": system_prompt})
@@ -144,6 +148,7 @@ def _generate_json(
 
     try:
         if provider == "anthropic":
+            import httpx
             import anthropic
             client = anthropic.Anthropic(api_key=key)
             full_system = (system_prompt + "\n\n" if system_prompt else "") + \
@@ -180,7 +185,8 @@ def _generate_json(
         else:
             # OpenAI
             from openai import OpenAI
-            client = OpenAI(api_key=key)
+            import httpx
+            client = OpenAI(api_key=key, http_client=httpx.Client())
             messages = []
             if system_prompt:
                 messages.append({"role": "system", "content": system_prompt})
@@ -195,8 +201,10 @@ def _generate_json(
             return response.choices[0].message.content or "{}"
 
     except Exception as e:
-        print(f"AI JSON Error [{provider}/{mdl}]: {e}")
-        return "{}"
+        import traceback
+        print(f"AI JSON Error [{provider}/{mdl}]: {type(e).__name__}: {e}")
+        traceback.print_exc()
+        raise
 
 
 class AIService:
@@ -209,8 +217,9 @@ class AIService:
         
         try:
             if provider == "openai":
+                import httpx
                 from openai import OpenAI
-                client = OpenAI(api_key=key)
+                client = OpenAI(api_key=key, http_client=httpx.Client())
                 # OpenAI uses text-embedding-3-small by default (1536 dims)
                 res = client.embeddings.create(input=[text], model="text-embedding-3-small")
                 return res.data[0].embedding
@@ -228,8 +237,9 @@ class AIService:
                 # Fallback to OpenAI if key available, else just empty for now.
                 fallback_key = _resolve_key("openai")
                 if fallback_key:
+                    import httpx
                     from openai import OpenAI
-                    client = OpenAI(api_key=fallback_key)
+                    client = OpenAI(api_key=fallback_key, http_client=httpx.Client())
                     res = client.embeddings.create(input=[text], model="text-embedding-3-small")
                     return res.data[0].embedding
                 return []
@@ -265,56 +275,50 @@ Raw Content:
     @staticmethod
     def generate_summary(text: str, style: str = "article", provider: str = "openai", model: str = None, api_key: str = None):
         if style == "article":
-            prompt = f"""You are a teacher writing an educational guide based on the content below. Your goal is to help the reader genuinely understand the subject — not just know what was said, but understand why it matters and how it works.
+            prompt = f"""Read the source content below and write a clear, tight summary that captures the real substance of what was said.
 
-Write in plain, confident English. Imagine you are explaining this to a smart colleague who is new to the topic. No jargon without explanation. No hype. No filler phrases like "In conclusion" or "It's important to note."
+Your reader is someone new to this topic but not unintelligent. They want to know what this is actually about, what the key ideas are, and why those ideas matter. They do not need to be wowed. They need to understand.
 
-Structure your response in Markdown:
-- Start with a single sentence that captures the core idea of the entire piece (no heading, just the sentence).
-- Use ## for major sections (2–5 depending on content depth).
-- Use ### for subsections only when a major section has more than one distinct concept.
-- Write paragraphs of 3–5 sentences. Each paragraph makes exactly one point.
-- Use bullet lists sparingly — only when listing genuinely parallel items. Never use bullets just to break up text.
-
-For every key concept:
-1. State it plainly in one sentence.
-2. Explain why it works that way (the reasoning, not just the definition).
-3. Give one concrete real-world example or analogy. Make it specific — "like a spreadsheet" is weak; "like a restaurant keeping a running tab per table" is strong.
-4. If there is a common mistake or misconception people have about this concept, address it in one sentence.
-
-Only include the following if they genuinely appear in the source content:
-- Code: show real snippets with brief inline comments. Do not invent code.
-- Math: use LaTeX ($...$ inline, $$...$$ for blocks). Show the reasoning step by step.
-- ASCII diagrams: only for relationships or flows that are genuinely hard to explain in text. Keep them under 20 lines.
-
-End with a short section titled "## The one thing to remember" — one paragraph, maximum 3 sentences, that captures the single most important insight from the content.
+How to write it:
+- Write in flowing prose. No fancy heading structures. One or two ## headings only if the content genuinely covers completely separate topics.
+- 4 to 6 paragraphs total. Each paragraph covers one distinct idea or thread from the source.
+- Open by stating the subject and the core idea directly. Do not refer to "the content", "the source", "the video", "the transcript", or "this piece". Write as if you are just explaining the topic to someone. "GraphRAG extends knowledge graphs with..." not "This content explains how GraphRAG..."
+- Never use phrases like "The content discusses", "The source covers", "The video concludes by", "This piece explores". Write about the subject, not about the document.
+- When a technical term appears for the first time, explain it briefly in the same sentence. Do not assume prior knowledge, but do not over-explain either.
+- Strip all filler, repetition, and meta-commentary from the source ("in this video we'll cover...", "that's all for today"). Keep only the substance.
+- If there is a specific process, comparison, or set of steps central to the topic, describe it clearly and concisely.
+- No analogies invented just to sound clever. No motivational framing. No "this is important because..." Just state the idea and move on.
+- Do not use em-dashes. Use commas, short sentences, or periods instead.
+- If a mathematical concept is involved, state the formula in LaTeX and explain what each part means in one sentence. No derivations needed here.
+- Length: 350 to 550 words. No more. No padding.
 
 Source content:
 {text[:30000]}"""
-            max_tokens = 16000
+            max_tokens = 4000
         elif style == "concise":
-            prompt = f"""Read the content below and write a concise summary that captures the essential points a reader needs to walk away with.
+            prompt = f"""Read the content below and write a tight summary of the essential points a reader needs to walk away with.
 
 Format:
-- Start with one sentence (no heading) that captures the single most important idea.
-- Then list 5–8 key points as bullet points. Each bullet is one complete sentence. No sub-bullets.
-- End with one sentence: "In short: [restate the core idea in different words]."
+- Open with one sentence (no heading) that captures the single most important idea.
+- Follow with 5 to 8 bullet points. Each bullet is one complete sentence. No sub-bullets.
+- Close with exactly: "In short: [restate the core idea in different words]."
 
-Tone: Direct and informative. Write as if briefing a busy professional.
+Tone: Direct and clear. Write as if briefing a busy professional who has 60 seconds.
 
 Content:
 {text[:15000]}"""
             max_tokens = 4000
         elif style == "eli5":
-            prompt = f"""Explain the content below to someone who has never heard of this topic before. Assume they are intelligent but completely unfamiliar with the field.
+            prompt = f"""Explain the content below to someone who has never heard of this topic. Assume they are smart but completely new to the field.
 
 Rules:
-- Never use jargon without immediately explaining it in parentheses.
-- Use one concrete, relatable analogy for each major concept. Pick analogies from everyday life (cooking, sports, driving, shopping — not tech).
-- Use short paragraphs. Maximum 3 sentences each.
-- Use simple Markdown: ## for sections, bold for key terms when first introduced.
-- Do not talk down to the reader. Explain simply, not condescendingly.
-- Do not use the phrase "imagine" more than once.
+- Never use jargon without immediately explaining it in plain words right after.
+- Use one concrete analogy from everyday life for each major concept. Cooking, sports, shopping, commuting work well. Tech analogies do not.
+- Short paragraphs, 2 to 3 sentences max.
+- Use simple Markdown: ## for sections, bold for key terms the first time they appear.
+- Treat the reader as capable. Explain simply, not condescendingly.
+- The word "imagine" can appear at most once.
+- If math is involved, still explain it with words first, then show the formula in LaTeX if it helps.
 
 Content:
 {text[:15000]}"""
@@ -322,7 +326,7 @@ Content:
         else:
             prompt = f"""Summarize the content below clearly and accurately.
 
-Write 3–5 paragraphs. Each paragraph covers one theme or aspect of the content. Use plain language. Do not add opinions or information not present in the source.
+Write 3 to 5 paragraphs. Each paragraph covers one theme or aspect of the content. Use plain language. Do not add opinions or information not present in the source.
 
 Content:
 {text[:15000]}"""
@@ -338,15 +342,18 @@ Content:
     def generate_quiz(text: str, provider: str = "openai", model: str = None, api_key: str = None):
         prompt = """Create 6 multiple-choice questions that test genuine understanding of the content below.
 
-Question writing rules:
-- Test reasoning and comprehension, not memory of specific words or trivia.
-- Each question should have one clearly correct answer and three plausible wrong answers.
-- Wrong answers should represent real misconceptions or common confusions — not obviously silly distractors.
-- Questions should vary in type: some test definitions, some test application, some test comparison or cause-and-effect.
-- Write questions in plain language. Avoid double negatives.
+Rules for writing questions:
+- Test reasoning and comprehension, not word-for-word recall or trivia.
+- One clearly correct answer. Three wrong answers that represent real misconceptions, not obviously silly choices.
+- Mix up the question types across the set: some test definitions, some test application, some test cause-and-effect, some test comparison.
+- Write in plain, direct language. No double negatives. No trick questions.
+- If the content involves math or formulas, at least one question should test whether the reader understands what the formula means, not just how to recall it.
 
-IMPORTANT — answer position:
-- The correct answer must NOT always be at index 0. Distribute correct answers across all four positions (0, 1, 2, 3) across the question set. No more than 2 questions should share the same correctAnswer index. Deliberately vary the position.
+Answer position rule: the correct answer must not always be at index 0. Spread correct answers across positions 0, 1, 2, and 3. No more than 2 questions should share the same correctAnswer index.
+
+Explanation rule: each explanation must teach. Show why the correct answer is right AND why at least one wrong answer is wrong. Write like a tutor, not a textbook.
+Good: "C is correct because gradient descent updates weights in the direction that reduces loss. A is wrong because it describes forward propagation, not the update step."
+Bad: "C is the correct answer."
 
 Output a JSON object with this exact structure:
 {
@@ -355,12 +362,10 @@ Output a JSON object with this exact structure:
       "question": "Question text here?",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": 2,
-      "explanation": "One or two sentences explaining why this answer is correct and why the others are not."
+      "explanation": "Why this answer is right, and why the key wrong answer is wrong."
     }
   ]
 }
-
-Explanations must be written in plain English. They should teach, not just confirm. Example of a good explanation: "The correct answer is C because [reason]. A is wrong because [reason]."
 
 Content:
 """
@@ -374,19 +379,30 @@ Content:
 
     @staticmethod
     def generate_flashcards(text: str, provider: str = "openai", model: str = None, api_key: str = None):
-        prompt = """Create 12 flashcards from the content below that are genuinely useful for learning and retention.
+        prompt = """Create 12 flashcards from the content below that are genuinely useful for learning and long-term retention.
 
-Flashcard writing rules:
-- Front: A focused question or prompt. Maximum 15 words. Should not contain the answer.
-- Back: A clear, complete answer. 1–3 sentences. Should explain the concept, not just name it.
-- Cover a mix of: key terms and definitions, cause-and-effect relationships, comparisons between concepts, and "why does this matter" questions.
-- Do not create trivial cards (e.g., "What year was X?" unless the date is genuinely important).
-- Write fronts as questions, not phrases. "What is X?" is better than "X definition".
-- Backs should be self-contained — the reader should understand the answer without reading the front again.
+Front of card:
+- A focused question or prompt, 15 words max.
+- Must not contain the answer or hint at it.
+- Write as a question, not a phrase. "Why does X happen?" beats "X definition".
+
+Back of card:
+- 1 to 3 sentences. Explain the concept, do not just name it.
+- Self-contained. The reader should understand the answer without re-reading the front.
+- For math concepts: include the formula in LaTeX if it aids understanding. Briefly explain what each variable means.
+- End with a memory hook when it helps: a one-sentence analogy, contrast, or mnemonic that makes the concept stick. "Think of it like a post office sorting facility" or "Unlike X which does Y, this does Z" are good forms.
+
+Card type variety across the 12 cards:
+- Key terms and what they actually mean
+- Cause-and-effect relationships
+- Comparisons between two concepts
+- "Why does this work?" questions
+- "What goes wrong if you don't?" questions
+- No trivial dates or names unless they are genuinely important to the concept
 
 Good example:
   Front: "Why does HTTP/2 use multiplexing instead of multiple TCP connections?"
-  Back: "HTTP/2 multiplexing sends multiple requests over one TCP connection simultaneously, avoiding the overhead of establishing separate connections and eliminating head-of-line blocking at the HTTP layer."
+  Back: "Multiplexing sends multiple requests over a single TCP connection at the same time. This eliminates the overhead of opening new connections and avoids head-of-line blocking that plagued HTTP/1.1."
 
 Bad example:
   Front: "HTTP/2"
@@ -397,7 +413,7 @@ Output a JSON object with this exact structure:
   "flashcards": [
     {
       "front": "Question or prompt here?",
-      "back": "Clear, complete answer here."
+      "back": "Clear, complete, self-contained answer here."
     }
   ]
 }
@@ -415,9 +431,20 @@ Content:
     @staticmethod
     def generate_social_media(text: str, platform: str = "twitter", provider: str = "openai", model: str = None, api_key: str = None):
         platform_guides = {
-            "twitter": "280 characters max, engaging hook, use 1-2 hashtags",
-            "linkedin": "Professional tone, 1-3 paragraphs, focus on insights and takeaways",
-            "facebook": "Conversational, 1-2 paragraphs, encourage engagement"
+            "twitter": (
+                "Max 280 characters. One punchy sentence. Pick the most surprising or useful insight from the content. "
+                "No thread format. End with 1-2 highly specific hashtags (e.g. #RAG not #AI)."
+            ),
+            "linkedin": (
+                "3-5 short paragraphs. Open with a concrete insight or counterintuitive fact. Not a question, not a greeting. "
+                "Each paragraph makes one point. End with a practical takeaway the reader can use today. "
+                "Professional but human. No corporate buzzwords. 3-4 relevant hashtags at the end."
+            ),
+            "instagram": (
+                "2-3 short paragraphs. Hook in the first line. Make someone stop scrolling. "
+                "Conversational, visual language. Describe ideas like you're talking to a friend. "
+                "End with a call to action (save, share, try this). 5-8 specific hashtags on a new line."
+            ),
         }
         guide = platform_guides.get(platform.lower(), platform_guides["twitter"])
 
@@ -427,20 +454,21 @@ Platform guidelines for {platform}:
 {guide}
 
 Writing rules (apply to all platforms):
-- Lead with the most surprising or valuable insight — not a setup or teaser.
-- Write like a human sharing something they found genuinely useful, not like a brand.
-- Be specific. "RAG retrieval improves answer accuracy by grounding responses in real data" is better than "AI can be improved."
-- No empty superlatives: avoid "game-changing," "revolutionary," "powerful," "incredible."
-- One idea per post. Do not try to cover everything.
+- Lead with the most surprising or valuable insight, not a setup or teaser.
+- Write like a human sharing something genuinely useful, not like a brand or a press release.
+- Be specific. "RAG retrieval improves accuracy by grounding LLM responses in retrieved documents" beats "AI can be improved."
+- No empty superlatives. Cut: game-changing, revolutionary, powerful, incredible, transformative.
+- One idea per post. Do not try to summarize everything.
+- Never use em-dashes. Use a comma, a period, or rewrite the sentence.
 
 Output a JSON object with this exact structure:
 {{
   "post": "The complete post text, ready to copy and paste",
-  "hook": "Just the opening line — the sentence that makes someone stop scrolling",
+  "hook": "Just the opening line, the sentence that makes someone stop scrolling",
   "hashtags": ["hashtag1", "hashtag2", "hashtag3"]
 }}
 
-Hashtag rules: 3-4 max. Specific over generic. #MachineLearning beats #Tech. #RAG beats #AI.
+Hashtag rules: 3 to 4 max. Specific over generic. #MachineLearning beats #Tech. #RAG beats #AI.
 
 Content:
 {text[:12000]}"""
@@ -454,21 +482,23 @@ Content:
 
     @staticmethod
     def generate_diagram(text: str, concept: str = "", provider: str = "openai", model: str = None, api_key: str = None):
-        concept_hint = f" Focus on visualizing: {concept}." if concept else ""
-        prompt = f"""Create a highly readable, structural node-based overview of the key concepts, relationships, or processes in the content.{concept_hint}
+        concept_hint = f" Focus specifically on visualizing: {concept}." if concept else ""
+        prompt = f"""Create a clear node-based diagram of the key concepts, steps, or relationships in the content below.{concept_hint}
 
-Diagram rules:
-- Extract logical steps, hierarchies, or networks from the text.
-- Create explicit nodes and the directional edges (connections) between them.
-- Keep node labels concise (under 5-8 words).
-- You MUST format the output as a valid stringified JSON object containing 'nodes' and 'edges'.
+Rules:
+- Extract the logical structure: steps, hierarchies, data flows, or cause-and-effect chains.
+- Every node needs a label that is 5 words or fewer.
+- Every edge needs a label that describes the relationship (e.g. "triggers", "outputs to", "depends on", "calls").
+- Group related nodes by giving them a shared prefix in the id (e.g. "data-1", "data-2" for data layer nodes).
+- Prefer depth over breadth. A deep chain of 8 nodes is more useful than a flat list of 15.
+- Do not invent relationships that are not in the content.
 
 Output a JSON object with this exact structure:
 {{
   "diagram": "{{\\"nodes\\": [{{\\"id\\": \\"1\\", \\"label\\": \\"Step 1\\"}}, ...], \\"edges\\": [{{\\"id\\": \\"e1-2\\", \\"source\\": \\"1\\", \\"target\\": \\"2\\", \\"label\\": \\"leads to\\"}}]}}",
   "type": "flowchart",
-  "title": "Specific descriptive title",
-  "description": "One sentence explaining what the diagram shows."
+  "title": "Specific, descriptive title (not generic like 'Overview')",
+  "description": "One sentence explaining what this diagram shows and why it matters."
 }}
 
 Content:
@@ -484,41 +514,63 @@ Content:
     @staticmethod
     def generate_article(text: str, style: str = "blog", provider: str = "openai", model: str = None, api_key: str = None):
         style_guides = {
-            "blog": """Write in a confident, conversational voice. Use short paragraphs (2-4 sentences). 
-Target length: 900-1300 words. Include 3-5 sections with ## headings.
-Open with a hook — a question, a surprising fact, or a bold statement. Do not open with "In today's world" or "Have you ever wondered."
-Close with one concrete takeaway the reader can act on or remember.""",
+            "blog": """This is a blog post for Medium or LinkedIn. Someone will read it in their feed and decide in 3 seconds whether to keep going.
 
-            "technical": """Write with precision. Define every technical term on first use.
-Target length: 1200-1800 words. Use ## for major sections, ### for subsections.
-Include code examples only if they appear in the source material — show real snippets, not pseudocode.
-Structure: Problem → Why it's hard → The solution → How it works → When to use it.""",
+Target length: 900 to 1300 words. 3 to 5 sections with ## headings.
 
-            "tutorial": """Write as step-by-step instructions. Number each step.
-Target length: 1000-1500 words.
-Each step: what to do (one sentence) + why you're doing it (one sentence) + what success looks like (one sentence).
-Include a "Before you start" section listing prerequisites.
-End with a "You've now..." summary of what the reader accomplished.""",
+Opening: Do not summarize. Do not explain what you are about to write. Start with a single punchy sentence that makes the reader feel something or want to know more. A surprising stat, a concrete situation, a counterintuitive claim. Never "In today's world", never "Have you ever wondered".
+
+Body: Take a clear point of view. Do not just report what the source said. Shape it into an argument, a lesson, or a revelation. Each section advances the piece, it does not just add more facts.
+
+Closing: One concrete thing the reader can do, remember, or look at differently tomorrow. Not "in conclusion". Land the idea.
+
+Tone: Confident, human, direct. The writer knows this topic and is sharing something genuinely worth knowing.""",
+
+            "technical": """This is a deep-dive technical article for developers or engineers. The reader is comfortable with code and wants to understand how something actually works.
+
+Target length: 1200 to 1800 words. Use ## for major sections, ### for subsections.
+
+Structure each major section as: what problem this solves, why the naive approach fails, the actual solution, how it works under the hood, when to use it vs. alternatives.
+
+For every mathematical concept: build the intuition first in plain language, then show the formula in LaTeX ($...$ inline, $$...$$ for block), and define every variable.
+
+Include code snippets only if they appear in the source. Real code only, no pseudocode, no placeholder variable names.
+
+Use Markdown comparison tables when two or more options share the same set of tradeoffs. A table is cleaner than "X does this, Y does that" repeated three times.
+
+The reader should finish this article able to explain the concept to a colleague and know when to reach for it.""",
+
+            "tutorial": """This is a hands-on tutorial. The reader wants to build or do something specific, not just understand theory.
+
+Target length: 1000 to 1500 words.
+
+Start with a short "Before you start" section: what the reader needs installed or understood already.
+
+Each step has exactly three parts: what to do (one sentence, imperative), why you are doing it (one sentence), what success looks like (one sentence). Number every step.
+
+End with "You now have..." followed by a one-paragraph description of what was built and what the reader can extend or explore next.""",
         }
         guide = style_guides.get(style.lower(), style_guides["blog"])
 
-        prompt = f"""Transform the source content below into a publishable {style} article.
+        prompt = f"""Write a publishable {style} article based on the source content below. This article will appear on platforms like Medium, LinkedIn, or a technical blog. It must read like it was written by a person with genuine expertise and a point of view, not like a document summarizer.
 
 Style guide for {style}:
 {guide}
 
-Writing quality standards (apply to all styles):
-- Every sentence must earn its place. Delete any sentence that could be removed without losing meaning.
-- Use active voice. "The system processes requests" not "Requests are processed by the system."
-- Use specific nouns. "Redis cache" not "caching solution."
-- No filler openers: never start a paragraph with "It is important to note that," "Basically," or "In essence."
-- Write as a human expert, not as an AI assistant.
+Standards that apply to every style:
+- Every sentence must earn its place. Cut anything that does not add meaning.
+- Active voice. "The algorithm updates weights" not "Weights are updated by the algorithm."
+- Specific nouns. "PostgreSQL index" not "database optimization". "attention head" not "model component".
+- No filler openers. Never start any paragraph with "It is important to note", "Basically", "In essence", or "As we can see".
+- No em-dashes. Use a comma, a short sentence, or rewrite.
+- Never refer to "the source", "the content", "the video", "the transcript", or "this piece". Write directly about the subject as if you are the author, not a reporter summarizing someone else's work.
+- If the content involves math, write all formulas in LaTeX and walk through the reasoning.
 
 Output a JSON object with this exact structure:
 {{
-  "title": "A specific, concrete title (not generic — it should describe exactly what this article covers)",
+  "title": "A specific, concrete title a reader would click on, not a generic label",
   "content": "Full article in Markdown",
-  "excerpt": "2 sentences that would make someone want to read the full article",
+  "excerpt": "2 sentences that make a reader in a feed stop scrolling and open this",
   "readTime": estimated_minutes_as_integer
 }}
 
@@ -538,27 +590,31 @@ Source content:
         key = _resolve_key(provider, api_key)
         mdl = _resolve_model(provider, model, "chat")
 
-        system_prompt = """You are a knowledgeable study partner helping someone understand and learn from a specific piece of content.
+        system_prompt = """You are a sharp, knowledgeable study partner helping someone understand a specific piece of content deeply.
 
 How to answer:
-- Ground your answers in the provided content. Quote or paraphrase specific parts when relevant.
-- If the question is directly answered in the content, answer it clearly and explain the reasoning behind it, not just the fact.
-- If the question goes beyond the content but is clearly related, answer from your knowledge and say so: "The content doesn't cover this directly, but..."
-- If the question is completely unrelated to the content, say so briefly and offer to refocus.
-- Never refuse to engage with a genuine learning question.
+- Ground your answers in the provided content. Quote or paraphrase specific parts when it helps.
+- If the question is answered in the content, explain the reasoning behind the answer, not just the fact.
+- When someone asks WHY something works, explain the chain of cause and effect step by step. Do not jump to the conclusion. Walk the path: "X happens because Y, which causes Z, which means..."
+- If the question goes beyond the content but is clearly related, answer from your knowledge and flag it: "The content does not cover this directly, but..."
+- If the question is completely off-topic, say so briefly and offer to refocus.
+- Never refuse a genuine learning question.
+- If the question involves a formula or equation, write it in LaTeX ($...$ inline, $$...$$ for block) and walk through what each part means. Build the intuition before showing the math.
 
 How to write your answers:
-- Be direct. Answer the question in the first sentence, then explain.
-- Use plain language. If you use a technical term, define it immediately.
-- Keep answers focused. 150-300 words for most questions. Longer only if the question genuinely requires it.
-- Use bullet points only when listing 3+ parallel items. Never bullet-ize a single continuous thought.
-- Do not start answers with "Great question!", "Certainly!", or "Of course!" — just answer.
-- End complex answers with one sentence that captures the key takeaway."""
+- Lead with the answer in the first sentence, then explain.
+- Plain language. If you use a technical term, define it in the same sentence.
+- 150 to 300 words for most questions. Longer only when the question genuinely needs it.
+- Bullet points only when listing 3 or more parallel items. Never bullet a single continuous thought.
+- Do not open with "Great question!", "Certainly!", or "Of course!". Just answer.
+- Close complex answers with one sentence that captures the key takeaway.
+- No em-dashes. Use a comma, a period, or rewrite the sentence."""
 
         user_content = f"Content:\n{context[:30000]}\n\nQuestion: {query}"
 
         try:
             if provider == "anthropic":
+                import httpx
                 import anthropic
                 client = anthropic.Anthropic(api_key=key)
                 # Return a streaming iterator
@@ -588,8 +644,9 @@ How to write your answers:
 
             else:
                 # OpenAI streaming (original behavior)
+                import httpx
                 from openai import OpenAI
-                client = OpenAI(api_key=key)
+                client = OpenAI(api_key=key, http_client=httpx.Client())
                 response = client.chat.completions.create(
                     model=mdl,
                     messages=[
@@ -606,17 +663,19 @@ How to write your answers:
 
     @staticmethod
     def generate_podcast_script(text: str, provider: str = "openai", model: str = None, api_key: str = None):
-        prompt = """Create a VIBRANT, HIGH-ENERGY AI Audio Briefing, presented by Alex, a professional human analyst who knows how to tell a story.
+        prompt = """Write a high-energy audio briefing presented by Alex, a sharp analyst who tells stories for a living.
 
-Audio Briefing Style Rules (The "Vibrant Human" Edition):
-- DIVE IN IMMEDIATELY: Start with a powerful hook that captures the 'Why does this matter?' of the material. Use the speaker's own energy.
-- NO AI JARGON: Strictly avoid phrases like "In summary," "The evolution of," "This technology underpinned," or "This methodology integrates." Speak like a human expert in a casual but professional setting.
-- NARRATIVE PULSE: Tell a story. Start with the problem, the context, and the friction described in the transcript. Then, reveal the 'Aha!' moment.
-- GROUNDED DETAILS: Use the specific examples from the transcript. If the speaker mentions AltaVista, MOSFETs, or 'Wi-Fi lights flashing yellow,' YOU mention them. These details make it real.
-- ENGAGEMENT TECHNIQUES: Use rhetorical questions ("Ever wonder why...?"), verbal hooks ("Now, here's where it gets interesting..."), and emphasis ("This is really freaking powerful").
-- HUMAN CADENCE: Use varied sentence lengths. Use conversational fillers naturally (e.g., "Think about it," "The reality is," "But wait, there's a kicker").
-- COMPREHENSIVE BUT PUNCHY: For a 20-minute source, aim for 1200-1500 words of high-density storytelling. Go deep into the 'How it works' without losing the listener.
-- Tone: Enthusiastic, Insightful, and Human. Not a robot reading a summary.
+Rules:
+- Start immediately with a hook that answers "why does this matter right now?" No throat-clearing, no "Today we're going to talk about..."
+- Tell a story. Open with the problem or the friction, build through the context, land on the insight.
+- Use the specific details from the source. If the source mentions AltaVista, MOSFETs, or a Wi-Fi light flashing yellow, Alex mentions them too. Details make it real.
+- Rhetorical questions work: "Ever wonder why...?" "Here's the part most people miss..."
+- Conversational fillers used sparingly and naturally: "Think about it." "The reality is." "And here's the kicker."
+- Varied sentence lengths. Some punchy. Some that build a bit more before landing. Like this.
+- Avoid all of these phrases: "In summary", "The evolution of", "This technology underpinned", "This methodology integrates", "It is worth noting", "Delve into".
+- For a 20-minute source, aim for 1200 to 1500 words of high-density storytelling. Go deep on how it works without losing the listener.
+- No em-dashes. Use short sentences or commas instead.
+- Tone: Enthusiastic, curious, human. Not a robot reading a summary.
 
 Output a JSON object with this exact structure:
 {
@@ -644,12 +703,13 @@ Source Transcript:
         Generate audio for each segment using OpenAI TTS and stitch them together.
         Alex = alloy, Sam = shimmer
         """
+        import httpx
         from openai import OpenAI
         from io import BytesIO
         from pydub import AudioSegment
-        
+
         key = _resolve_key("openai", api_key)
-        client = OpenAI(api_key=key)
+        client = OpenAI(api_key=key, http_client=httpx.Client())
         
         # We need a dummy starting segment to initialize combined_audio properly
         # Or just use silent first. 
@@ -688,10 +748,63 @@ Source Transcript:
         out_buffer = BytesIO()
         combined_audio.export(out_buffer, format="mp3")
         return out_buffer.getvalue()
+
     @staticmethod
     def generate_text(prompt: str, **kwargs) -> str:
         """Expose the _generate logic to other services."""
         return _generate(prompt=prompt, **kwargs)
+
+    @staticmethod
+    def generate_node_lesson(node_title: str, node_description: str, phase: str, **kwargs) -> str:
+        """Generate a dense, robust technical masterclass for a curriculum node."""
+        prompt = f"""Create a technical masterclass for the learning unit: "{node_title}"
+
+Phase: {phase}
+Unit description: {node_description}
+
+What to write:
+- Build intuition before formal definition. For every concept, open with the problem it solves or the real-world moment that made someone invent it. Then introduce the term.
+- Explain the reasoning behind every concept, not just the definition. A learner should understand WHY, not just WHAT.
+- Every concept needs a concrete, specific example from the real world. No generic placeholders.
+- For mathematical concepts, write every formula in LaTeX. Use $...$ for inline and $$...$$ for block equations. Explain each variable and walk through the derivation step by step. Show the intuition first, then the math.
+- For processes or architectures, include a labeled ASCII diagram showing how the pieces connect. Every section that describes a flow, pipeline, or structure should have a diagram.
+- Write in plain, direct language. Like a senior engineer explaining something to a smart junior. No em-dashes.
+- The youtube_search for each section must be specific enough to surface exactly one tutorial (e.g. "pytorch scaled dot-product attention implementation from scratch" not "learn pytorch").
+- The deployment_lab must give tasks the learner can actually run, with real CLI commands or code snippets, not vague instructions.
+
+Return ONLY this JSON structure. No markdown, no backticks, no preamble:
+{{
+  "mission_brief": "Two sentences: what this unit covers and what the learner can build or do after completing it",
+  "core_concepts": ["5 to 8 specific concept names that form the 80/20 foundation of this unit"],
+  "deep_dive_sections": [
+    {{
+      "title": "Name of a specific concept (not Introduction or Overview)",
+      "content": "4 to 6 paragraphs. Dense, accurate technical content with real examples. Include LaTeX formulas and ASCII diagrams where they aid understanding.",
+      "pro_tip": "One expert-level insight that most tutorials skip or get wrong",
+      "youtube_search": "Specific enough query to find exactly one high-quality tutorial video for this concept"
+    }}
+  ],
+  "visual_architecture": "ASCII diagram of the overall structure, flow, or component relationships for this unit (15 to 30 lines, labeled)",
+  "deployment_lab": {{
+    "mission": "The concrete, hands-on objective of this lab in one sentence",
+    "milestones": [
+      {{
+        "title": "Milestone name",
+        "task": "Exact task with real commands or code the learner runs",
+        "verification": "How the learner confirms this milestone is done"
+      }}
+    ],
+    "expert_context": "One paragraph on what separates a practitioner from a beginner on this topic"
+  }}
+}}
+
+Include 5 to 8 deep_dive_sections."""
+        return _generate_json(
+            prompt=prompt,
+            system_prompt="You are a senior technical educator. Create surgical-grade pedagogical content. Return only valid JSON. No markdown, no backticks.",
+            temperature=0.3,
+            **kwargs
+        )
 
     @staticmethod
     def generate_json(prompt: str, **kwargs) -> str:

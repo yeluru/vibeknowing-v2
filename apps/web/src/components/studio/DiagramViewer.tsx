@@ -85,7 +85,7 @@ function DiagramSkeleton() {
                 <div className="h-4 bg-slate-100 dark:bg-slate-700/60 rounded w-72 mx-auto" />
             </div>
             {/* Canvas skeleton */}
-            <div className="rounded-xl border border-gray-100 dark:border-[#383e59]/60 bg-slate-50 dark:bg-[#1a1e30]/50 overflow-hidden" style={{ height: '620px' }}>
+            <div className="rounded-xl border border-gray-100 dark:border-[var(--surface-border)]/60 bg-slate-50 dark:bg-[var(--surface-input)]/50 overflow-hidden" style={{ height: '620px' }}>
                 <div className="h-full flex items-center justify-center flex-col gap-4">
                     <div className="flex gap-6 items-center">
                         <div className="h-16 w-32 bg-slate-200 dark:bg-slate-700 rounded-xl" />
@@ -250,11 +250,10 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-[#383e59] shadow-sm min-h-[400px] transition-colors duration-300 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-[var(--surface-border)] shadow-sm min-h-[400px] transition-colors duration-300 overflow-hidden">
 
                 {/* Header */}
-                <div className="border-b border-gray-200 dark:border-[#383e59] px-6 py-4 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+                <div className="border-b border-gray-200 dark:border-[var(--surface-border)] px-6 py-4 flex justify-end items-center">
                     {diagram && !loading && (
                         <button
                             onClick={generateDiagram}
@@ -278,7 +277,7 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{diagram.title}</h3>
                                 <p className="text-[15px] leading-relaxed text-gray-600 dark:text-slate-400">{diagram.description}</p>
                             </div>
-                            <div className="relative border border-gray-100 dark:border-[#383e59]/60 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-[#1a1e30]/50 p-2 shadow-inner">
+                            <div className="relative border border-gray-100 dark:border-[var(--surface-border)]/60 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-[var(--surface-input)]/50 p-2 shadow-inner">
                                 <FlowRenderer chart={diagram.diagram} onRetry={generateDiagram} />
                             </div>
                         </div>
@@ -286,7 +285,7 @@ export function DiagramViewer({ sourceId, title = "Diagram Viewer" }: DiagramVie
                         /* Empty state */
                         <div className="h-full flex flex-col items-center justify-center py-20 text-center">
                             <div className="h-16 w-16 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6">
-                                <GitGraph className="h-8 w-8 text-indigo-500" />
+                                <GitGraph className="h-8 w-8 text-[var(--secondary)]" />
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Interactive Diagram</h3>
                             <p className="text-[15px] text-gray-500 dark:text-slate-400 mb-8 max-w-sm leading-relaxed">

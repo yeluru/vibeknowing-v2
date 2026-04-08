@@ -294,17 +294,18 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
             # Fallback: Local Whisper transcription (OpenAI or Groq)
             import tempfile
             import os
+            import httpx
             from openai import OpenAI
             from config import settings
             from pydub import AudioSegment
 
             if settings.OPENAI_API_KEY:
                 print("Using OpenAI Whisper for transcription (will fall back to Groq on quota error)")
-                client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                client = OpenAI(api_key=settings.OPENAI_API_KEY, http_client=httpx.Client())
                 whisper_model = "whisper-1"
             elif settings.GROQ_API_KEY:
                 print("No OpenAI key — using Groq Whisper for transcription")
-                client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1", http_client=httpx.Client())
                 whisper_model = "whisper-large-v3-turbo"
             else:
                 source.content = "Audio transcription requires an OpenAI or Groq API key."
@@ -316,7 +317,7 @@ def process_file_background(source_id: str, content_bytes: bytes, filename: str,
                 nonlocal client, whisper_model
                 if settings.GROQ_API_KEY and whisper_model != "whisper-large-v3-turbo":
                     print("OpenAI quota exceeded, switching to Groq...")
-                    client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                    client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1", http_client=httpx.Client())
                     whisper_model = "whisper-large-v3-turbo"
                     return True
                 return False

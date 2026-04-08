@@ -38,7 +38,7 @@ function CallbackContent() {
     }, [searchParams, router]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#1a1e30]">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[var(--surface-input)]">
             <div className="text-center space-y-4">
                 <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mx-auto" />
                 <p className="text-slate-600 dark:text-slate-400 font-medium">

@@ -37,7 +37,7 @@ export function ChatInput({ onSend, disabled, suggestions = [] }: ChatInputProps
 
     return (
         <div className="border-t border-slate-200/50 dark:border-white/[0.05]
-                        bg-white/60 dark:bg-[#020617]/70
+                        bg-white/60 dark:bg-[var(--background)/70]
                         backdrop-blur-2xl p-3 sm:p-5 transition-colors duration-300">
 
             {suggestions.length > 0 && (

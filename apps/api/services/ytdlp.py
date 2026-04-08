@@ -4,6 +4,7 @@ import glob
 import os
 import math
 import time
+import httpx
 from typing import List, Dict, Optional
 from openai import OpenAI
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -315,11 +316,11 @@ class YtDlpService:
 
                 if settings.OPENAI_API_KEY:
                     print("Using OpenAI Whisper for transcription (will fall back to Groq on quota error)")
-                    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                    client = OpenAI(api_key=settings.OPENAI_API_KEY, http_client=httpx.Client())
                     whisper_model = "whisper-1"
                 elif settings.GROQ_API_KEY:
                     print("No OpenAI key — using Groq Whisper for transcription")
-                    client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                    client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1", http_client=httpx.Client())
                     whisper_model = "whisper-large-v3-turbo"
                 else:
                     return {"success": False, "error": "Audio transcription requires an OpenAI or Groq API key."}
@@ -369,7 +370,7 @@ class YtDlpService:
                             # If OpenAI quota exceeded, fall back to Groq for this and remaining chunks
                             if ("429" in str(e) or "insufficient_quota" in str(e)) and settings.GROQ_API_KEY and whisper_model != "whisper-large-v3-turbo":
                                 print(f"OpenAI quota exceeded on chunk {i+1}, switching to Groq for remaining chunks...")
-                                client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+                                client = OpenAI(api_key=settings.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1", http_client=httpx.Client())
                                 whisper_model = "whisper-large-v3-turbo"
                                 try:
                                     transcript = YtDlpService.transcribe_with_retry(client, chunk_path, model=whisper_model)

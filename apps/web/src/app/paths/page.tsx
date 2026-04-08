@@ -100,13 +100,13 @@ export default function LearningPathsPage() {
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <div className="relative flex-1 md:w-80">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-400 transition-colors group-focus-within:text-indigo-500" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-400 transition-colors group-focus-within:text-[var(--secondary)]" />
                         <input 
                             type="text"
                             placeholder="Search your roadmap..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3 bg-white/80 dark:bg-[#1a1e30]/50 backdrop-blur-xl border border-slate-200/70 dark:border-white/5 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm transition-all"
+                            className="w-full pl-11 pr-4 py-3 bg-white/80 dark:bg-[var(--surface-input)]/50 backdrop-blur-xl border border-slate-200/70 dark:border-white/5 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm transition-all"
                         />
                     </div>
                     <button 
@@ -120,7 +120,7 @@ export default function LearningPathsPage() {
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+                    <Loader2 className="h-8 w-8 animate-spin text-[var(--secondary)]" />
                     <p className="text-xs font-black uppercase tracking-widest text-slate-400">Synchronizing Mastery Map...</p>
                 </div>
             ) : (
@@ -183,7 +183,7 @@ export default function LearningPathsPage() {
                             >
                                 <div 
                                     onClick={() => router.push(`/paths/${path.id}`)}
-                                    className="cursor-pointer relative z-10 h-full flex flex-col p-6 rounded-[2rem] bg-white/80 dark:bg-[#1a1e30]/40 backdrop-blur-xl border border-slate-200/70 dark:border-white/5 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden ring-1 ring-transparent hover:ring-indigo-500/30"
+                                    className="cursor-pointer relative z-10 h-full flex flex-col p-6 rounded-[2rem] bg-white/80 dark:bg-[var(--surface-input)]/40 backdrop-blur-xl border border-slate-200/70 dark:border-white/5 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden ring-1 ring-transparent hover:ring-indigo-500/30"
                                 >
                                     {/* Visual Accent */}
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/10 to-transparent blur-3xl -mr-10 -mt-10" />
@@ -226,7 +226,7 @@ export default function LearningPathsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-indigo-500 group-hover:translate-x-1 transition-transform">
+                                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[var(--secondary)] group-hover:translate-x-1 transition-transform">
                                         <span className="text-[10px] font-black uppercase tracking-widest">Launch Path</span>
                                         <ArrowRight className="h-4 w-4" />
                                     </div>

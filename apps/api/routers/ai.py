@@ -4,7 +4,7 @@ from typing import Optional
 from database import get_db
 import models
 from services.ai import AIService
-from dependencies import get_optional_user
+from dependencies import get_optional_user, get_current_user
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 import json
@@ -379,12 +379,16 @@ async def generate_quiz(source_id: str, request: Request, force: bool = False, d
         raise HTTPException(status_code=404, detail="Source content not found")
 
     ai_params = _get_ai_params(request, "quiz")
-    quiz_json_str = AIService.generate_quiz(source.content_text, **ai_params)
-    
+    try:
+        quiz_json_str = AIService.generate_quiz(source.content_text, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {type(e).__name__}: {e}")
     try:
         quiz_data = json.loads(quiz_json_str)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        raise HTTPException(status_code=500, detail="AI returned malformed output. Please try again.")
+    if not quiz_data.get("questions"):
+        raise HTTPException(status_code=500, detail="AI returned an empty quiz. Please try again.")
 
     artifact = models.Artifact(
         project_id=source.project_id,
@@ -432,12 +436,16 @@ async def generate_flashcards(source_id: str, request: Request, force: bool = Fa
             return existing_artifact.content
 
     ai_params = _get_ai_params(request, "flashcard")
-    flashcards_json_str = AIService.generate_flashcards(source.content_text, **ai_params)
-    
+    try:
+        flashcards_json_str = AIService.generate_flashcards(source.content_text, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {type(e).__name__}: {e}")
     try:
         flashcards_data = json.loads(flashcards_json_str)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        raise HTTPException(status_code=500, detail="AI returned malformed output. Please try again.")
+    if not flashcards_data.get("flashcards"):
+        raise HTTPException(status_code=500, detail="AI returned empty flashcards. Please try again.")
 
     artifact = models.Artifact(
         project_id=source.project_id,
@@ -476,12 +484,14 @@ async def generate_social_media(source_id: str, request: Request, platform: str 
         raise HTTPException(status_code=404, detail="Source content not found")
 
     ai_params = _get_ai_params(request, "social")
-    social_json_str = AIService.generate_social_media(source.content_text, platform, **ai_params)
-    
+    try:
+        social_json_str = AIService.generate_social_media(source.content_text, platform, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {type(e).__name__}: {e}")
     try:
         social_data = json.loads(social_json_str)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        raise HTTPException(status_code=500, detail="AI returned malformed output. Please try again.")
 
     artifact = models.Artifact(
         project_id=source.project_id,
@@ -521,12 +531,14 @@ async def generate_diagram(source_id: str, request: Request, concept: str = "", 
         raise HTTPException(status_code=404, detail="Source content not found")
 
     ai_params = _get_ai_params(request, "diagram")
-    diagram_json_str = AIService.generate_diagram(source.content_text, concept, **ai_params)
-    
+    try:
+        diagram_json_str = AIService.generate_diagram(source.content_text, concept, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {type(e).__name__}: {e}")
     try:
         diagram_data = json.loads(diagram_json_str)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        raise HTTPException(status_code=500, detail="AI returned malformed output. Please try again.")
 
     artifact = models.Artifact(
         project_id=source.project_id,
@@ -562,15 +574,21 @@ async def get_diagram(source_id: str, db: Session = Depends(get_db)):
 async def generate_article(source_id: str, request: Request, style: str = "blog", db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == source_id).first()
     if not source or not source.content_text:
-        raise HTTPException(status_code=404, detail="Source content not found")
+        raise HTTPException(status_code=404, detail="Source not ready — content is still being processed. Please wait a moment and try again.")
 
     ai_params = _get_ai_params(request, "article")
-    article_json_str = AIService.generate_article(source.content_text, style, **ai_params)
-    
+    try:
+        article_json_str = AIService.generate_article(source.content_text, style, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {type(e).__name__}: {e}")
+
     try:
         article_data = json.loads(article_json_str)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        raise HTTPException(status_code=500, detail="AI returned malformed output. Please try again.")
+
+    if not article_data.get("content"):
+        raise HTTPException(status_code=500, detail="AI returned an empty article. Please try again.")
 
     artifact = models.Artifact(
         project_id=source.project_id,
@@ -581,7 +599,7 @@ async def generate_article(source_id: str, request: Request, style: str = "blog"
     )
     db.add(artifact)
     db.commit()
-    
+
     return article_data
 
 
@@ -788,4 +806,243 @@ async def refresh_vanguard_recommendations(source_id: str, db: Session = Depends
     asyncio.create_task(VanguardService.research_and_recommend(source_id))
     
     return {"status": "processing", "message": "Mastery refresh initiated"}
+
+@router.post("/curriculum")
+async def create_curriculum(project_id: str, db: Session = Depends(get_db)):
+    """Trigger the Curriculum Architect to design a learning path for a project."""
+    from services.architect import ArchitectService
+    curriculum = await ArchitectService.create_syllabus(project_id, db_session=db)
+    if not curriculum:
+        raise HTTPException(status_code=500, detail="Architect failed to design curriculum")
+    return curriculum
+
+class VisionRequest(BaseModel):
+    theme: Optional[str] = ""
+    vision: Optional[str] = ""
+    job_description: Optional[str] = ""
+    reset: Optional[bool] = False
+
+@router.post("/curriculum/path/{category_id}")
+async def create_path_curriculum(category_id: str, request: VisionRequest, db: Session = Depends(get_db)):
+    """Architect a source-driven learning path for an entire Category (Learning Path)."""
+    from services.architect import ArchitectService
+    
+    curriculum = await ArchitectService.create_path_syllabus(
+        category_id, 
+        db_session=db, 
+        reset=request.reset
+    )
+    
+    if not curriculum:
+        raise HTTPException(status_code=500, detail="Architect failed to design path curriculum")
+    return curriculum
+
+@router.post("/curriculum/mission")
+async def create_mission_curriculum(request_body: VisionRequest, request: Request, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """Architect a standalone global mission for the user (Vision or JD driven)."""
+    from services.architect import ArchitectService
+    
+    curriculum = await ArchitectService.create_mission_syllabus(
+        user_id=current_user.id,
+        db_session=db,
+        vision=request_body.vision,
+        job_description=request_body.job_description,
+        reset=request_body.reset,
+        theme=request_body.theme
+    )
+    
+    if not curriculum:
+        raise HTTPException(status_code=500, detail="Architect failed to design mission")
+    return curriculum
+
+from sqlalchemy.orm import Session, joinedload
+
+@router.get("/curriculum/missions")
+async def list_missions(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """List all global missions architected by the user."""
+    missions = db.query(models.Curriculum).options(
+        joinedload(models.Curriculum.nodes)
+    ).filter(
+        models.Curriculum.user_id == current_user.id,
+        models.Curriculum.category_id == None,
+        models.Curriculum.project_id == None
+    ).all()
+    
+    # Enrich with basic stats
+    result = []
+    for m in missions:
+        m_dict = {
+            "id": m.id,
+            "goal": m.goal,
+            "created_at": m.created_at,
+            "updated_at": m.updated_at,
+            "node_count": len(m.nodes),
+            "mastery_percent": 0
+        }
+        if m.nodes:
+            total_score = sum(n.mastery_score or 0 for n in m.nodes)
+            m_dict["mastery_percent"] = round(total_score / len(m.nodes))
+        result.append(m_dict)
+        
+    return result
+
+@router.delete("/curriculum/mission/{mission_id}")
+async def delete_mission(mission_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """Delete a global mission."""
+    mission = db.query(models.Curriculum).filter(
+        models.Curriculum.id == mission_id,
+        models.Curriculum.user_id == current_user.id
+    ).first()
+    
+    if not mission:
+        raise HTTPException(status_code=404, detail="Mission not found")
+        
+    # Force delete nodes first to be absolutely safe
+    db.query(models.CurriculumNode).filter(models.CurriculumNode.curriculum_id == mission_id).delete()
+    
+    db.delete(mission)
+    db.commit()
+    return {"status": "success"}
+
+@router.get("/curriculum/{project_id}")
+async def get_curriculum(project_id: str, db: Session = Depends(get_db)):
+    """Retrieve current learning path for a project."""
+    curriculum = db.query(models.Curriculum).filter(models.Curriculum.project_id == project_id).first()
+    if not curriculum: return {"phases": [], "nodes": []}
+    
+    nodes = db.query(models.CurriculumNode).filter(models.CurriculumNode.curriculum_id == curriculum.id).order_by(models.CurriculumNode.sequence_order).all()
+    return {"id": curriculum.id, "goal": curriculum.goal, "phases": curriculum.phases, "nodes": nodes}
+
+@router.get("/curriculum/path/{category_id}")
+async def get_path_curriculum(category_id: str, db: Session = Depends(get_db)):
+    """Retrieve global learning path for a Category."""
+    curriculum = db.query(models.Curriculum).filter(models.Curriculum.category_id == category_id).first()
+    if not curriculum: return {"phases": [], "nodes": []}
+    
+    nodes = db.query(models.CurriculumNode).filter(models.CurriculumNode.curriculum_id == curriculum.id).order_by(models.CurriculumNode.sequence_order).all()
+    return {"id": curriculum.id, "goal": curriculum.goal, "phases": curriculum.phases, "nodes": nodes}
+
+@router.get("/curriculum/mission/{mission_id}")
+async def get_mission_details(mission_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """Retrieve details for a specific global mission."""
+    curriculum = db.query(models.Curriculum).filter(
+        models.Curriculum.id == mission_id,
+        models.Curriculum.user_id == current_user.id
+    ).first()
+    
+    if not curriculum:
+        raise HTTPException(status_code=404, detail="Mission not found")
+        
+    # --- Syllabus Health Check & Auto-Repair ---
+    # Ensure if ANY node is mastered, all previous nodes are at least 'unlocked'
+    # And ensure THE first node is always unlocked
+    nodes = db.query(models.CurriculumNode)\
+        .filter(models.CurriculumNode.curriculum_id == curriculum.id)\
+        .order_by(models.CurriculumNode.sequence_order).all()
+        
+    if nodes:
+        modified = False
+        # Rule 1: First node must be unlocked at minimum
+        if nodes[0].status == "locked":
+            nodes[0].status = "unlocked"
+            modified = True
+            
+        # Rule 2: If a node is mastered, everything before it must be unlocked
+        latest_mastered_idx = -1
+        for i, n in enumerate(nodes):
+            if n.status == "mastered":
+                latest_mastered_idx = i
+                
+        if latest_mastered_idx >= 0:
+            for i in range(latest_mastered_idx):
+                if nodes[i].status == "locked":
+                    nodes[i].status = "unlocked"
+                    modified = True
+        
+        if modified:
+            db.commit()
+            
+    return {"id": curriculum.id, "goal": curriculum.goal, "phases": curriculum.phases, "nodes": nodes}
+
+@router.post("/curriculum/node/{node_id}/scout")
+async def scout_node(node_id: str, db: Session = Depends(get_db)):
+    """Trigger the Scout Agent to hunt for resources for a specific node."""
+    from services.scout import ScoutService
+    resources = await ScoutService.scout_for_node(node_id, db_session=db)
+    if resources is None:
+        raise HTTPException(status_code=500, detail="Scout failed to find resources")
+    return {"status": "success", "resources": resources}
+
+@router.get("/curriculum/node/{node_id}")
+async def get_node_details(node_id: str, db: Session = Depends(get_db)):
+    """Retrieve details for a specific curriculum node."""
+    node = db.query(models.CurriculumNode).filter(models.CurriculumNode.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    return {
+        "id": node.id,
+        "title": node.title,
+        "description": node.description,
+        "phase": node.phase,
+        "status": node.status,
+        "mastery_score": node.mastery_score,
+        "search_requirements": node.search_requirements,
+        "suggested_resources": node.suggested_resources,
+        "lesson_content": node.lesson_content
+    }
+
+@router.post("/curriculum/node/{node_id}/lesson")
+async def generate_node_lesson(node_id: str, request: Request, db: Session = Depends(get_db)):
+    """Trigger the AIService to generate a deep tactical lesson for this node."""
+    node = db.query(models.CurriculumNode).filter(models.CurriculumNode.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+        
+    ai_params = _get_ai_params(request, "lesson")
+    
+    lesson_json = AIService.generate_node_lesson(
+        node_title=node.title,
+        node_description=node.description,
+        phase=node.phase,
+        **ai_params
+    )
+    
+    try:
+        lesson_data = json.loads(lesson_json)
+        node.lesson_content = lesson_data
+        db.commit()
+        return lesson_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to synthesize lesson: {str(e)}")
+
+@router.post("/curriculum/node/{node_id}/master")
+async def master_node(node_id: str, db: Session = Depends(get_db)):
+    """Mark a node as mastered."""
+    node = db.query(models.CurriculumNode).filter(models.CurriculumNode.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    
+    node.status = "mastered"
+    node.mastery_score = 100
+    
+    # 1. Ensure all nodes BEFORE this one are at least "unlocked" 
+    # (Fixes the 'jump ahead' locking issue)
+    db.query(models.CurriculumNode)\
+        .filter(models.CurriculumNode.curriculum_id == node.curriculum_id)\
+        .filter(models.CurriculumNode.sequence_order < node.sequence_order)\
+        .filter(models.CurriculumNode.status == "locked")\
+        .update({"status": "unlocked"})
+
+    # 2. Unlock the immediate NEXT node
+    next_node = db.query(models.CurriculumNode)\
+        .filter(models.CurriculumNode.curriculum_id == node.curriculum_id)\
+        .filter(models.CurriculumNode.sequence_order > node.sequence_order)\
+        .order_by(models.CurriculumNode.sequence_order)\
+        .first()
+        
+    if next_node and next_node.status == "locked":
+        next_node.status = "unlocked"
+        
+    db.commit()
+    return {"status": "success", "node": node}
 

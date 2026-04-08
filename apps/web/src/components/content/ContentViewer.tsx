@@ -80,7 +80,7 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
             </div>
 
             {embedUrl ? (
-                <div className="relative w-full bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden border border-slate-200/30 dark:border-[#383e59]/40">
+                <div className="relative w-full bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden border border-slate-200/30 dark:border-[var(--surface-border)]/40">
                     {contentType === 'youtube' || contentType === 'ted' || contentType === 'instagram' ? (
                         // Video embed (16:9 aspect ratio)
                         <div className="relative pb-[56.25%]">
@@ -105,7 +105,7 @@ export function ContentViewer({ url, title }: ContentViewerProps) {
                     )}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-20 bg-gray-50 dark:bg-slate-700 rounded-lg border border-slate-200/30 dark:border-[#383e59]/40">
+                <div className="flex flex-col items-center justify-center py-20 bg-gray-50 dark:bg-slate-700 rounded-lg border border-slate-200/30 dark:border-[var(--surface-border)]/40">
                     <ExternalLink className="h-12 w-12 text-gray-300 mb-4" />
                     <p className="text-gray-600 dark:text-slate-300 mb-2">
                         {contentType === 'instagram'

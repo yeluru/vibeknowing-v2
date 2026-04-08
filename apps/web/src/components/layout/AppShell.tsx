@@ -15,7 +15,7 @@ interface PageMeta { title: string; subtitle: string; }
 function getPageMeta(pathname: string): PageMeta {
     if (pathname === "/")                    return { title: "VibeLearn",      subtitle: "Your AI learning workspace" };
     if (pathname.startsWith("/source/"))     return { title: "Study Workspace",  subtitle: "Explore, summarize, and create from your source" };
-    if (pathname.startsWith("/studio"))      return { title: "Content Studio",   subtitle: "Turn your knowledge into publishable content" };
+    if (pathname.startsWith("/studio"))      return { title: "Content Repo",     subtitle: "Your library of knowledge assets and collections" };
     if (pathname.startsWith("/chat"))        return { title: "Knowledge Base",   subtitle: "Chat across all your uploaded documents" };
     if (pathname.startsWith("/flashcards"))  return { title: "Flashcard Decks",  subtitle: "Spaced-repetition review for every project" };
     if (pathname.startsWith("/projects"))    return { title: "Library",          subtitle: "All your learning goals in one place" };
@@ -42,14 +42,14 @@ function LandingNav() {
     const { theme, toggleTheme } = useTheme();
     return (
         <nav className="fixed top-0 inset-x-0 z-50 h-[60px] flex items-center justify-between px-5 lg:px-10
-                        bg-white/50 dark:bg-[#020617]/60 backdrop-blur-2xl
+                        bg-white/50 dark:bg-[var(--background)/60] backdrop-blur-2xl
                         border-b border-slate-200/40 dark:border-white/[0.05]
                         shadow-sm dark:shadow-[0_1px_0_rgba(255,255,255,0.04)]">
             <Link href="/" className="flex items-center gap-2.5 font-bold text-[15px] tracking-tight text-slate-900 dark:text-slate-100 hover:opacity-80 transition-opacity">
                 <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-emerald-400 to-indigo-600 flex items-center justify-center shadow-lg dark:sidebar-logo-glow flex-shrink-0">
                     <span className="text-white text-[12px] font-black">V</span>
                 </div>
-                <span className="font-mono"><span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span></span>
+                <span className="font-mono"><span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-emerald-500 dark:text-emerald-400">Learn</span></span>
             </Link>
             <div className="flex items-center gap-2">
                 <button

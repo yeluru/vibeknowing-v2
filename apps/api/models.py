@@ -133,3 +133,45 @@ class UserSetting(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", backref="settings")
+
+class Curriculum(Base):
+    __tablename__ = "curriculums"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    project_id = Column(String, ForeignKey("projects.id"), nullable=True)
+    category_id = Column(String, ForeignKey("categories.id"), nullable=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    goal = Column(String)
+    phases = Column(JSON, nullable=True) # Overall phase strategy
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    project = relationship("Project", backref="curriculum")
+    category = relationship("Category", backref="curriculum")
+    nodes = relationship("CurriculumNode", back_populates="curriculum", cascade="all, delete-orphan")
+
+class CurriculumNode(Base):
+    __tablename__ = "curriculum_nodes"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    curriculum_id = Column(String, ForeignKey("curriculums.id"))
+    parent_id = Column(String, ForeignKey("curriculum_nodes.id"), nullable=True)
+    
+    title = Column(String)
+    description = Column(Text, nullable=True)
+    phase = Column(String) # Foundation, Core, Advanced, Applied
+    sequence_order = Column(Integer, default=0)
+    
+    # Mastery Tracking
+    status = Column(String, default="locked") # locked, unlocked, in_progress, mastered
+    mastery_score = Column(Integer, default=0)
+    
+    # Research Intel (for Scout Agent)
+    search_requirements = Column(JSON, nullable=True) # Specific queries or topics to hunt for
+    suggested_resources = Column(JSON, nullable=True) # Linked sources found by Scout
+    lesson_content = Column(JSON, nullable=True) # AI-generated lesson (Article, Code, etc.)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    curriculum = relationship("Curriculum", back_populates="nodes")

@@ -72,7 +72,7 @@ const DEMO_CARDS = [
     label: "AI Summary",
     color: "from-indigo-500/20 to-indigo-600/10",
     border: "border-indigo-200/60 dark:border-indigo-700/40",
-    icon: <Brain className="h-4 w-4 text-indigo-500" />,
+    icon: <Brain className="h-4 w-4 text-[var(--secondary)]" />,
     preview: (
       <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
         <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full w-full animate-pulse" />
@@ -92,7 +92,7 @@ const DEMO_CARDS = [
     preview: (
       <div className="space-y-2">
         {["What is the main concept?", "Key difference between X and Y?", "Define the process of Z"].map((q, i) => (
-          <div key={i} className="flex items-start gap-2 bg-white/60 dark:bg-[#1a1e30]/40 rounded-lg p-2">
+          <div key={i} className="flex items-start gap-2 bg-white/60 dark:bg-[var(--surface-input)]/40 rounded-lg p-2">
             <div className="h-4 w-4 rounded bg-sky-500/20 flex-shrink-0 mt-0.5" />
             <span className="text-xs text-slate-600 dark:text-slate-300 leading-tight">{q}</span>
           </div>
@@ -114,7 +114,7 @@ const DEMO_CARDS = [
             "flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs border",
             i === 2
               ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
-              : "bg-white/50 dark:bg-[#1a1e30]/30 border-slate-200/50 dark:border-[#383e59]/50 text-slate-600 dark:text-slate-300"
+              : "bg-white/50 dark:bg-[var(--surface-input)]/30 border-slate-200/50 dark:border-[var(--surface-border)]/50 text-slate-600 dark:text-slate-300"
           )}>
             {i === 2 && <CheckCircle2 className="h-3 w-3 flex-shrink-0" />}
             {i !== 2 && <div className="h-3 w-3 rounded-full border border-current flex-shrink-0" />}
@@ -132,7 +132,7 @@ const SOURCE_TYPES = [
   { icon: <Twitter className="h-4 w-4" />, label: "X / Twitter", color: "text-slate-900 dark:text-slate-300" },
   { icon: <Linkedin className="h-4 w-4" />, label: "LinkedIn", color: "text-blue-600" },
   { icon: <Globe className="h-4 w-4" />, label: "Websites", color: "text-sky-500" },
-  { icon: <FileText className="h-4 w-4" />, label: "PDFs", color: "text-indigo-500" },
+  { icon: <FileText className="h-4 w-4" />, label: "PDFs", color: "text-[var(--secondary)]" },
   { icon: <Mic className="h-4 w-4" />, label: "Audio", color: "text-violet-500" },
 ];
 
@@ -156,7 +156,7 @@ function DemoPreview() {
         transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 2.5 }}
         className="absolute -top-6 left-10 w-[240px] z-10"
       >
-        <div className="vk-card p-3 border-pink-200 dark:border-pink-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
+        <div className="vk-card p-3 border-pink-200 dark:border-pink-900 bg-white dark:bg-[var(--background-elevated)] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
           <div className="flex items-center gap-2 mb-2 pb-2 border-b border-pink-100 dark:border-pink-900/30">
              <Share2 className="h-3.5 w-3.5 text-pink-500" />
              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Viral Thread</span>
@@ -181,7 +181,7 @@ function DemoPreview() {
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-10 right-0 w-[260px] z-20"
       >
-        <div className="vk-card p-3 border-emerald-200 dark:border-emerald-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
+        <div className="vk-card p-3 border-emerald-200 dark:border-emerald-900 bg-white dark:bg-[var(--background-elevated)] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
           <div className="flex items-center gap-2 mb-2 border-b border-emerald-100 dark:border-emerald-900/30 pb-2">
             <Mic className="h-3.5 w-3.5 text-emerald-500" />
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Transcription</span>
@@ -202,11 +202,11 @@ function DemoPreview() {
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         className="absolute top-40 -left-6 w-[240px] z-30"
       >
-        <div className="vk-card p-4 border-indigo-200 dark:border-indigo-900 bg-white dark:bg-[#0f1117] shadow-[0_8px_30px_rgba(79,70,229,0.12)] dark:shadow-[0_8px_30px_rgba(79,70,229,0.2)]">
+        <div className="vk-card p-4 border-indigo-200 dark:border-indigo-900 bg-white dark:bg-[var(--background-elevated)] shadow-[0_8px_30px_rgba(79,70,229,0.12)] dark:shadow-[0_8px_30px_rgba(79,70,229,0.2)]">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-2xl" />
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
-              <Brain className="h-4 w-4 text-indigo-500" />
+              <Brain className="h-4 w-4 text-[var(--secondary)]" />
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">AI Summary</span>
             </div>
             <div className="space-y-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -228,7 +228,7 @@ function DemoPreview() {
         transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
         className="absolute top-48 -right-8 w-[230px] z-30"
       >
-        <div className="vk-card p-3 border-amber-200 dark:border-amber-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
+        <div className="vk-card p-3 border-amber-200 dark:border-amber-900 bg-white dark:bg-[var(--background-elevated)] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
           <div className="flex items-center gap-2 mb-3 border-b border-amber-100 dark:border-amber-900/30 pb-2">
             <MessageCircle className="h-3.5 w-3.5 text-amber-500" />
             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">Chat with Doc</span>
@@ -236,7 +236,7 @@ function DemoPreview() {
           
           <div className="flex flex-col gap-2">
             {/* User message */}
-            <div className="self-end bg-slate-100 dark:bg-[#1e2235] px-2.5 py-1.5 rounded-l-xl rounded-tr-xl max-w-[85%] border border-slate-200 dark:border-[#383e59]/50">
+            <div className="self-end bg-slate-100 dark:bg-[var(--surface-input)] px-2.5 py-1.5 rounded-l-xl rounded-tr-xl max-w-[85%] border border-slate-200 dark:border-[var(--surface-border)]/50">
                <span className="text-[10px] text-slate-600 dark:text-slate-300 font-medium">Explain the 3rd principle?</span>
             </div>
             {/* AI message */}
@@ -260,14 +260,14 @@ function DemoPreview() {
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
         className="absolute bottom-16 right-4 w-[220px] z-40"
       >
-         <div className="vk-card p-3 border-sky-200 dark:border-sky-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)] hover:scale-105 transition-transform cursor-pointer">
+         <div className="vk-card p-3 border-sky-200 dark:border-sky-900 bg-white dark:bg-[var(--background-elevated)] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)] hover:scale-105 transition-transform cursor-pointer">
            <div className="flex items-center gap-2 mb-3">
               <BookOpen className="h-3.5 w-3.5 text-sky-500" />
               <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Flashcards Generated</span>
             </div>
             <div className="flex -space-x-2">
               {[1,2,3].map(i => (
-                 <div key={i} className="w-10 h-12 bg-white dark:bg-[#1a1e30] border border-slate-200 dark:border-slate-700 rounded-md shadow-sm transform -rotate-6 origin-bottom-left" style={{ zIndex: 10 - i, rotate: `${-6 + (i*4)}deg` }} />
+                 <div key={i} className="w-10 h-12 bg-white dark:bg-[var(--surface-input)] border border-slate-200 dark:border-slate-700 rounded-md shadow-sm transform -rotate-6 origin-bottom-left" style={{ zIndex: 10 - i, rotate: `${-6 + (i*4)}deg` }} />
               ))}
             </div>
             <div className="mt-3 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
@@ -282,7 +282,7 @@ function DemoPreview() {
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
         className="absolute bottom-4 -left-2 w-[250px] z-50"
       >
-        <div className="vk-card p-4 border-violet-200 dark:border-violet-900 bg-white dark:bg-[#0f1117] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)] overflow-hidden relative">
+        <div className="vk-card p-4 border-violet-200 dark:border-violet-900 bg-white dark:bg-[var(--background-elevated)] shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.45)] overflow-hidden relative">
           <div className="absolute top-0 right-0 w-16 h-16 bg-violet-500/6 rounded-full -mr-8 -mt-8" />
           <div className="flex items-center justify-between mb-3 relative z-10">
             <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ export default function Home() {
         {/* Deep background & atmospheric layers */}
         <div className="absolute inset-0 -z-10 bg-transparent overflow-hidden">
           {/* Base cinematic dark gradient (only visible in dark mode) */}
-          <div className="absolute inset-0 bg-[#fdfcfb] dark:bg-[#020203]" />
+          <div className="absolute inset-0 bg-[var(--background-light)] dark:bg-[var(--background)]" />
 
           {/* Animated Atmospheric Blobs - Cinema Mobile Style */}
           <motion.div 
@@ -465,8 +465,8 @@ export default function Home() {
                 <motion.div variants={fadeUp} className="flex justify-center lg:justify-start mb-8 z-20">
                   <div className="relative group cursor-pointer">
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-indigo-400 to-sky-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-                    <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[#0c0f18] border border-slate-200/80 dark:border-[#383e59]/80 text-slate-800 dark:text-slate-300 text-xs font-black tracking-widest uppercase shadow-xl min-w-max">
-                      <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+                    <div className="relative inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-white dark:bg-[var(--background-elevated)] border border-slate-200/80 dark:border-[var(--surface-border)]/80 text-slate-800 dark:text-slate-300 text-xs font-black tracking-widest uppercase shadow-xl min-w-max">
+                      <Sparkles className="h-4 w-4 text-[var(--secondary)] dark:text-indigo-400" />
                       Welcome to <span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span>!
                       <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform duration-150" />
                     </div>
@@ -506,7 +506,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     <div className="flex -space-x-2.5">
                       {["bg-gradient-to-br from-indigo-400 to-indigo-600","bg-gradient-to-br from-sky-400 to-sky-600","bg-gradient-to-br from-emerald-400 to-emerald-600","bg-gradient-to-br from-violet-400 to-violet-600","bg-gradient-to-br from-amber-400 to-amber-600"].map((g, i) => (
-                        <div key={i} className={`h-8 w-8 rounded-full ${g} border-2 border-white dark:border-[#020203] ring-1 ring-white/10 shadow-sm`} />
+                        <div key={i} className={`h-8 w-8 rounded-full ${g} border-2 border-white dark:border-[var(--background)] ring-1 ring-white/10 shadow-sm`} />
                       ))}
                     </div>
                     <div>
@@ -544,7 +544,7 @@ export default function Home() {
                 <motion.div variants={fadeUp} className="mt-8 flex flex-wrap justify-center gap-2.5 max-w-4xl mx-auto lg:mx-0">
                   {/* Sources */}
                   {SOURCE_TYPES.map(s => (
-                    <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-[#383e59]/50 text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:scale-105 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 group/pill">
+                    <span key={s.label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-[var(--surface-border)]/50 text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:scale-105 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 group/pill">
                       <span className={cn("opacity-100 drop-shadow-sm group-hover/pill:scale-110 transition-transform", s.color)}>{s.icon}</span> {s.label}
                     </span>
                   ))}
@@ -590,10 +590,10 @@ export default function Home() {
                     rotate: [-3, 3, -3]
                   }} 
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-8 -left-20 h-28 w-28 bg-white dark:bg-[#131720] rounded-[28px] border border-slate-200 dark:border-[#252d3d] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center"
+                  className="absolute -bottom-8 -left-20 h-28 w-28 bg-white dark:bg-[var(--background-elevated)] rounded-[28px] border border-slate-200 dark:border-[var(--surface-border)] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center"
                 >
                   <div className="text-center">
-                    <span className="block text-3xl font-black text-indigo-500 drop-shadow-sm">A+</span>
+                    <span className="block text-3xl font-black text-[var(--secondary)] drop-shadow-sm">A+</span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-full mt-1 inline-block">Score</span>
                   </div>
                 </motion.div>
@@ -604,7 +604,7 @@ export default function Home() {
                     rotate: [2, -2, 2]
                   }} 
                   transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  className="absolute top-10 -right-12 w-44 bg-white dark:bg-[#131720] p-4 rounded-[28px] border border-slate-200 dark:border-[#252d3d] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+                  className="absolute top-10 -right-12 w-44 bg-white dark:bg-[var(--background-elevated)] p-4 rounded-[28px] border border-slate-200 dark:border-[var(--surface-border)] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
                 >
                   <div className="flex items-center gap-2.5 mb-3">
                     <div className="h-7 w-7 rounded-full bg-emerald-500/20 flex items-center justify-center">
@@ -728,9 +728,9 @@ export default function Home() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="max-w-6xl mx-auto px-4 mt-12"
         >
-          <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-[#0f1117] border border-slate-200 dark:border-[#252d3d] shadow-sm">
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-[var(--background-elevated)] border border-slate-200 dark:border-[var(--surface-border)] shadow-sm">
             {learnStats.streak > 0 && (
-              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[#252d3d]">
+              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[var(--surface-border)]">
                 <span className="flex items-center justify-center h-8 w-8 rounded-xl bg-amber-50 dark:bg-amber-500/10">
                   <Flame className="h-4 w-4 text-amber-500" />
                 </span>
@@ -741,9 +741,9 @@ export default function Home() {
               </div>
             )}
             {learnStats.todayCards > 0 && (
-              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[#252d3d]">
+              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[var(--surface-border)]">
                 <span className="flex items-center justify-center h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10">
-                  <Layers className="h-4 w-4 text-indigo-500" />
+                  <Layers className="h-4 w-4 text-[var(--secondary)]" />
                 </span>
                 <div>
                   <p className="text-xs text-slate-400 dark:text-slate-500 leading-none mb-0.5">Today</p>
@@ -752,7 +752,7 @@ export default function Home() {
               </div>
             )}
             {learnStats.totalCards > 0 && (
-              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[#252d3d]">
+              <div className="flex items-center gap-2 pr-3 border-r border-slate-200 dark:border-[var(--surface-border)]">
                 <span className="flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
                   <BookOpen className="h-4 w-4 text-emerald-500" />
                 </span>
@@ -791,7 +791,7 @@ export default function Home() {
           className="max-w-6xl mx-auto px-4 mt-20"
         >
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200 dark:border-[#383e59]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-4 border-b border-slate-200 dark:border-[var(--surface-border)]">
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Your Learning History</h2>
               <p className="text-slate-500 dark:text-zinc-300 text-sm mt-1">Pick up where you left off</p>
@@ -799,7 +799,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <button
                 onClick={async () => { setIsRefreshing(true); await loadData(); setIsRefreshing(false); }}
-                className="p-2 rounded-xl bg-slate-50 dark:bg-[#1e2235] border border-slate-200 dark:border-[#383e59] hover:bg-slate-100 dark:hover:bg-[#252a42] text-slate-600 dark:text-indigo-200/80 transition-colors shadow-sm"
+                className="p-2 rounded-xl bg-slate-50 dark:bg-[var(--surface-input)] border border-slate-200 dark:border-[var(--surface-border)] hover:bg-slate-100 dark:hover:bg-[var(--surface-input)]/80 text-slate-600 dark:text-indigo-200/80 transition-colors shadow-sm"
                 title="Refresh"
               >
                 <RefreshCcw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
@@ -809,7 +809,7 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Search goals..."
-                  className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-[#1a1e30] border border-slate-200 dark:border-[#383e59] text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
+                  className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-[var(--surface-input)] border border-slate-200 dark:border-[var(--surface-border)] text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow shadow-inner dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]"
                 />
               </div>
             </div>
@@ -853,13 +853,13 @@ export default function Home() {
                       {/* Options */}
                       <button
                         onClick={e => { e.preventDefault(); e.stopPropagation(); setActiveDropdown(activeDropdown === project.id ? null : project.id); }}
-                        className="absolute top-3 right-3 z-20 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-all opacity-0 group-hover/card:opacity-100 bg-white/80 dark:bg-[#0b0e17]/80 backdrop-blur-md border border-slate-200 dark:border-[#383e59]"
+                        className="absolute top-3 right-3 z-20 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-all opacity-0 group-hover/card:opacity-100 bg-white/80 dark:bg-[var(--background)]/80 backdrop-blur-md border border-slate-200 dark:border-[var(--surface-border)]"
                       >
                         <MoreHorizontal className="h-3 w-3" />
                       </button>
                       {activeDropdown === project.id && (
-                        <div className="absolute right-3 top-10 z-50 w-48 bg-white dark:bg-[#1e2235] rounded-xl shadow-xl border border-slate-200 dark:border-[#383e59] py-1.5" onClick={e => e.stopPropagation()}>
-                          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-[#383e59]/50 mb-1">Move to...</div>
+                        <div className="absolute right-3 top-10 z-50 w-48 bg-white dark:bg-[var(--surface-input)] rounded-xl shadow-xl border border-slate-200 dark:border-[var(--surface-border)] py-1.5" onClick={e => e.stopPropagation()}>
+                          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-[var(--surface-border)]/50 mb-1">Move to...</div>
                           <button onClick={() => handleMoveProject(project.id, null)} className={cn("w-full text-left px-4 py-2 text-[13px] hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 text-slate-700 dark:text-zinc-300 transition-colors", !project.category_id && "text-slate-900 dark:text-white font-medium")}>
                             <Folder className="h-3.5 w-3.5 opacity-70" /> Uncategorized
                           </button>
@@ -868,7 +868,7 @@ export default function Home() {
                               <Folder className="h-3.5 w-3.5 opacity-70" /> {cat.name}
                             </button>
                           ))}
-                          <div className="border-t border-slate-100 dark:border-[#383e59]/60 mt-1 pt-1">
+                          <div className="border-t border-slate-100 dark:border-[var(--surface-border)]/60 mt-1 pt-1">
                             <button onClick={() => handleDeleteProject(project.id)} className="w-full text-left px-4 py-2 text-[13px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/10 flex items-center gap-2 transition-colors">
                               <Trash2 className="h-3.5 w-3.5" /> Delete
                             </button>
@@ -895,7 +895,7 @@ export default function Home() {
           {/* Headline */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/20 rounded-full px-4 py-1.5 mb-5">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+              <Sparkles className="h-3.5 w-3.5 text-[var(--secondary)]" />
               <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 tracking-wide uppercase">Your learning workspace is ready</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">
@@ -920,7 +920,7 @@ export default function Home() {
               },
               {
                 step: "2",
-                icon: <Brain className="h-5 w-5 text-indigo-500" />,
+                icon: <Brain className="h-5 w-5 text-[var(--secondary)]" />,
                 color: "from-indigo-500/10 to-indigo-600/5 border-indigo-200/60 dark:border-indigo-700/30",
                 iconBg: "bg-indigo-500/10",
                 title: "Get your study kit",
@@ -959,7 +959,7 @@ export default function Home() {
           </div>
 
           {/* Try this example */}
-          <div className="bg-slate-50 dark:bg-[#111827]/60 border border-slate-200/60 dark:border-[#252d3d] rounded-2xl p-5">
+          <div className="bg-slate-50 dark:bg-[var(--surface-input)/60] border border-slate-200/60 dark:border-[var(--surface-border)] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <Zap className="h-4 w-4 text-amber-500" />
               <span className="text-sm font-semibold text-slate-900 dark:text-white">Try a quick example</span>
@@ -982,7 +982,7 @@ export default function Home() {
                       input.focus();
                     }
                   }}
-                  className="text-xs font-medium bg-white dark:bg-[#1a2035] border border-slate-200 dark:border-[#2a3355] text-slate-700 dark:text-slate-300 rounded-xl px-3 py-2 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                  className="text-xs font-medium bg-white dark:bg-[var(--surface-input)] border border-slate-200 dark:border-[var(--surface-border)] text-slate-700 dark:text-slate-300 rounded-xl px-3 py-2 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                 >
                   {label}
                 </button>

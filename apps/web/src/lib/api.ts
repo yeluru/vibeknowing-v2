@@ -109,13 +109,16 @@ export interface Project {
 
 export const categoriesApi = {
     async list(): Promise<Category[]> {
-        // FastAPI @router.get("/") on prefix "/categories" -> expects "/categories/"
         const res = await api.get('/categories/');
         return res.data;
     },
 
+    async get(id: string): Promise<Category> {
+        const res = await api.get(`/categories/${id}`);
+        return res.data;
+    },
+
     async create(name: string): Promise<Category> {
-        // FastAPI @router.post("/") -> expects "/categories/"
         const res = await api.post('/categories/', { name });
         return res.data;
     },
@@ -156,6 +159,30 @@ export const projectsApi = {
         const res = await api.post('/sources/projects/', { title });
         return res.data;
     },
+};
+
+export const curriculumApi = {
+    getProject: (projectId: string) => api.get(`/ai/curriculum/${projectId}`).then(res => res.data),
+    getPath: (categoryId: string) => api.get(`/ai/curriculum/path/${categoryId}`).then(res => res.data),
+    generate: (projectId: string) => api.post(`/ai/curriculum?project_id=${projectId}`).then(res => res.data),
+    generatePath: (categoryId: string, params: { reset?: boolean } = {}) => 
+        api.post(`/ai/curriculum/path/${categoryId}`, params).then(res => res.data),
+    
+    // Global Missions
+    listMissions: () => api.get('/ai/curriculum/missions').then(res => res.data),
+    getMission: (missionId: string) => api.get(`/ai/curriculum/mission/${missionId}`).then(res => res.data),
+    createMission: (params: { vision?: string; job_description?: string; theme?: string; reset?: boolean }) => 
+        api.post('/ai/curriculum/mission', params).then(res => res.data),
+    deleteMission: (missionId: string) => api.delete(`/ai/curriculum/mission/${missionId}`).then(res => res.data),
+
+    generateLesson: (nodeId: string) => api.post(`/ai/curriculum/node/${nodeId}/lesson`).then(res => res.data),
+    scoutNode: (nodeId: string, deep: boolean = false) => api.post(`/ai/curriculum/node/${nodeId}/scout`, { deep_scan: deep }).then(res => res.data),
+    masterNode: (nodeId: string) => api.post(`/ai/curriculum/node/${nodeId}/master`).then(res => res.data),
+};
+
+export const ScoutService = {
+    // Legacy mapping if needed
+    scoutNode: curriculumApi.scoutNode
 };
 
 export const authApi = {

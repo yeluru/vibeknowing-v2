@@ -26,24 +26,32 @@ class VanguardService:
                 return []
 
             # Step 1: Brainstorm 'Frontier' concepts using LLM
-            prompt = f"""
-            Analyze the following text from a source titled '{source.title}'.
-            Identify 3-5 'Knowledge Frontiers'—highly relevant technical concepts or deep-dives 
-            that are NOT fully explained in this source but are crucial for a user to achieve 'Mastery' of this topic.
-            
-            Format the output as a clean JSON list of strings (queries).
-            Example query style: 'Detailed technical implementation of [concept] for [context]'
-            
-            Source Text Snippet (first 5000 chars):
-            {source.content_text[:5000]}
-            """
-            
-            # Use AIService to generate the brainstorm
-            # We use OpenAI for internal agentic reasoning as it's the most stable for JSON
+            prompt = f"""Analyze this learning source and identify knowledge gaps.
+
+Source title: "{source.title}"
+Source content (excerpt):
+{source.content_text[:5000]}
+
+Task: Identify 3-5 specific technical concepts that are mentioned or implied in this source but NOT fully explained — concepts the learner would need to master the topic completely.
+
+For each gap, write a precise search query a learner would use to find the best tutorial or documentation on that concept.
+
+Good query examples:
+- "pytorch attention mechanism implementation step by step"
+- "redis cache eviction policies LRU LFU comparison"
+- "kubernetes pod scheduling affinity rules tutorial"
+
+Bad query examples:
+- "learn more about AI"
+- "deep dive into the topic"
+
+Return ONLY a JSON array of query strings. No explanation, no markdown:
+["query 1", "query 2", "query 3"]"""
+
             response = AIService.generate_text(
-                prompt, 
-                provider="openai", 
-                system_prompt="You are the Vibe-Vanguard, a master researcher and pedagogist.",
+                prompt,
+                provider=settings.DEFAULT_PROVIDER,
+                system_prompt="You are a learning gap analyst. Return only a valid JSON array of search query strings. No markdown, no explanation.",
                 temperature=0.2
             )
             
@@ -161,29 +169,40 @@ class VanguardService:
                 for r in research_results[:12]
             ])
 
-            prompt = f"""
-            I have found several external sources to expand on the source '{source.title}'.
-            You MUST synthesize a 'Dual-Mastery' syllabus containing exactly 5 items:
-            1. TOP 3 YouTube Masterclasses (Non-negotiable).
-            2. TOP 2 Technical Web Deep-Dives (Articles/Documentation).
-            
-            For each, provide:
-            1. title: A concise, catchy title.
-            2. url: The link provided.
-            3. reasoning: A one-sentence 'Vanguard Commentary' explaining WHY this is specific next step.
-            4. type: 'video' if YouTube, otherwise 'web'.
-            
-            Final output MUST be a JSON list of exactly 5 objects.
-            
-            Found Research:
-            {research_blob}
-            """
+            prompt = f"""You are curating a Dual-Mastery resource syllabus for a learner studying: "{source.title}".
+
+Select exactly 5 resources from the candidates below:
+- 3 must be YouTube videos (type: "video")
+- 2 must be web resources — articles, documentation, or tutorials (type: "web")
+
+If fewer than 3 YouTube videos are available in the candidates, still return 3 video slots — use the best available YouTube links. Prioritize quality over the count constraint only as a last resort.
+
+Selection criteria (in order of priority):
+1. Directly addresses a knowledge gap in "{source.title}"
+2. High-signal source: official docs, recognized technical channels, university courses, or top-tier engineering blogs
+3. Appropriate depth: not a beginner overview if this is an advanced topic
+4. The URL must come exactly from the candidate list — do not invent URLs
+
+For each selected resource, write a one-sentence "Vanguard Commentary" explaining specifically why this resource is the right next step for this learner — not generic praise.
+
+Return ONLY a JSON array of exactly 5 objects. No explanation, no markdown:
+[
+  {{
+    "title": "Concise descriptive title",
+    "url": "URL from candidate list",
+    "reasoning": "One sentence: why this specific resource accelerates mastery of this topic",
+    "type": "video" or "web"
+  }}
+]
+
+Candidate Resources:
+{research_blob}"""
 
             response = AIService.generate_text(
                 prompt,
-                provider="openai",
-                system_prompt="You are the Vibe-Vanguard. You provide a surgical 3-Video / 2-Web mastery syllabus.",
-                temperature=0.3
+                provider=settings.DEFAULT_PROVIDER,
+                system_prompt="You are the Vibe-Vanguard. Return only a valid JSON array of exactly 5 objects. No markdown, no preamble.",
+                temperature=0.2
             )
 
             try:

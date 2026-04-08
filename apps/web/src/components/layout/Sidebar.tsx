@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Folder, Plus, Home, MoreHorizontal, Trash2, Palette, BookOpen, PanelLeftClose, PanelLeftOpen, Route, RefreshCw, Search, Globe, ChevronRight, ChevronDown, Map as MapIcon, Compass, Inbox } from "lucide-react";
+import { Folder, Plus, LayoutDashboard, MoreHorizontal, Trash2, Palette, BookOpen, PanelLeftClose, PanelLeftOpen, Route, RefreshCw, Search, Globe, ChevronRight, ChevronDown, Map as MapIcon, Compass, Inbox, Settings, Target } from "lucide-react";
 import { toast } from "sonner";
 import { categoriesApi, projectsApi, Project, API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
     const router = useRouter();
     const [categories, setCategories] = useState<any[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+    const [missions, setMissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
@@ -78,14 +79,15 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
             return;
         }
         try {
-            const [catsRes, projsRes] = await Promise.allSettled([
+            const { curriculumApi } = await import("@/lib/api");
+            const [catsRes, projsRes, missRes] = await Promise.allSettled([
                 categoriesApi.list(),
                 projectsApi.list(),
+                curriculumApi.listMissions()
             ]);
-            const cats = catsRes.status === "fulfilled" ? catsRes.value : [];
-            const projs = projsRes.status === "fulfilled" ? projsRes.value : [];
-            setCategories(cats);
-            setProjects(Array.from(new Map(projs.map((p) => [p.id, p])).values()));
+            setCategories(catsRes.status === "fulfilled" ? catsRes.value : []);
+            setProjects(projsRes.status === "fulfilled" ? Array.from(new Map((projsRes.value as Project[]).map((p) => [p.id, p])).values()) : []);
+            setMissions(missRes.status === "fulfilled" ? missRes.value : []);
             // No longer auto-expanding all groups to allow for a cleaner default view
             setExpandedGroups(prev => prev); 
         } catch { }
@@ -208,9 +210,8 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
 
     /* ── Single path row ─────────────────────────────────────────────────── */
     const PathRow = ({ project, indent = false }: { project: Project; indent?: boolean }) => {
-        const firstSourceId = project.first_source_id || (project.sources && project.sources[0]?.id);
-        const targetHref = (project.source_count === 1 && firstSourceId) 
-            ? `/source/${firstSourceId}` 
+        const targetHref = project.first_source_id 
+            ? `/source/${project.first_source_id}`
             : `/paths/${project.id}`;
 
         const isActive = pathname === targetHref || pathname === `/paths/${project.id}`;
@@ -302,7 +303,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
 
             {/* Logo */}
             <div className={cn(
-                "flex items-center border-b border-slate-200/50 dark:border-[#383e59] flex-shrink-0",
+                "flex items-center border-b border-slate-200/50 dark:border-[var(--surface-border)] flex-shrink-0",
                 isCollapsed ? "justify-center p-4" : "px-4 py-4 gap-3"
             )}>
                 <Link href="/" onClick={onNavigate} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
@@ -311,7 +312,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                     </div>
                     {!isCollapsed && (
                         <div className="min-w-0">
-                            <span className="block font-mono font-black text-[15px] tracking-tight leading-tight"><span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-sky-500 dark:text-sky-400">Learn</span></span>
+                            <span className="block font-mono font-black text-[15px] tracking-tight leading-tight"><span className="text-indigo-600 dark:text-indigo-400">Vibe</span><span className="text-emerald-500 dark:text-emerald-400">Learn</span></span>
                             <span className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.18em] mt-0.5">Mastery System</span>
                         </div>
                     )}
@@ -334,8 +335,8 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             </div>
                         </div>
 
-                        {/* Search — only when there are enough paths */}
-                        {!loading && categories.length + uncollected.length > 4 && (
+                        {/* Search — always visible */}
+                        {!loading && (
                             <div className="px-3 pb-2 flex-shrink-0">
                                 <div className="relative">
                                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
@@ -358,7 +359,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                 </div>
                             ) : (
                                 <div className="space-y-0.5">
-                                    {/* 1. Global Inbox (Uncategorized) — Always at the top if not empty */}
+                                    {/* 1. Global Inbox / Processing */}
                                     {uncollected.length > 0 && (
                                         <div className="mb-4"
                                             onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
@@ -377,6 +378,58 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                             {expandedGroups.has("__inbox__") && (
                                                 <div className="ml-3 pl-2 border-l-2 border-emerald-500/10 space-y-0.5 py-1">
                                                     {uncollected.map(p => <PathRow key={p.id} project={p} indent />)}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 1.1 GLOBAL MISSIONS (GOAL-DRIVEN) */}
+                                    {missions.length > 0 && (
+                                        <div className="mb-4">
+                                            <div className="group/cat flex items-center gap-1.5 px-2 py-1.5 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-xl mb-0.5 border border-indigo-500/10 hover:border-indigo-500/30 transition-all">
+                                                <button onClick={() => toggleGroup("__missions__")} className="flex-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 text-left">
+                                                    <Target className={cn("h-3.5 w-3.5", expandedGroups.has("__missions__") ? "text-indigo-500" : "text-slate-400")} />
+                                                    <span className="truncate">Active Missions</span>
+                                                    <ChevronDown className={cn("h-3 w-3 transition-transform duration-300 ml-auto", expandedGroups.has("__missions__") && "rotate-180")} />
+                                                </button>
+                                            </div>
+                                            {expandedGroups.has("__missions__") && (
+                                                <div className="ml-3 pl-2 border-l-2 border-indigo-500/10 space-y-0.5 py-1">
+                                                     {missions.map(m => (
+                                                         <div key={m.id} className="group/mission relative flex items-center">
+                                                             <Link 
+                                                                 href={`/mastery?missionId=${m.id}`}
+                                                                 onClick={onNavigate}
+                                                                 className={cn(
+                                                                     "flex-1 flex items-center gap-2 py-1.5 px-2 rounded-lg text-[12px] font-semibold transition-all duration-150 min-w-0",
+                                                                     pathname === "/mastery" && new URLSearchParams(window.location.search).get("missionId") === m.id
+                                                                         ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
+                                                                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
+                                                                 )}
+                                                             >
+                                                                 <Target className="h-3 w-3 shrink-0 opacity-40" />
+                                                                 <span className="truncate">{m.goal}</span>
+                                                             </Link>
+                                                             <button 
+                                                                 onClick={(e) => {
+                                                                     e.stopPropagation();
+                                                                     if (window.confirm(`Delete mission: "${m.goal}"?`)) {
+                                                                         const { curriculumApi } = require("@/lib/api");
+                                                                         curriculumApi.deleteMission(m.id).then(() => {
+                                                                             toast.success("Mission deleted");
+                                                                             loadData();
+                                                                             if (pathname === "/mastery" && new URLSearchParams(window.location.search).get("missionId") === m.id) {
+                                                                                 router.push("/mission");
+                                                                             }
+                                                                         }).catch(() => toast.error("Failed to delete mission"));
+                                                                     }
+                                                                 }}
+                                                                 className="absolute right-1 p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 opacity-0 group-hover/mission:opacity-100 transition-all"
+                                                             >
+                                                                 <Trash2 className="h-3 w-3" />
+                                                             </button>
+                                                         </div>
+                                                     ))}
                                                 </div>
                                             )}
                                         </div>
@@ -413,7 +466,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                                         onChange={e => setNewCollectionName(e.target.value)}
                                                         onKeyDown={e => e.key === "Escape" && setCreatingCollection(false)}
                                                         placeholder="Path name..."
-                                                        className="flex-1 px-2.5 py-1 text-xs bg-white dark:bg-[#0a0f1e] border-none rounded-lg focus:ring-1 focus:ring-emerald-500"
+                                                        className="flex-1 px-2.5 py-1 text-xs bg-white dark:bg-[var(--card)] border-none rounded-lg focus:ring-1 focus:ring-emerald-500"
                                                     />
                                                     <button type="submit" className="px-2.5 py-1 bg-emerald-600 text-white text-[10px] rounded-lg font-bold">Add</button>
                                                 </form>
@@ -430,20 +483,39 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                                 onDrop={e => { e.preventDefault(); if (draggedProjectId) handleMoveToCollection(draggedProjectId, cat.id); }}
                                             >
                                                 <div className={cn(
-                                                    "group/cat flex items-center gap-1.5 px-2 py-1.5 rounded-xl mb-0.5 border transition-all",
-                                                    "bg-emerald-500/5 dark:bg-emerald-500/8 border-emerald-500/10 hover:border-emerald-500/30",
-                                                    draggedProjectId && "ring-1 ring-emerald-500/20 bg-emerald-500/10"
+                                                    "group/cat flex items-center gap-3 px-3.5 py-2.5 rounded-2xl mb-1.5 border transition-all duration-300",
+                                                    "bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/5 hover:border-indigo-500/30",
+                                                    draggedProjectId && "ring-2 ring-indigo-500/40 bg-indigo-500/10"
                                                 )}>
-                                                    <button onClick={() => toggleGroup(cat.id)} className="flex-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 text-left">
-                                                        <MapIcon className={cn("h-3.5 w-3.5", isOpen ? "text-emerald-500" : "text-slate-400")} />
-                                                        <span className="truncate">{cat.name}</span>
-                                                        <span className="ml-auto text-[9px] font-bold bg-white/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md tabular-nums">
+                                                    <div 
+                                                        onClick={() => toggleGroup(cat.id)}
+                                                        className="flex-1 flex items-center gap-3.5 text-[11px] font-black uppercase tracking-[0.15em] text-left min-w-0 cursor-pointer"
+                                                    >
+                                                        <div className={cn(
+                                                            "h-8.5 w-8.5 rounded-xl flex items-center justify-center transition-all",
+                                                            "bg-slate-100 dark:bg-white/5 group-hover/cat:bg-indigo-500/10"
+                                                        )}>
+                                                            <MapIcon className={cn("h-4 w-4", "text-slate-400 group-hover/cat:text-indigo-400")} />
+                                                        </div>
+                                                        <span className={cn(
+                                                            "truncate transition-colors text-slate-800 dark:text-slate-200"
+                                                        )}>
+                                                            {cat.name}
+                                                        </span>
+                                                        <span className={cn(
+                                                            "ml-auto text-[9px] font-black px-2 py-0.5 rounded-lg border tabular-nums transition-colors bg-white dark:bg-white/10 border-slate-100 dark:border-white/5 text-slate-500"
+                                                        )}>
                                                             {catPaths.length}
                                                         </span>
-                                                        <ChevronDown className={cn("h-3 w-3 transition-transform duration-300", isOpen && "rotate-180")} />
-                                                    </button>
-                                                    <button onClick={(e) => handleDeleteCollection(cat.id, cat.name, e)} className="opacity-0 group-hover/cat:opacity-100 p-1 hover:text-red-500 transition-all">
-                                                        <Trash2 className="h-3 w-3" />
+                                                    </div>
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); toggleGroup(cat.id); }} 
+                                                        className="p-1.5 rounded-lg transition-all hover:bg-slate-200 dark:hover:bg-white/10"
+                                                    >
+                                                        <ChevronDown className={cn(
+                                                            "h-3.5 w-3.5 transition-transform duration-300 text-slate-400",
+                                                            isOpen && "rotate-180"
+                                                        )} />
                                                     </button>
                                                 </div>
                                                 {isOpen && (
@@ -489,7 +561,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
 
             {/* ── Secondary Nav ─────────────────────────────────── */}
             <div className={cn(
-                "flex-shrink-0 border-t border-slate-200/50 dark:border-[#383e59]",
+                "flex-shrink-0 border-t border-slate-200/50 dark:border-[var(--surface-border)]",
                 isCollapsed ? "px-2 py-3 space-y-1" : "px-3 py-3 space-y-0.5"
             )}>
                 {!isCollapsed && (
@@ -497,12 +569,13 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                         Other Tools
                     </p>
                 )}
-                <NavLink href="/studio" icon={<Palette className="h-4 w-4" />} label="Content Studio" active={pathname === "/studio"} isCollapsed={isCollapsed} onNavigate={onNavigate} dataOnboarding="nav-studio" />
+                <NavLink href="/mission" icon={<Target className="h-4 w-4" />} label="Mission Control" active={pathname === "/mission"} isCollapsed={isCollapsed} onNavigate={onNavigate} />
+                <NavLink href="/studio" icon={<Palette className="h-4 w-4" />} label="Content Repo" active={pathname === "/studio"} isCollapsed={isCollapsed} onNavigate={onNavigate} dataOnboarding="nav-studio" />
                 <NavLink href="/chat" icon={<BookOpen className="h-4 w-4" />} label="Knowledge Base" active={pathname === "/chat"} isCollapsed={isCollapsed} onNavigate={onNavigate} dataOnboarding="nav-chat" />
             </div>
 
             {/* Collapse button */}
-            <div className="flex-shrink-0 border-t border-slate-200/50 dark:border-[#383e59] p-3">
+            <div className="flex-shrink-0 border-t border-slate-200/50 dark:border-[var(--surface-border)] p-3">
                 <button
                     onClick={onToggleCollapse}
                     title={isCollapsed ? "Expand" : "Collapse"}
@@ -520,7 +593,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.1 }}
-                        className="fixed z-[9999] w-64 bg-white dark:bg-[#1a1e30] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[85vh] overflow-y-auto"
+                        className="fixed z-[9999] w-64 bg-white dark:bg-[var(--surface-input)] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-[85vh] overflow-y-auto"
                         style={{ 
                             left: dropdownAnchor.x, 
                             top: dropdownAnchor.y,

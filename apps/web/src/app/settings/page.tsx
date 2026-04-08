@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Key, Check, X, Eye, EyeOff, ChevronDown, Sparkles, Shield,
+  Key, Check, Eye, EyeOff, ChevronDown, Sparkles, Shield,
   AlertTriangle, Loader2, Cpu, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ interface ProviderConfig {
   color: string;
   darkColor: string;
   models: ModelInfo[];
-  keyPrefix: string; // how key starts, for hint text
+  keyPrefix: string;
 }
 
 // --- Constants ---
@@ -74,9 +74,9 @@ const PROVIDERS: ProviderConfig[] = [
 ];
 
 const TIER_STYLES: Record<string, string> = {
-  budget: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300",
-  standard: "bg-indigo-50 text-indigo-700",
-  premium: "bg-slate-900 dark:bg-indigo-600 text-white",
+  budget: "bg-[var(--card-hover)] text-[var(--muted-foreground)]",
+  standard: "bg-[var(--secondary-light)] text-[var(--secondary)]",
+  premium: "bg-[var(--foreground)] text-[var(--background)]",
 };
 
 const TASK_LABELS: Record<string, { label: string; description: string }> = {
@@ -182,7 +182,6 @@ export default function SettingsPage() {
     setStoredPreferences(updated);
   };
 
-  // Build flat list of models from providers that have keys
   const configuredModels = PROVIDERS.filter((p) => keys[p.name]).flatMap((p) =>
     p.models.map((m) => ({ ...m, provider: p.name, providerLabel: p.displayName }))
   );
@@ -192,11 +191,11 @@ export default function SettingsPage() {
   return (
     <div className="space-y-20 pb-24 relative">
       <section className="relative overflow-hidden w-full max-w-[1200px] mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-        
-        {/* Deep background & spotlight identical to Home Page */}
-        <div className="absolute inset-0 -z-10 bg-transparent rounded-3xl sm:rounded-[2.5rem] overflow-hidden border border-slate-200/40">
-          <div className="absolute inset-0 bg-white dark:bg-[#0f1117]" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200/40 via-white/0 to-white/0 opacity-80 pointer-events-none" />
+
+        {/* Background spotlight */}
+        <div className="absolute inset-0 -z-10 bg-transparent rounded-[var(--radius-2xl)] sm:rounded-[2.5rem] overflow-hidden border border-[var(--border-light)]">
+          <div className="absolute inset-0 bg-[var(--card)]" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[var(--secondary-light)] via-transparent to-transparent opacity-80 pointer-events-none" />
           <div className="absolute inset-0 opacity-[0.02]"
             style={{ backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)", backgroundSize: "32px 32px" }}
           />
@@ -204,226 +203,232 @@ export default function SettingsPage() {
 
         <div className="pt-20 pb-16 lg:pt-24 lg:pb-24 max-w-4xl mx-auto px-4">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
-        {/* Header */}
-        <motion.div variants={fadeInUp} className="mb-10 lg:mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/60 text-slate-800 text-[11px] font-semibold tracking-wide uppercase shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] mb-6">
-            <Cpu className="h-3 w-3 text-indigo-500" />
-            AI Configuration
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-900 dark:text-slate-100 leading-[1.1]">
-            Settings
-          </h1>
-          <p className="mt-4 text-base tracking-tight text-slate-600 dark:text-slate-400 leading-relaxed max-w-xl">
-            Bring your own API keys. Keys are stored in your browser only and sent directly to the provider. Nothing is saved on our servers.
-          </p>
-        </motion.div>
 
-        {/* Provider Cards */}
-        <motion.div variants={fadeInUp} className="space-y-6 mb-16">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
-            <Key className="h-5 w-5 text-slate-400" /> API Keys
-          </h2>
-
-          {PROVIDERS.map((prov) => {
-            const hasKey = !!keys[prov.name];
-            const isDefault = prefs.defaultProvider === prov.name;
-
-            return (
-              <motion.div
-                key={prov.name}
-                variants={fadeInUp}
-                className={`flex flex-col p-6 rounded-2xl border transition-all duration-300 ${
-                  hasKey ? "bg-white dark:bg-slate-800/60 border-slate-200 dark:border-[#383e59] shadow-sm" : "bg-slate-50/50 dark:bg-[#1a1e30]/40 border-slate-200/60 dark:border-[#383e59]/60"
-                }`}
-              >
-                {/* Provider header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl border border-slate-100 dark:border-[#383e59] shadow-sm bg-white dark:bg-slate-800 flex items-center justify-center text-xl">
-                      {prov.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base tracking-tight">{prov.displayName}</h3>
-                      <p className="text-[13px] text-slate-500 dark:text-slate-400 font-medium">
-                        {prov.models.length} models available
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {hasKey && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                        <Check className="h-3 w-3" /> Connected
-                      </span>
-                    )}
-                    {isDefault && hasKey && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-slate-900 text-white shadow-sm">
-                        Default
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Key input row */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="relative flex-1">
-                    <input
-                      type={keyVisible[prov.name] ? "text" : "password"}
-                      value={keyInputs[prov.name] || ""}
-                      onChange={(e) => setKeyInputs((k) => ({ ...k, [prov.name]: e.target.value }))}
-                      placeholder={hasKey ? "Enter new key to replace..." : `Paste your ${prov.displayName} key (${prov.keyPrefix}...)`}
-                      className="w-full bg-slate-50 dark:bg-[#1a1e30]/60 border border-slate-200 dark:border-[#383e59] rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 transition-all pr-12"
-                      onKeyDown={(e) => e.key === "Enter" && handleSaveKey(prov.name)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setKeyVisible((v) => ({ ...v, [prov.name]: !v[prov.name] }))}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
-                    >
-                      {keyVisible[prov.name] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => handleSaveKey(prov.name)}
-                    disabled={!keyInputs[prov.name]?.trim()}
-                    className="flex items-center justify-center px-6 py-3 bg-slate-900 dark:bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-indigo-700 disabled:opacity-40 transition-all shadow-sm"
-                  >
-                    Save
-                  </button>
-
-                  {hasKey && (
-                    <button
-                      onClick={() => handleRemoveKey(prov.name)}
-                      className="flex items-center justify-center px-4 py-3 bg-red-50 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-100 transition-colors"
-                      title="Remove key"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="mt-5 flex items-center justify-between border-t border-slate-100 dark:border-[#383e59] pt-5">
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setExpandedProvider(expandedProvider === prov.name ? null : prov.name)}
-                      className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                    >
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform duration-300 ${
-                          expandedProvider === prov.name ? "rotate-180" : ""
-                        }`}
-                      />
-                      View models
-                    </button>
-                  </div>
-                  {hasKey && !isDefault && (
-                    <button
-                      onClick={() => handleSetDefault(prov.name)}
-                      className="text-[13px] font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
-                    >
-                      Set as default
-                    </button>
-                  )}
-                </div>
-
-                {/* Model list (expandable) */}
-                {expandedProvider === prov.name && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 border border-slate-200 dark:border-[#383e59] rounded-xl overflow-hidden bg-slate-50 dark:bg-[#1a1e30]/50 relative top-1"
-                  >
-                    {prov.models.map((m, idx) => (
-                      <div
-                        key={m.id}
-                        className={cn("flex items-center justify-between px-5 py-3 bg-white dark:bg-slate-800/80", idx !== 0 && "border-t border-slate-100 dark:border-[#383e59]")}
-                      >
-                        <div>
-                          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 tracking-tight">{m.name}</span>
-                          <span className="ml-3 text-[11px] font-medium text-slate-400 dark:text-slate-500">
-                            {m.context >= 1000000
-                              ? `${(m.context / 1000000).toFixed(0)}M context`
-                              : `${(m.context / 1000).toFixed(0)}K context`}
-                          </span>
-                        </div>
-                        <span className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md ${TIER_STYLES[m.tier] || ""}`}>
-                          {m.tier}
-                        </span>
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
-              </motion.div>
-            );
-          })}
-        </motion.div>
-
-        {/* Per-Task Model Picker */}
-        <motion.div variants={fadeInUp} className="mb-14">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2.5 mb-2">
-            <Sparkles className="h-5 w-5 text-indigo-500" /> Model per Feature
-          </h2>
-          <p className="text-[15px] text-slate-500 dark:text-slate-400 mb-6">
-            Pick which model handles each feature. Only models from connected providers appear.
-          </p>
-
-          {configuredModels.length === 0 ? (
-            <div className="rounded-2xl p-10 text-center bg-slate-50/50 dark:bg-[#1a1e30]/30 border border-slate-200 dark:border-[#383e59] border-dashed">
-              <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-4" />
-              <p className="text-slate-600 dark:text-slate-400 font-medium">
-                Add at least one API key above to configure model preferences.
+            {/* Header */}
+            <motion.div variants={fadeInUp} className="mb-10 lg:mb-14">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--card-hover)] border border-[var(--border)] text-[var(--foreground)] text-[11px] font-semibold tracking-wide uppercase shadow-[var(--shadow-sm)] mb-6">
+                <Cpu className="h-3 w-3 text-[var(--secondary)]" />
+                AI Configuration
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-[-0.03em] text-[var(--foreground)] leading-[1.1]">
+                Settings
+              </h1>
+              <p className="mt-4 text-base tracking-tight text-[var(--muted-foreground)] leading-relaxed max-w-xl">
+                Bring your own API keys. Keys are stored in your browser only and sent directly to the provider. Nothing is saved on our servers.
               </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(TASK_LABELS).map(([task, { label, description }]) => (
-                <div
-                  key={task}
-                  className="rounded-2xl p-5 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-[#383e59] flex flex-col justify-between gap-4 shadow-sm"
-                >
-                  <div className="min-w-0">
-                    <div className="text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">{label}</div>
-                    <div className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">{description}</div>
-                  </div>
-                  <div className="relative">
-                    <select
-                      value={prefs.taskModels[task] || ""}
-                      onChange={(e) => handleSetTaskModel(task, e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1a1e30]/60 border border-slate-200 dark:border-[#383e59] rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 appearance-none focus:outline-none focus:ring-1 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-                    >
-                      <option value="">Auto (provider default)</option>
-                      {configuredModels.map((m) => (
-                        <option key={`${m.provider}-${m.id}`} value={`${m.provider}:${m.id}`}>
-                          {m.providerLabel} / {m.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </motion.div>
+            </motion.div>
 
-        {/* Privacy note */}
-        <motion.div
-          variants={fadeInUp}
-          className="rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-start gap-5 bg-white border border-slate-200 shadow-sm"
-        >
-          <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-            <Shield className="h-6 w-6 text-slate-900" />
-          </div>
-          <div>
-            <h3 className="font-bold tracking-tight text-slate-900 text-lg mb-2">Your keys never leave your browser</h3>
-            <p className="text-[14px] text-slate-600 leading-relaxed">
-              API keys are stored exclusively in your browser&apos;s local storage. On each AI request, the key is sent directly to the provider. VibeLearn does not database or log your keys anywhere. You can verify this in your browser&apos;s network tab at any time.
-            </p>
-          </div>
-        </motion.div>
-        </motion.div>
+            {/* Provider Cards */}
+            <motion.div variants={fadeInUp} className="space-y-6 mb-16">
+              <h2 className="text-xl font-bold tracking-tight text-[var(--foreground)] flex items-center gap-2.5">
+                <Key className="h-5 w-5 text-[var(--muted-foreground)]" /> API Keys
+              </h2>
+
+              {PROVIDERS.map((prov) => {
+                const hasKey = !!keys[prov.name];
+                const isDefault = prefs.defaultProvider === prov.name;
+
+                return (
+                  <motion.div
+                    key={prov.name}
+                    variants={fadeInUp}
+                    className={cn(
+                      "flex flex-col p-6 rounded-[var(--radius-xl)] border transition-all duration-300",
+                      hasKey
+                        ? "bg-[var(--card)] border-[var(--surface-border-strong)] shadow-[var(--shadow-sm)]"
+                        : "bg-[var(--card)]/50 border-[var(--surface-border-strong)]/60"
+                    )}
+                  >
+                    {/* Provider header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-[var(--radius-lg)] border border-[var(--border)] shadow-[var(--shadow-sm)] bg-[var(--card)] flex items-center justify-center text-xl">
+                          {prov.icon}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-[var(--foreground)] text-base tracking-tight">{prov.displayName}</h3>
+                          <p className="text-[13px] text-[var(--muted-foreground)] font-medium">
+                            {prov.models.length} models available
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {hasKey && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[var(--primary-light)] text-[var(--primary)] border border-[var(--primary)]/20">
+                            <Check className="h-3 w-3" /> Connected
+                          </span>
+                        )}
+                        {isDefault && hasKey && (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[var(--foreground)] text-[var(--background)] shadow-[var(--shadow-sm)]">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Key input row */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <input
+                          type={keyVisible[prov.name] ? "text" : "password"}
+                          value={keyInputs[prov.name] || ""}
+                          onChange={(e) => setKeyInputs((k) => ({ ...k, [prov.name]: e.target.value }))}
+                          placeholder={hasKey ? "Enter new key to replace..." : `Paste your ${prov.displayName} key (${prov.keyPrefix}...)`}
+                          className="vk-input w-full rounded-[var(--radius-lg)] px-4 py-3 text-sm pr-12"
+                          onKeyDown={(e) => e.key === "Enter" && handleSaveKey(prov.name)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setKeyVisible((v) => ({ ...v, [prov.name]: !v[prov.name] }))}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-hover)] rounded-[var(--radius-md)] transition-colors"
+                        >
+                          {keyVisible[prov.name] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => handleSaveKey(prov.name)}
+                        disabled={!keyInputs[prov.name]?.trim()}
+                        className="vk-btn vk-btn-primary flex items-center justify-center px-6 py-3 rounded-[var(--radius-lg)] text-sm disabled:opacity-40"
+                      >
+                        Save
+                      </button>
+
+                      {hasKey && (
+                        <button
+                          onClick={() => handleRemoveKey(prov.name)}
+                          className="flex items-center justify-center px-4 py-3 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm font-semibold rounded-[var(--radius-lg)] hover:bg-red-100 dark:hover:bg-red-950/50 transition-colors"
+                          title="Remove key"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between border-t border-[var(--border)] pt-5">
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => setExpandedProvider(expandedProvider === prov.name ? null : prov.name)}
+                          className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                        >
+                          <ChevronDown
+                            className={`h-4 w-4 transition-transform duration-300 ${expandedProvider === prov.name ? "rotate-180" : ""}`}
+                          />
+                          View models
+                        </button>
+                      </div>
+                      {hasKey && !isDefault && (
+                        <button
+                          onClick={() => handleSetDefault(prov.name)}
+                          className="text-[13px] font-semibold text-[var(--secondary)] hover:text-[var(--secondary-hover)] transition-colors"
+                        >
+                          Set as default
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Model list (expandable) */}
+                    {expandedProvider === prov.name && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-4 border border-[var(--surface-border-strong)] rounded-[var(--radius-lg)] overflow-hidden bg-[var(--card-hover)] relative top-1"
+                      >
+                        {prov.models.map((m, idx) => (
+                          <div
+                            key={m.id}
+                            className={cn(
+                              "flex items-center justify-between px-5 py-3 bg-[var(--card)]",
+                              idx !== 0 && "border-t border-[var(--border)]"
+                            )}
+                          >
+                            <div>
+                              <span className="text-sm font-semibold text-[var(--foreground)] tracking-tight">{m.name}</span>
+                              <span className="ml-3 text-[11px] font-medium text-[var(--muted-foreground)]">
+                                {m.context >= 1000000
+                                  ? `${(m.context / 1000000).toFixed(0)}M context`
+                                  : `${(m.context / 1000).toFixed(0)}K context`}
+                              </span>
+                            </div>
+                            <span className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[var(--radius-md)] ${TIER_STYLES[m.tier] || ""}`}>
+                              {m.tier}
+                            </span>
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+
+            {/* Per-Task Model Picker */}
+            <motion.div variants={fadeInUp} className="mb-14">
+              <h2 className="text-xl font-bold tracking-tight text-[var(--foreground)] flex items-center gap-2.5 mb-2">
+                <Sparkles className="h-5 w-5 text-[var(--secondary)]" /> Model per Feature
+              </h2>
+              <p className="text-[15px] text-[var(--muted-foreground)] mb-6">
+                Pick which model handles each feature. Only models from connected providers appear.
+              </p>
+
+              {configuredModels.length === 0 ? (
+                <div className="rounded-[var(--radius-xl)] p-10 text-center bg-[var(--card)]/50 border border-dashed border-[var(--surface-border-strong)]">
+                  <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-4" />
+                  <p className="text-[var(--muted-foreground)] font-medium">
+                    Add at least one API key above to configure model preferences.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(TASK_LABELS).map(([task, { label, description }]) => (
+                    <div
+                      key={task}
+                      className="vk-card p-5 flex flex-col justify-between gap-4"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-[15px] font-bold text-[var(--foreground)] tracking-tight">{label}</div>
+                        <div className="text-[13px] text-[var(--muted-foreground)] mt-0.5">{description}</div>
+                      </div>
+                      <div className="relative">
+                        <select
+                          value={prefs.taskModels[task] || ""}
+                          onChange={(e) => handleSetTaskModel(task, e.target.value)}
+                          className="vk-input w-full rounded-[var(--radius-lg)] px-4 py-2.5 text-sm font-medium appearance-none cursor-pointer pr-10"
+                        >
+                          <option value="">Auto (provider default)</option>
+                          {configuredModels.map((m) => (
+                            <option key={`${m.provider}-${m.id}`} value={`${m.provider}:${m.id}`}>
+                              {m.providerLabel} / {m.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted-foreground)] pointer-events-none" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Privacy note */}
+            <motion.div
+              variants={fadeInUp}
+              className="vk-card p-6 sm:p-8 flex flex-col sm:flex-row items-start gap-5"
+            >
+              <div className="h-12 w-12 rounded-full bg-[var(--card-hover)] flex items-center justify-center shrink-0">
+                <Shield className="h-6 w-6 text-[var(--foreground)]" />
+              </div>
+              <div>
+                <h3 className="font-bold tracking-tight text-[var(--foreground)] text-lg mb-2">Your keys never leave your browser</h3>
+                <p className="text-[14px] text-[var(--muted-foreground)] leading-relaxed">
+                  API keys are stored exclusively in your browser&apos;s local storage. On each AI request, the key is sent directly to the provider. VibeLearn does not database or log your keys anywhere. You can verify this in your browser&apos;s network tab at any time.
+                </p>
+              </div>
+            </motion.div>
+
+          </motion.div>
         </div>
       </section>
     </div>

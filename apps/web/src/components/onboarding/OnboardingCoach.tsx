@@ -301,7 +301,7 @@ export function OnboardingCoach() {
             exit={{ opacity: 0, scale: 0.93 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999, width: TOOLTIP_W }}
-            className="bg-white dark:bg-[#0f1323] border border-slate-200 dark:border-[#1e2d4a] rounded-2xl shadow-[0_28px_80px_rgba(0,0,0,0.35)] dark:shadow-[0_28px_80px_rgba(0,0,0,0.85)] overflow-hidden"
+            className="bg-white dark:bg-[var(--background-elevated)] border border-slate-200 dark:border-[var(--surface-border)] rounded-2xl shadow-[0_28px_80px_rgba(0,0,0,0.35)] dark:shadow-[0_28px_80px_rgba(0,0,0,0.85)] overflow-hidden"
           >
             {/* Progress bar */}
             <div className="h-1 bg-slate-100 dark:bg-white/5 w-full">

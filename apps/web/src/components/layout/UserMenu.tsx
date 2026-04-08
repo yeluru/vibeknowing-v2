@@ -50,7 +50,7 @@ export function UserMenu() {
 
             {isOpen && (
                 <div className="absolute right-0 top-full mt-2 w-56
-                                bg-white/90 dark:bg-[#0a0f1e]/95
+                                bg-white/90 dark:bg-[var(--card)/95]
                                 backdrop-blur-2xl
                                 rounded-2xl shadow-2xl dark:shadow-[0_8px_40px_rgba(0,0,0,0.6)]
                                 border border-slate-200/60 dark:border-white/[0.07]

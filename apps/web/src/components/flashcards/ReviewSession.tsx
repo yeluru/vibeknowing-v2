@@ -105,9 +105,8 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
     const stats = typeof window !== "undefined" ? getStats() : null;
 
     return (
-        <div className="bg-white dark:bg-[#0f1117] rounded-xl border border-slate-200 dark:border-[#252d3d] shadow-sm transition-colors duration-300">
-            <div className="border-b border-slate-200 dark:border-[#252d3d] px-5 py-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
+        <div className="bg-white dark:bg-[var(--background-elevated)] rounded-xl border border-slate-200 dark:border-[var(--surface-border)] shadow-sm transition-colors duration-300">
+            <div className="border-b border-slate-200 dark:border-[var(--surface-border)] px-5 py-4 flex items-center justify-end">
                 {stats && stats.streak > 0 && (
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2.5 py-1 rounded-full">
                         <Flame className="h-3.5 w-3.5" />
@@ -124,7 +123,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
                     </div>
 
                 ) : cards.length === 0 ? (
-                    <div className="text-center py-14 rounded-xl border border-dashed border-slate-200 dark:border-[#252d3d] bg-slate-50/50 dark:bg-[#0a0d14]/40">
+                    <div className="text-center py-14 rounded-xl border border-dashed border-slate-200 dark:border-[var(--surface-border)] bg-slate-50/50 dark:bg-[var(--background-elevated)/40]">
                         <Layers className="h-10 w-10 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                         <h3 className="text-base font-semibold text-slate-800 dark:text-white mb-1">Master this topic</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Generate flashcards to memorize key concepts.</p>
@@ -167,7 +166,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
                         </div>
 
                         {/* Next review schedule */}
-                        <div className="max-w-xs mx-auto bg-slate-50 dark:bg-[#0a0d14]/60 rounded-xl border border-slate-200 dark:border-[#252d3d] p-4 mb-6 text-left space-y-2">
+                        <div className="max-w-xs mx-auto bg-slate-50 dark:bg-[var(--background-elevated)/60] rounded-xl border border-slate-200 dark:border-[var(--surface-border)] p-4 mb-6 text-left space-y-2">
                             <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                 <CalendarClock className="h-3.5 w-3.5" /> Next review schedule
                             </p>
@@ -213,7 +212,7 @@ export function ReviewSession({ sourceId, title = "Flashcards" }: ReviewSessionP
                         </div>
 
                         {/* Progress bar */}
-                        <div className="w-full h-1 bg-slate-100 dark:bg-[#252d3d] rounded-full mb-6 overflow-hidden">
+                        <div className="w-full h-1 bg-slate-100 dark:bg-[var(--surface-border)] rounded-full mb-6 overflow-hidden">
                             <div
                                 className="h-full bg-indigo-500 rounded-full transition-all duration-300"
                                 style={{ width: `${((currentIndex) / cards.length) * 100}%` }}

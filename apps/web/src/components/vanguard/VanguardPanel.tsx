@@ -32,6 +32,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
     const router = useRouter();
     const [data, setData] = useState<VanguardData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isScanning, setIsScanning] = useState(false);
     const [addingUrl, setAddingUrl] = useState<string | null>(null);
     const [newPathName, setNewPathName] = useState("");
     const [isNamingPath, setIsNamingPath] = useState(false);
@@ -54,6 +55,9 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
             if (response.ok) {
                 const resData = await response.json();
                 setData(resData);
+                if (resData.recommendations?.length > 0) {
+                    setIsScanning(false);
+                }
             }
 
             // Also check current project title and category
@@ -79,7 +83,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
     const handleInitializePath = async () => {
         if (!newPathName.trim()) return;
         try {
-            const response = await fetch(`${API_BASE}/sources/projects/${projectId}/title`, {
+            const response = await fetch(`${API_BASE}/sources/projects/${projectId}`, {
                 method: 'PUT',
                 headers: {
                     ...buildAIHeaders(),
@@ -210,6 +214,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
 
 
     const handleRefresh = async () => {
+        setIsScanning(true);
         try {
             setLoading(true);
             const response = await fetch(`${API_BASE}/ai/vanguard/${sourceId}/refresh`, {
@@ -222,49 +227,72 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
             }
         } catch (error) {
             console.error("Refresh failed:", error);
+            setIsScanning(false);
         } finally {
             setLoading(false);
         }
     };
 
+    // Initial page load with no data yet
     if (loading && !data) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 px-4 space-y-4 animate-in fade-in duration-700">
-                <Loader2 className="h-6 w-6 animate-spin text-indigo-500 mb-2" />
-                <div className="space-y-1 text-center">
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Initializing Vanguard Discovery</p>
-                    <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Synchronizing Mastery Gaps...</p>
+            <div className="flex flex-col items-center justify-center py-12 px-4 space-y-3 animate-in fade-in duration-700">
+                <Loader2 className="h-6 w-6 animate-spin text-[var(--secondary)]" />
+                <p className="text-xs font-semibold text-[var(--muted-foreground)]">Loading Vanguard…</p>
+            </div>
+        );
+    }
+
+    // Agent is actively working — show a clear "in progress" state, not the empty wizard
+    if (isScanning || data?.status === 'processing') {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 px-4 space-y-4 animate-in fade-in duration-500">
+                <div className="relative">
+                    <div className="h-12 w-12 rounded-full bg-[var(--secondary-light)] flex items-center justify-center">
+                        <Sparkles className="h-5 w-5 text-[var(--secondary)]" />
+                    </div>
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--secondary)] opacity-60" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--secondary)]" />
+                    </span>
+                </div>
+                <div className="text-center space-y-1">
+                    <p className="text-sm font-bold text-[var(--foreground)]">Vanguard is scanning the web…</p>
+                    <p className="text-[11px] text-[var(--muted-foreground)]">Finding your next best resources. This takes 15–30 seconds.</p>
+                </div>
+                <div className="flex gap-1 mt-2">
+                    {[0, 1, 2].map(i => (
+                        <span key={i} className="h-1.5 w-1.5 rounded-full bg-[var(--secondary)]/40 animate-bounce"
+                            style={{ animationDelay: `${i * 0.15}s` }} />
+                    ))}
                 </div>
             </div>
         );
     }
 
+    // No results yet — prompt to launch
     if (!data || data.status === 'none' || data.recommendations.length === 0) {
         return (
-            <div className="p-6 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center text-center space-y-4">
-                <div className="h-10 w-10 rounded-full bg-indigo-500/10 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-indigo-400" />
+            <div className="p-6 rounded-2xl bg-[var(--card-hover)] border border-dashed border-[var(--surface-border-strong)] flex flex-col items-center justify-center text-center space-y-4">
+                <div className="h-10 w-10 rounded-full bg-[var(--secondary-light)] flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-[var(--secondary)]" />
                 </div>
                 <div>
-                     <h4 className="text-xs font-black uppercase tracking-widest text-slate-800 dark:text-white">Active Discovery</h4>
-                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-1">
-                        Vibe-Vanguard is ready to scan the web <br/> to identify your technical growth frontiers. 
-                     </p>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-[var(--foreground)]">Vanguard Ready</h4>
+                    <p className="text-[11px] text-[var(--muted-foreground)] leading-relaxed mt-1">
+                        Scan the web to find the best next resources for this topic.
+                    </p>
                 </div>
-                
-                <button 
+                <button
                     onClick={handleRefresh}
                     disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-indigo-600/20"
+                    className="vk-btn vk-btn-primary gap-2 disabled:opacity-70"
                 >
-                    {loading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                        <>
-                            <RefreshCw className="h-3 w-3" />
-                            Launch Vanguard
-                        </>
-                    )}
+                    {loading
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Sparkles className="h-3.5 w-3.5" />
+                    }
+                    {loading ? "Scanning…" : "Find Resources"}
                 </button>
             </div>
         );
@@ -294,35 +322,6 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                 </button>
             </div>
 
-            {/* Just-in-Time Path Initialization UI */}
-            {isNamingPath && (
-                <div className="glass-panel p-5 rounded-3xl bg-indigo-600 dark:bg-indigo-600 shadow-xl shadow-indigo-500/20 border-none animate-in zoom-in-95 duration-500">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-white">
-                            <Route className="h-4 w-4" />
-                            <h5 className="text-xs font-black uppercase tracking-widest">Initialize Learning Path</h5>
-                        </div>
-                        <p className="text-[10px] text-indigo-100 font-medium leading-relaxed">
-                            Group your research into a named roadmap. This will appear as a Mastery Tree in your sidebar.
-                        </p>
-                        <div className="flex gap-2">
-                            <input 
-                                type="text"
-                                placeholder="e.g. RAG, LangChain, MCP..."
-                                value={newPathName}
-                                onChange={e => setNewPathName(e.target.value)}
-                                className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
-                            />
-                            <button 
-                                onClick={handleInitializePath}
-                                className="bg-white text-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 active:scale-95 transition-all shadow-lg"
-                            >
-                                Set Path
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {data.agent_commentary && (
                 <div className="glass-panel p-4 rounded-2xl bg-indigo-50/30 dark:bg-indigo-500/5 border-indigo-100/50 dark:border-indigo-500/20">
@@ -418,7 +417,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
             {pickerUrl && pickerAnchor && (
                 <div
                     ref={pickerRef}
-                    className="fixed z-[9999] w-56 bg-white dark:bg-[#1a1e30] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-72 overflow-hidden"
+                    className="fixed z-[9999] w-56 bg-white dark:bg-[var(--surface-input)] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-72 overflow-hidden"
                     style={{ left: pickerAnchor.x, top: pickerAnchor.y }}
                     onClick={e => e.stopPropagation()}
                 >

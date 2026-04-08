@@ -123,7 +123,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
 
     if (questions.length === 0) {
         return (
-            <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-slate-200/30 dark:border-[#383e59]/40 transition-colors duration-300">
+            <div className="text-center py-16 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-slate-200/30 dark:border-[var(--surface-border)]/40 transition-colors duration-300">
                 <Trophy className="h-12 w-12 mx-auto mb-3 text-gray-400 dark:text-slate-500" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ready to test your knowledge?</h3>
                 <p className="text-gray-700 dark:text-slate-300 mb-6">Generate a quiz based on this content to reinforce your learning.</p>
@@ -162,7 +162,7 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
                 )}
                 <button
                     onClick={generateQuiz}
-                    className="flex items-center mx-auto gap-2 px-5 py-2 bg-white dark:bg-[#0f1117] border border-slate-200 dark:border-[#252d3d] text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-[#131720] font-medium text-sm transition-colors cursor-pointer"
+                    className="flex items-center mx-auto gap-2 px-5 py-2 bg-white dark:bg-[var(--background-elevated)] border border-slate-200 dark:border-[var(--surface-border)] text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-[var(--background-elevated)] font-medium text-sm transition-colors cursor-pointer"
                 >
                     <RefreshCw className="h-4 w-4" />
                     Try Another Quiz
@@ -172,17 +172,14 @@ export function QuizInterface({ sourceId, title = "Quiz" }: QuizInterfaceProps) 
     }
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[#383e59]/40 shadow-sm transition-colors duration-300">
-            <div className="border-b border-slate-200/30 dark:border-[#383e59]/40 px-4 sm:px-6 py-4">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
-            </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[var(--surface-border)]/40 shadow-sm transition-colors duration-300">
             <div className="p-4 sm:p-6">
                 <div className="mb-4 sm:mb-6 flex items-center justify-between text-sm text-gray-500 dark:text-slate-400">
                     <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
                     <span>Score: {score}</span>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[#383e59]/40 p-4 sm:p-6 shadow-sm mb-4 sm:mb-6 transition-colors duration-300">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/30 dark:border-[var(--surface-border)]/40 p-4 sm:p-6 shadow-sm mb-4 sm:mb-6 transition-colors duration-300">
                     <QuestionCard
                         question={questions[currentQuestionIndex]}
                         selectedAnswer={selectedAnswer}

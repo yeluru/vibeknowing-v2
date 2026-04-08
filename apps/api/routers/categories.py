@@ -26,7 +26,6 @@ class CategoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True # Fallback for v1
 
 @router.get("/", response_model=List[CategoryResponse])
 async def list_categories(
@@ -36,6 +35,20 @@ async def list_categories(
     return db.query(models.Category).filter(
         models.Category.owner_id == current_user.id
     ).order_by(models.Category.name).all()
+
+@router.get("/{category_id}", response_model=CategoryResponse)
+async def get_category(
+    category_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    category = db.query(models.Category).filter(
+        models.Category.id == category_id,
+        models.Category.owner_id == current_user.id
+    ).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category
 
 @router.post("/", response_model=CategoryResponse)
 async def create_category(

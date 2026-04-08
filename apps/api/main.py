@@ -7,6 +7,15 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Patch httpx.Client to drop the deprecated 'proxies' argument that older
+# versions of the openai and anthropic SDKs pass, which breaks on httpx 0.28+.
+import httpx as _httpx
+_orig_client_init = _httpx.Client.__init__
+def _patched_client_init(self, *args, **kwargs):
+    kwargs.pop("proxies", None)
+    _orig_client_init(self, *args, **kwargs)
+_httpx.Client.__init__ = _patched_client_init
+
 # Add current directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 

@@ -86,7 +86,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                             <div className="prose prose-sm dark:prose-invert max-w-none
                                             prose-p:leading-relaxed
                                             prose-p:text-slate-800 dark:prose-p:text-slate-200
-                                            prose-pre:bg-slate-50 dark:prose-pre:bg-[#0a0f1e]
+                                            prose-pre:bg-slate-50 dark:prose-pre:bg-[var(--card)]
                                             prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-white/[0.08]
                                             prose-code:text-emerald-700 dark:prose-code:text-emerald-400
                                             prose-headings:font-mono prose-headings:font-bold prose-headings:tracking-tight

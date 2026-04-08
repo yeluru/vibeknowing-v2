@@ -43,6 +43,15 @@ def run_hotfix():
             conn.rollback()
             logger.info(f"Skipped 'category_id' on 'chat_messages' (might already exist): {e}")
 
+        # 4. Add category_id to curriculums (if missing)
+        try:
+            conn.execute(text("ALTER TABLE curriculums ADD category_id VARCHAR(255) REFERENCES categories(id)"))
+            conn.commit()
+            logger.info("Successfully added 'category_id' to 'curriculums' table.")
+        except Exception as e:
+            conn.rollback()
+            logger.info(f"Skipped 'category_id' on 'curriculums' (might already exist): {e}")
+
     logger.info("Hotfix migration complete.")
 
 if __name__ == "__main__":
