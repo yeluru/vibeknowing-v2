@@ -18,12 +18,11 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
 
     // Initialize from URL or localStorage
     const getInitialTool = (): StudioTool => {
-        const urlTool = searchParams.get('tool');
-        if (urlTool && ['social', 'diagram', 'article', 'quiz', 'flashcards'].includes(urlTool)) {
-            return urlTool as StudioTool;
-        }
-
         if (typeof window !== 'undefined') {
+            const urlTool = new URLSearchParams(window.location.search).get('tool');
+            if (urlTool && ['social', 'diagram', 'article', 'quiz', 'flashcards'].includes(urlTool)) {
+                return urlTool as StudioTool;
+            }
             const savedTool = localStorage.getItem(`source-${sourceId}-studio-tool`);
             if (savedTool && ['social', 'diagram', 'article', 'quiz', 'flashcards'].includes(savedTool)) {
                 return savedTool as StudioTool;
@@ -66,15 +65,15 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-700 pb-20">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-700 pb-10">
             {/* Studio Branding Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200/60 dark:border-[var(--surface-border)]/40 pb-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/60 dark:border-[var(--surface-border)]/40 px-6 pt-4 pb-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
                         <Palette className="h-5 w-5" />
                         <span className="text-[10px] font-black uppercase tracking-[0.4em]">Content Studio</span>
                     </div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase whitespace-nowrap">
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight whitespace-nowrap">
                         {toolMeta[activeTool].label}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
@@ -104,7 +103,7 @@ export function StudioInterface({ sourceId }: StudioInterfaceProps) {
             </div>
 
             {/* Active Tool Content */}
-            <div className="relative">
+            <div className="relative px-6">
                 {activeTool === 'social' && <SocialMediaGenerator sourceId={sourceId} />}
                 {activeTool === 'diagram' && <DiagramViewer sourceId={sourceId} />}
                 {activeTool === 'article' && <ArticleEditor sourceId={sourceId} />}

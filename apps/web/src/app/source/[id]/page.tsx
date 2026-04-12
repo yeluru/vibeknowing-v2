@@ -395,7 +395,7 @@ export default function SourcePage() {
                             onMouseEnter={() => { if (studioCloseTimerRef.current) clearTimeout(studioCloseTimerRef.current); }}
                             onMouseLeave={closeStudioDropdown}>
                             {['social', 'diagram', 'article', 'quiz', 'flashcards'].map(tool => (
-                                <button key={tool} onClick={() => { handleTabChange('studio'); window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: tool })); }}
+                                <button key={tool} onClick={() => { handleTabChange('studio'); window.history.replaceState(null, '', `?tab=studio&tool=${tool}`); window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: tool })); }}
                                     className="w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--secondary-light)] flex items-center gap-2">
                                     <Sparkles className="h-3.5 w-3.5" /> {tool.charAt(0).toUpperCase() + tool.slice(1)}
                                 </button>
