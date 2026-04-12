@@ -62,10 +62,28 @@ export default function SourcePage() {
 
     const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast'>(getInitialTab());
     const [studioDropdownOpen, setStudioDropdownOpen] = useState(false);
+    const [studioDropdownPos, setStudioDropdownPos] = useState({ top: 0, left: 0 });
+    const studioCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [socialMediaExpanded, setSocialMediaExpanded] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const studioButtonRef = useRef<HTMLButtonElement>(null);
+    const tabBarRef = useRef<HTMLDivElement>(null);
     const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+    const openStudioDropdown = () => {
+        if (studioCloseTimerRef.current) clearTimeout(studioCloseTimerRef.current);
+        if (studioButtonRef.current && tabBarRef.current) {
+            const br = studioButtonRef.current.getBoundingClientRect();
+            const or = tabBarRef.current.getBoundingClientRect();
+            setStudioDropdownPos({ top: br.bottom - or.top, left: br.left - or.left });
+        }
+        setStudioDropdownOpen(true);
+    };
+
+    const closeStudioDropdown = () => {
+        studioCloseTimerRef.current = setTimeout(() => setStudioDropdownOpen(false), 100);
+    };
 
     useEffect(() => {
         const tab = searchParams.get('tab');
@@ -351,7 +369,7 @@ export default function SourcePage() {
                 </div>
                 {isAuthenticated && !isProcessing && <SmartNudgeBar progress={progress} onTabChange={handleTabChange} />}
                 
-                <div className="border-t border-[var(--surface-border)] relative">
+                <div ref={tabBarRef} className="border-t border-[var(--surface-border)] relative">
                     <div className="flex items-end overflow-x-auto no-scrollbar">
                         {TABS.map(tab => (
                             <button key={tab.id} onClick={() => handleTabChange(tab.id)}
@@ -360,26 +378,30 @@ export default function SourcePage() {
                                 <span className="flex items-center gap-1.5">{tab.icon} {tab.label}</span>
                             </button>
                         ))}
-                        <div className="relative group flex-shrink-0" onMouseEnter={() => setStudioDropdownOpen(true)} onMouseLeave={() => setStudioDropdownOpen(false)}>
-                            <button className={cn("px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 whitespace-nowrap", activeTab === 'studio' ? "border-[var(--secondary)] text-[var(--secondary)]" : "border-transparent text-[var(--muted-foreground)]")}>
+                        <div className="flex-shrink-0" onMouseEnter={openStudioDropdown} onMouseLeave={closeStudioDropdown}>
+                            <button ref={studioButtonRef} className={cn("px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 -mb-px flex items-center gap-1.5 whitespace-nowrap", activeTab === 'studio' ? "border-[var(--secondary)] text-[var(--secondary)]" : "border-transparent text-[var(--muted-foreground)]")}>
                                 <Palette className="h-4 w-4" /> Studio <ChevronRight className="h-3 w-3 rotate-90" />
                             </button>
-                            {studioDropdownOpen && (
-                                <div className="absolute top-full left-0 w-52 bg-[var(--surface-overlay)] rounded-xl shadow-2xl border border-[var(--surface-border-strong)] py-1.5 z-50">
-                                    {['social', 'diagram', 'article', 'quiz', 'flashcards'].map(tool => (
-                                        <button key={tool} onClick={() => { handleTabChange('studio'); window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: tool })); }}
-                                            className="w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--secondary-light)] flex items-center gap-2">
-                                            <Sparkles className="h-3.5 w-3.5" /> {tool.charAt(0).toUpperCase() + tool.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
                         </div>
                         <button onClick={() => handleTabChange('view')}
                             className={cn("px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap flex-shrink-0", activeTab === 'view' ? "border-[var(--secondary)] text-[var(--secondary)]" : "border-transparent text-[var(--muted-foreground)]")}>
                             <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" /> View</span>
                         </button>
                     </div>
+                    {studioDropdownOpen && (
+                        <div
+                            className="absolute w-52 bg-[var(--surface-overlay)] rounded-xl shadow-2xl border border-[var(--surface-border-strong)] py-1.5 z-50"
+                            style={{ top: studioDropdownPos.top, left: studioDropdownPos.left }}
+                            onMouseEnter={() => { if (studioCloseTimerRef.current) clearTimeout(studioCloseTimerRef.current); }}
+                            onMouseLeave={closeStudioDropdown}>
+                            {['social', 'diagram', 'article', 'quiz', 'flashcards'].map(tool => (
+                                <button key={tool} onClick={() => { handleTabChange('studio'); window.dispatchEvent(new CustomEvent('studio-tool-change', { detail: tool })); }}
+                                    className="w-full text-left px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--secondary-light)] flex items-center gap-2">
+                                    <Sparkles className="h-3.5 w-3.5" /> {tool.charAt(0).toUpperCase() + tool.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
