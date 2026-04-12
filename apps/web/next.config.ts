@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  output: "standalone",
   async redirects() {
     return [
       // Redirect old domain to new domain (301 permanent)
