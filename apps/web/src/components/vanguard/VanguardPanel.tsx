@@ -17,9 +17,10 @@ interface Recommendation {
 }
 
 interface VanguardData {
-    status: 'ready' | 'processing' | 'none';
+    status: 'ready' | 'processing' | 'none' | 'error';
     recommendations: Recommendation[];
     agent_commentary: string;
+    error?: string;
 }
 
 interface VanguardPanelProps {
@@ -33,6 +34,8 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
     const [data, setData] = useState<VanguardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [isScanning, setIsScanning] = useState(false);
+    const scanStartRef = useRef<number | null>(null);
+    const SCAN_TIMEOUT_MS = 120_000; // stop spinning after 2 minutes
     const [addingUrl, setAddingUrl] = useState<string | null>(null);
     const [newPathName, setNewPathName] = useState("");
     const [isNamingPath, setIsNamingPath] = useState(false);
@@ -55,8 +58,15 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
             if (response.ok) {
                 const resData = await response.json();
                 setData(resData);
-                if (resData.recommendations?.length > 0) {
+                // Stop spinner on any terminal state: ready, error, or timed-out
+                const isTerminal = resData.status === 'ready' || resData.status === 'error';
+                const timedOut = scanStartRef.current !== null && (Date.now() - scanStartRef.current) > SCAN_TIMEOUT_MS;
+                if (isTerminal || timedOut) {
                     setIsScanning(false);
+                    scanStartRef.current = null;
+                }
+                if (resData.status === 'error') {
+                    toast.error('Vanguard could not find resources', { description: resData.error || 'Unknown error' });
                 }
             }
 
@@ -107,7 +117,10 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
         // Load categories (learning paths) for the picker
         categoriesApi.list().then(setAllCategories).catch(() => {});
         const interval = setInterval(() => {
-            if (!data || data.status !== 'ready') {
+            // Only keep polling while actively processing — stop on terminal states
+            const isTerminal = data?.status === 'ready' || data?.status === 'error';
+            const timedOut = scanStartRef.current !== null && (Date.now() - scanStartRef.current) > SCAN_TIMEOUT_MS;
+            if (!isTerminal && !timedOut) {
                 loadRecommendations();
             }
         }, 10000);
@@ -215,6 +228,7 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
 
     const handleRefresh = async () => {
         setIsScanning(true);
+        scanStartRef.current = Date.now();
         try {
             setLoading(true);
             const response = await fetch(`${API_BASE}/ai/vanguard/${sourceId}/refresh`, {
@@ -222,12 +236,18 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                 headers: buildAIHeaders()
             });
             if (response.ok) {
-                setData(prev => prev ? { ...prev, status: 'processing' } : null);
+                setData(prev => prev ? { ...prev, status: 'processing', error: undefined } : null);
                 loadRecommendations();
+            } else {
+                setIsScanning(false);
+                scanStartRef.current = null;
+                toast.error('Failed to start Vanguard scan');
             }
         } catch (error) {
             console.error("Refresh failed:", error);
             setIsScanning(false);
+            scanStartRef.current = null;
+            toast.error('Network error — could not start scan');
         } finally {
             setLoading(false);
         }
@@ -266,6 +286,31 @@ export function VanguardPanel({ sourceId, projectId, onAdded }: VanguardPanelPro
                             style={{ animationDelay: `${i * 0.15}s` }} />
                     ))}
                 </div>
+            </div>
+        );
+    }
+
+    // Error state — backend saved a specific failure message
+    if (data?.status === 'error') {
+        return (
+            <div className="p-6 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-red-600 dark:text-red-400">Vanguard Failed</h4>
+                    <p className="text-[11px] text-red-500 dark:text-red-400 leading-relaxed mt-1 max-w-xs">
+                        {data.error || 'Something went wrong during the scan.'}
+                    </p>
+                </div>
+                <button
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                >
+                    <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+                    Try Again
+                </button>
             </div>
         );
     }

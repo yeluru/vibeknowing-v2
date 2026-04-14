@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Folder, Plus, LayoutDashboard, MoreHorizontal, Trash2, Palette, BookOpen, PanelLeftClose, PanelLeftOpen, Route, RefreshCw, Search, Globe, ChevronRight, ChevronDown, Map as MapIcon, Compass, Inbox, Settings, Target } from "lucide-react";
+import { Folder, Plus, LayoutDashboard, MoreHorizontal, Trash2, Palette, BookOpen, PanelLeftClose, PanelLeftOpen, Route, RefreshCw, Search, Globe, Youtube, ChevronRight, ChevronDown, Map as MapIcon, Compass, Inbox, Settings, Target, Check } from "lucide-react";
 import { toast } from "sonner";
 import { categoriesApi, projectsApi, Project, API_BASE } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,10 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
     const [activeSubmenu, setActiveSubmenu] = useState<"none" | "move-source" | "move-path">("none");
     const [pendingMoveProjectId, setPendingMoveProjectId] = useState<string | null>(null);
 
+    // Source-level three-dot menu
+    type SourceMenuAnchor = { x: number; y: number; sourceId: string; projectId: string; currentCategoryId?: string | null };
+    const [sourceMenuAnchor, setSourceMenuAnchor] = useState<SourceMenuAnchor | null>(null);
+
     // Expanded state for collections and the "Uncollected" group (start collapsed by default)
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -45,7 +49,7 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
     useEffect(() => {
         loadData();
         const handleRefresh = () => loadData();
-        const handleClose = () => setDropdownAnchor(null);
+        const handleClose = () => { setDropdownAnchor(null); setSourceMenuAnchor(null); };
         window.addEventListener("refresh-sidebar", handleRefresh);
         window.addEventListener("click", handleClose);
         return () => {
@@ -136,6 +140,38 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
         } catch { toast.error("Failed to create learning path"); }
     };
 
+    // Move a source to a target category:
+    // - If the source's project has only this source, reassign the whole project to the new category.
+    // - Otherwise, move just the source to the first project in the target category.
+    const handleMoveSourceToPath = async (sourceId: string, projectId: string, targetCategoryId: string | null) => {
+        try {
+            const proj = projects.find(p => p.id === projectId);
+            const sourceCount = proj?.source_count ?? (proj?.sources?.length ?? 0);
+            if (sourceCount <= 1) {
+                // Move whole project to the target category
+                await projectsApi.updateCategory(projectId, targetCategoryId);
+            } else {
+                // Find (or pick) the first project in the target category
+                const targetProjects = projects.filter(p => p.category_id === targetCategoryId);
+                if (targetProjects.length === 0) {
+                    // No existing project in target — move just this source via source-project endpoint
+                    await fetch(`${API_BASE}/sources/${sourceId}/project`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+                        body: JSON.stringify({ project_id: projectId, new_category_id: targetCategoryId }),
+                    });
+                } else {
+                    await handleMoveSourceToAnotherPath(sourceId, targetProjects[0].id);
+                    return; // handleMoveSourceToAnotherPath already refreshes
+                }
+            }
+            setSourceMenuAnchor(null);
+            toast.success(targetCategoryId ? "Moved to path" : "Moved to inbox");
+            loadData();
+            window.dispatchEvent(new Event("refresh-sidebar"));
+        } catch { toast.error("Failed to move"); }
+    };
+
     const handleMoveToCollection = async (productId: string, categoryId: string | null) => {
         try {
             await projectsApi.updateCategory(productId, categoryId);
@@ -208,28 +244,40 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
     };
 
 
-    /* ── Single path row ─────────────────────────────────────────────────── */
+    /* ── Single path row (used only for Global Inbox / uncategorised projects) ── */
     const PathRow = ({ project, indent = false }: { project: Project; indent?: boolean }) => {
-        const targetHref = project.first_source_id 
+        // Global inbox items navigate to the first source directly (no tutorial page)
+        const targetHref = project.first_source_id
             ? `/source/${project.first_source_id}`
-            : `/paths/${project.id}`;
-
-        const isActive = pathname === targetHref || pathname === `/paths/${project.id}`;
+            : `/source/${(project.sources ?? [])[0]?.id ?? ""}`;
+        const isActive = pathname === targetHref || (project.sources ?? []).some(s => pathname === `/source/${s.id}`);
+        // Auto-expand when this path is active
+        const [expanded, setExpanded] = useState(isActive && (project.source_count ?? 0) > 0);
+        const hasSources = (project.source_count ?? 0) > 0;
 
         return (
             <div
-                className={cn("group/path relative", draggedProjectId === project.id && "opacity-40")}
+                className={cn("group/path", draggedProjectId === project.id && "opacity-40")}
                 draggable
                 onDragStart={e => { setDraggedProjectId(project.id); e.dataTransfer.effectAllowed = "move"; }}
                 onDragEnd={() => setDraggedProjectId(null)}
             >
-                <div className="flex items-center">
+                {/* Path title row */}
+                <div className="relative flex items-center">
+                    {/* Expand/collapse chevron */}
+                    <button
+                        onClick={e => { e.preventDefault(); setExpanded(v => !v); }}
+                        className="flex-shrink-0 p-1 ml-0.5 rounded text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 transition-colors"
+                    >
+                        <ChevronRight className={cn("h-3 w-3 transition-transform duration-200", expanded && "rotate-90")} />
+                    </button>
+
                     <Link
                         href={targetHref}
-                        onClick={onNavigate}
+                        onClick={() => { setExpanded(true); onNavigate?.(); }}
                         className={cn(
                             "flex-1 flex items-center gap-2 py-1.5 pr-8 rounded-lg text-[12px] font-semibold transition-all duration-150 min-w-0",
-                            indent ? "pl-4" : "pl-2",
+                            indent ? "pl-2" : "pl-1",
                             isActive
                                 ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white"
@@ -242,10 +290,11 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             className="flex-1 truncate"
                             editOnIconOnly
                         />
-                        {project.source_count > 0 && (
+                        {hasSources && (
                             <span className={cn(
                                 "text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 tabular-nums",
-                                isActive ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+                                isActive
+                                    ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
                                     : "bg-slate-100 dark:bg-white/8 text-slate-400 dark:text-slate-500"
                             )}>
                                 {project.source_count}
@@ -261,25 +310,15 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             if (dropdownAnchor?.project.id === project.id) {
                                 setDropdownAnchor(null);
                             } else {
-                                const dropdownWidth = 256; // w-64
+                                const dropdownWidth = 256;
                                 const margin = 8;
                                 const vw = window.innerWidth;
                                 const vh = window.innerHeight;
-
-                                // Default: open to the right of the button
                                 let x = rect.right + 6;
-                                // If it would overflow the right edge, flip left
-                                if (x + dropdownWidth > vw - margin) {
-                                    x = Math.max(margin, rect.left - dropdownWidth - 6);
-                                }
-
-                                // Clamp vertically so the dropdown doesn't overflow the bottom
+                                if (x + dropdownWidth > vw - margin) x = Math.max(margin, rect.left - dropdownWidth - 6);
                                 const estimatedHeight = 420;
                                 let y = rect.top;
-                                if (y + estimatedHeight > vh - margin) {
-                                    y = Math.max(margin, vh - estimatedHeight - margin);
-                                }
-
+                                if (y + estimatedHeight > vh - margin) y = Math.max(margin, vh - estimatedHeight - margin);
                                 setDropdownAnchor({ x, y, project });
                             }
                         }}
@@ -287,9 +326,38 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                     >
                         <MoreHorizontal className="h-3.5 w-3.5" />
                     </button>
-
-                    {/* Dropdown rendered at component root as fixed — see below */}
                 </div>
+
+                {/* Source sub-items */}
+                {expanded && hasSources && (
+                    <div className="ml-5 pl-2 border-l border-slate-200 dark:border-white/8 space-y-0.5 py-0.5">
+                        {(project.sources ?? []).map(s => {
+                            const sourceHref = `/source/${s.id}`;
+                            const isSourceActive = pathname === sourceHref;
+                            return (
+                                <Link
+                                    key={s.id}
+                                    href={sourceHref}
+                                    onClick={onNavigate}
+                                    className={cn(
+                                        "flex items-center gap-2 py-1 px-2 rounded-lg text-[11px] transition-all duration-150 min-w-0",
+                                        isSourceActive
+                                            ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
+                                            : "text-slate-500 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-300"
+                                    )}
+                                >
+                                    {s.type === "video"
+                                        ? <Youtube className="h-3 w-3 shrink-0 text-red-400" />
+                                        : <Globe className="h-3 w-3 shrink-0 text-sky-400" />}
+                                    <span className="truncate">{s.title || "Untitled"}</span>
+                                    {s.has_content && (
+                                        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" title="Ingested" />
+                                    )}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         );
     };
@@ -360,28 +428,79 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             ) : (
                                 <div className="space-y-0.5">
                                     {/* 1. Global Inbox / Processing */}
-                                    {uncollected.length > 0 && (
-                                        <div className="mb-4"
-                                            onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
-                                            onDrop={e => { e.preventDefault(); if (draggedProjectId) handleMoveToCollection(draggedProjectId, null); }}
-                                        >
-                                            <div className="group/cat flex items-center gap-1.5 px-2 py-1.5 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl mb-0.5 border border-emerald-500/10 hover:border-emerald-500/30 transition-all">
-                                                <button onClick={() => toggleGroup("__inbox__")} className="flex-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 text-left">
-                                                    <Compass className={cn("h-3.5 w-3.5", expandedGroups.has("__inbox__") ? "text-emerald-500" : "text-slate-400")} />
-                                                    <span className="truncate">Global Inbox / Processing</span>
-                                                    <span className="ml-auto text-[9px] font-bold bg-white/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md tabular-nums">
-                                                        {uncollected.length}
-                                                    </span>
-                                                    <ChevronDown className={cn("h-3 w-3 transition-transform duration-300", expandedGroups.has("__inbox__") && "rotate-180")} />
-                                                </button>
-                                            </div>
-                                            {expandedGroups.has("__inbox__") && (
-                                                <div className="ml-3 pl-2 border-l-2 border-emerald-500/10 space-y-0.5 py-1">
-                                                    {uncollected.map(p => <PathRow key={p.id} project={p} indent />)}
+                                    {uncollected.length > 0 && (() => {
+                                        // Flatten all sources from all uncollected projects
+                                        const inboxSources = uncollected.flatMap(p => (p.sources ?? []).map(s => ({ ...s, projectId: p.id })));
+                                        const inboxCount = inboxSources.length || uncollected.length;
+                                        return (
+                                            <div className="mb-4"
+                                                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+                                                onDrop={e => { e.preventDefault(); if (draggedProjectId) handleMoveToCollection(draggedProjectId, null); }}
+                                            >
+                                                <div className="group/cat flex items-center gap-1.5 px-2 py-1.5 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-xl mb-0.5 border border-emerald-500/10 hover:border-emerald-500/30 transition-all">
+                                                    <button onClick={() => toggleGroup("__inbox__")} className="flex-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 text-left">
+                                                        <Compass className={cn("h-3.5 w-3.5", expandedGroups.has("__inbox__") ? "text-emerald-500" : "text-slate-400")} />
+                                                        <span className="truncate">Global Inbox / Processing</span>
+                                                        <span className="ml-auto text-[9px] font-bold bg-white/50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md tabular-nums">
+                                                            {inboxCount}
+                                                        </span>
+                                                        <ChevronDown className={cn("h-3 w-3 transition-transform duration-300", expandedGroups.has("__inbox__") && "rotate-180")} />
+                                                    </button>
                                                 </div>
-                                            )}
-                                        </div>
-                                    )}
+                                                {expandedGroups.has("__inbox__") && (
+                                                    <div className="ml-3 pl-2 border-l-2 border-emerald-500/10 space-y-0.5 py-1">
+                                                        {inboxSources.length > 0 ? inboxSources.map(s => {
+                                                            const sourceHref = `/source/${s.id}`;
+                                                            const isSourceActive = pathname === sourceHref;
+                                                            return (
+                                                                <div key={s.id} className="group/src relative flex items-center">
+                                                                    <Link
+                                                                        href={sourceHref}
+                                                                        onClick={onNavigate}
+                                                                        className={cn(
+                                                                            "flex-1 flex items-center gap-2 py-1 pl-2 pr-7 rounded-lg text-[11px] transition-all duration-150 min-w-0",
+                                                                            isSourceActive
+                                                                                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold"
+                                                                                : "text-slate-500 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-300"
+                                                                        )}
+                                                                    >
+                                                                        {s.type === "video"
+                                                                            ? <Youtube className="h-3 w-3 shrink-0 text-red-400" />
+                                                                            : <Globe className="h-3 w-3 shrink-0 text-sky-400" />}
+                                                                        <span className="truncate">{s.title || "Untitled"}</span>
+                                                                        {s.has_content && (
+                                                                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" title="Ingested" />
+                                                                        )}
+                                                                    </Link>
+                                                                    <button
+                                                                        onClick={e => {
+                                                                            e.stopPropagation();
+                                                                            const rect = e.currentTarget.getBoundingClientRect();
+                                                                            setSourceMenuAnchor(prev => prev?.sourceId === s.id ? null : { x: rect.right + 4, y: rect.top, sourceId: s.id, projectId: s.projectId, currentCategoryId: null });
+                                                                        }}
+                                                                        className="absolute right-1 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary opacity-0 group-hover/src:opacity-100 transition-all"
+                                                                    >
+                                                                        <MoreHorizontal className="h-3 w-3" />
+                                                                    </button>
+                                                                </div>
+                                                            );
+                                                        }) : uncollected.map(p => {
+                                                            // Fallback: project has no sources array yet — show project title linking to its path
+                                                            const href = `/paths/${p.id}`;
+                                                            return (
+                                                                <Link key={p.id} href={href} onClick={onNavigate}
+                                                                    className="flex items-center gap-2 py-1 px-2 rounded-lg text-[11px] text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 transition-all"
+                                                                >
+                                                                    <Globe className="h-3 w-3 shrink-0 text-slate-400" />
+                                                                    <span className="truncate">{p.title || "Untitled"}</span>
+                                                                </Link>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* 1.1 GLOBAL MISSIONS (GOAL-DRIVEN) */}
                                     {missions.length > 0 && (
@@ -476,7 +595,11 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                     {categories.map((cat: any) => {
                                         const catPaths = getCollectionPaths(cat.id);
                                         const isOpen = expandedGroups.has(cat.id);
-                                        const isDropTarget = false; // We can improve this with state if needed
+                                        // Aggregate all sources from all projects in this category
+                                        const allCatSources = catPaths.flatMap(p => (p.sources ?? []).map(s => ({ ...s, projectId: p.id })));
+                                        // Navigate to the category-level page
+                                        const catHref = `/category/${cat.id}`;
+                                        const isCatActive = pathname === catHref || pathname.startsWith(`/category/${cat.id}`);
                                         return (
                                             <div key={cat.id} className="mb-2"
                                                 onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
@@ -484,32 +607,44 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                             >
                                                 <div className={cn(
                                                     "group/cat flex items-center gap-3 px-3.5 py-2.5 rounded-2xl mb-1.5 border transition-all duration-300",
-                                                    "bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/5 hover:border-indigo-500/30",
+                                                    isCatActive
+                                                        ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20"
+                                                        : "bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/5 hover:border-indigo-500/30",
                                                     draggedProjectId && "ring-2 ring-indigo-500/40 bg-indigo-500/10"
                                                 )}>
-                                                    <div 
-                                                        onClick={() => toggleGroup(cat.id)}
+                                                    <div
+                                                        onClick={() => {
+                                                            router.push(catHref);
+                                                            onNavigate?.();
+                                                            toggleGroup(cat.id);
+                                                        }}
                                                         className="flex-1 flex items-center gap-3.5 text-[11px] font-black uppercase tracking-[0.15em] text-left min-w-0 cursor-pointer"
                                                     >
                                                         <div className={cn(
                                                             "h-8.5 w-8.5 rounded-xl flex items-center justify-center transition-all",
-                                                            "bg-slate-100 dark:bg-white/5 group-hover/cat:bg-indigo-500/10"
+                                                            isCatActive
+                                                                ? "bg-indigo-100 dark:bg-indigo-500/20"
+                                                                : "bg-slate-100 dark:bg-white/5 group-hover/cat:bg-indigo-500/10"
                                                         )}>
-                                                            <MapIcon className={cn("h-4 w-4", "text-slate-400 group-hover/cat:text-indigo-400")} />
+                                                            <MapIcon className={cn("h-4 w-4", isCatActive ? "text-indigo-500" : "text-slate-400 group-hover/cat:text-indigo-400")} />
                                                         </div>
                                                         <span className={cn(
-                                                            "truncate transition-colors text-slate-800 dark:text-slate-200"
+                                                            "truncate transition-colors",
+                                                            isCatActive ? "text-indigo-700 dark:text-indigo-400" : "text-slate-800 dark:text-slate-200"
                                                         )}>
                                                             {cat.name}
                                                         </span>
                                                         <span className={cn(
-                                                            "ml-auto text-[9px] font-black px-2 py-0.5 rounded-lg border tabular-nums transition-colors bg-white dark:bg-white/10 border-slate-100 dark:border-white/5 text-slate-500"
+                                                            "ml-auto text-[9px] font-black px-2 py-0.5 rounded-lg border tabular-nums transition-colors",
+                                                            isCatActive
+                                                                ? "bg-indigo-100 dark:bg-indigo-500/20 border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400"
+                                                                : "bg-white dark:bg-white/10 border-slate-100 dark:border-white/5 text-slate-500"
                                                         )}>
-                                                            {catPaths.length}
+                                                            {allCatSources.length}
                                                         </span>
                                                     </div>
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); toggleGroup(cat.id); }} 
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); toggleGroup(cat.id); }}
                                                         className="p-1.5 rounded-lg transition-all hover:bg-slate-200 dark:hover:bg-white/10"
                                                     >
                                                         <ChevronDown className={cn(
@@ -519,11 +654,46 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                                                     </button>
                                                 </div>
                                                 {isOpen && (
-                                                    <div className="ml-3 pl-2 border-l-2 border-emerald-500/10 space-y-0.5 py-1">
-                                                        {catPaths.length === 0 ? (
-                                                            <p className="px-2 py-2 text-[10px] text-slate-400 italic">No resources yet.</p>
+                                                    <div className="ml-3 pl-2 border-l-2 border-indigo-500/10 space-y-0.5 py-1">
+                                                        {allCatSources.length === 0 ? (
+                                                            <p className="px-2 py-2 text-[10px] text-slate-400 italic">No sources ingested yet.</p>
                                                         ) : (
-                                                            catPaths.map(p => <PathRow key={p.id} project={p} indent />)
+                                                            allCatSources.map(s => {
+                                                                const sourceHref = `/source/${s.id}`;
+                                                                const isSourceActive = pathname === sourceHref;
+                                                                return (
+                                                                    <div key={s.id} className="group/src relative flex items-center">
+                                                                        <Link
+                                                                            href={sourceHref}
+                                                                            onClick={onNavigate}
+                                                                            className={cn(
+                                                                                "flex-1 flex items-center gap-2 py-1 pl-2 pr-7 rounded-lg text-[11px] transition-all duration-150 min-w-0",
+                                                                                isSourceActive
+                                                                                    ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
+                                                                                    : "text-slate-500 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-300"
+                                                                            )}
+                                                                        >
+                                                                            {s.type === "video"
+                                                                                ? <Youtube className="h-3 w-3 shrink-0 text-red-400" />
+                                                                                : <Globe className="h-3 w-3 shrink-0 text-sky-400" />}
+                                                                            <span className="truncate">{s.title || "Untitled"}</span>
+                                                                            {s.has_content && (
+                                                                                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" title="Ingested" />
+                                                                            )}
+                                                                        </Link>
+                                                                        <button
+                                                                            onClick={e => {
+                                                                                e.stopPropagation();
+                                                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                                                setSourceMenuAnchor(prev => prev?.sourceId === s.id ? null : { x: rect.right + 4, y: rect.top, sourceId: s.id, projectId: s.projectId, currentCategoryId: cat.id });
+                                                                            }}
+                                                                            className="absolute right-1 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary opacity-0 group-hover/src:opacity-100 transition-all"
+                                                                        >
+                                                                            <MoreHorizontal className="h-3 w-3" />
+                                                                        </button>
+                                                                    </div>
+                                                                );
+                                                            })
                                                         )}
                                                     </div>
                                                 )}
@@ -713,6 +883,60 @@ export function Sidebar({ onNavigate, isCollapsed = false, onToggleCollapse }: S
                             </div>
                         </div>
                         )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Source three-dot dropdown — fixed to escape overflow:hidden */}
+            <AnimatePresence>
+                {sourceMenuAnchor && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.1 }}
+                        className="fixed z-[9999] w-52 bg-white dark:bg-[var(--surface-input)] rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden"
+                        style={{ left: Math.min(sourceMenuAnchor.x, window.innerWidth - 216), top: sourceMenuAnchor.y }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="px-3 pt-2 pb-1 border-b border-slate-100 dark:border-white/5">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Move to path</p>
+                        </div>
+                        <div className="p-1 space-y-0.5 max-h-60 overflow-y-auto">
+                            {/* Inbox option — only show if source is currently in a path */}
+                            {sourceMenuAnchor.currentCategoryId && (
+                                <button
+                                    onClick={() => handleMoveSourceToPath(sourceMenuAnchor.sourceId, sourceMenuAnchor.projectId, null)}
+                                    className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-slate-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-700 rounded-lg transition-all text-left"
+                                >
+                                    <Compass className="h-3 w-3 shrink-0 text-emerald-400" />
+                                    <span>Global Inbox</span>
+                                </button>
+                            )}
+                            {categories.map((cat: any) => {
+                                const isCurrent = cat.id === sourceMenuAnchor.currentCategoryId;
+                                return (
+                                    <button
+                                        key={cat.id}
+                                        disabled={isCurrent}
+                                        onClick={() => !isCurrent && handleMoveSourceToPath(sourceMenuAnchor.sourceId, sourceMenuAnchor.projectId, cat.id)}
+                                        className={cn(
+                                            "w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] rounded-lg transition-all text-left",
+                                            isCurrent
+                                                ? "text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 cursor-default font-semibold"
+                                                : "text-slate-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-700"
+                                        )}
+                                    >
+                                        <MapIcon className="h-3 w-3 shrink-0 text-indigo-400" />
+                                        <span className="truncate">{cat.name}</span>
+                                        {isCurrent && <Check className="h-3 w-3 ml-auto shrink-0 text-indigo-400" />}
+                                    </button>
+                                );
+                            })}
+                            {categories.length === 0 && (
+                                <p className="px-2.5 py-2 text-[10px] text-slate-400 italic">No mastery paths yet.</p>
+                            )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

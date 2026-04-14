@@ -99,6 +99,7 @@ export interface Project {
         title: string;
         type: string;
         created_at: string;
+        has_content?: boolean;
     }[];
     first_source_id?: string;
     first_source_url?: string;

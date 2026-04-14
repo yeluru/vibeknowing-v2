@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Route, ArrowRight, Sparkles, Search, Trash2, Youtube, Globe, Map as MapIcon, Compass, Plus, X } from "lucide-react";
+import { Loader2, Route, ArrowRight, Sparkles, Search, Trash2, Youtube, Globe, Map as MapIcon, Compass, Plus, X, GraduationCap } from "lucide-react";
 import { projectsApi, Project, API_BASE, buildAIHeaders } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -181,9 +181,9 @@ export default function LearningPathsPage() {
                                 transition={{ delay: i * 0.05 }}
                                 className="group relative"
                             >
-                                <div 
+                                <div
                                     onClick={() => router.push(`/paths/${path.id}`)}
-                                    className="cursor-pointer relative z-10 h-full flex flex-col p-6 rounded-[2rem] bg-white/80 dark:bg-[var(--surface-input)]/40 backdrop-blur-xl border border-slate-200/70 dark:border-white/5 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden ring-1 ring-transparent hover:ring-indigo-500/30"
+                                    className="cursor-pointer relative z-10 h-full flex flex-col p-6 rounded-[2rem] bg-white/80 dark:bg-[var(--surface-input)]/40 backdrop-blur-xl border border-slate-200/70 dark:border-white/5 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden ring-1 ring-transparent hover:ring-indigo-500/30 select-none"
                                 >
                                     {/* Visual Accent */}
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/10 to-transparent blur-3xl -mr-10 -mt-10" />
@@ -226,9 +226,20 @@ export default function LearningPathsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[var(--secondary)] group-hover:translate-x-1 transition-transform">
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Launch Path</span>
-                                        <ArrowRight className="h-4 w-4" />
+                                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-1.5 text-[var(--secondary)] group-hover:translate-x-0.5 transition-transform">
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Launch Path</span>
+                                            <ArrowRight className="h-4 w-4" />
+                                        </div>
+                                        {path.source_count > 0 && (
+                                            <Link
+                                                href={`/paths/${path.id}?tab=tutorial`}
+                                                onClick={e => e.stopPropagation()}
+                                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--secondary-light)] hover:bg-[var(--secondary)] text-[var(--secondary)] hover:text-white text-[10px] font-black uppercase tracking-widest transition-all"
+                                            >
+                                                <GraduationCap className="h-3 w-3" /> Tutorial
+                                            </Link>
+                                        )}
                                     </div>
                                 </div>
 

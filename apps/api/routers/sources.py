@@ -40,7 +40,8 @@ async def list_projects(
             "id": s.id,
             "title": s.title,
             "type": s.type,
-            "created_at": s.created_at
+            "created_at": s.created_at,
+            "has_content": bool(s.content_text and s.content_text.strip()),
         } for s in p.sources],
         "first_source_id": p.sources[0].id if p.sources else None,
         "first_source_url": p.sources[0].url if p.sources else None,

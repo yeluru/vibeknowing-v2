@@ -251,8 +251,8 @@ class ScoutService:
 
             api_key = settings.TAVILY_API_KEY
             if not api_key:
-                logger.error("Scout: TAVILY_API_KEY missing.")
-                return []
+                logger.error("Scout: TAVILY_API_KEY missing — cannot run research.")
+                raise ValueError("TAVILY_API_KEY is not configured on this server. Scout requires web search to find resources.")
 
             lesson = node.lesson_content
 

@@ -46,21 +46,24 @@ export default function SourcePage() {
     const [source, setSource] = useState<Source | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const getInitialTab = (): 'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast' => {
+    const VALID_TABS = ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view', 'podcast'] as const;
+    type TabId = typeof VALID_TABS[number];
+
+    const getInitialTab = (): TabId => {
         const urlTab = searchParams.get('tab');
-        if (urlTab && ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view', 'podcast'].includes(urlTab)) {
-            return urlTab as any;
+        if (urlTab && (VALID_TABS as readonly string[]).includes(urlTab)) {
+            return urlTab as TabId;
         }
         if (typeof window !== 'undefined') {
             const savedTab = localStorage.getItem(`source-${params.id}-tab`);
-            if (savedTab && ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view', 'podcast'].includes(savedTab)) {
-                return savedTab as any;
+            if (savedTab && (VALID_TABS as readonly string[]).includes(savedTab)) {
+                return savedTab as TabId;
             }
         }
         return 'transcript';
     };
 
-    const [activeTab, setActiveTab] = useState<'transcript' | 'summary' | 'chat' | 'quiz' | 'flashcards' | 'studio' | 'view' | 'podcast'>(getInitialTab());
+    const [activeTab, setActiveTab] = useState<TabId>(getInitialTab());
     const [studioDropdownOpen, setStudioDropdownOpen] = useState(false);
     const [studioDropdownPos, setStudioDropdownPos] = useState({ top: 0, left: 0 });
     const studioCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -87,8 +90,8 @@ export default function SourcePage() {
 
     useEffect(() => {
         const tab = searchParams.get('tab');
-        if (tab && ['transcript', 'summary', 'chat', 'quiz', 'flashcards', 'studio', 'view', 'podcast'].includes(tab)) {
-            setActiveTab(tab as any);
+        if (tab && (VALID_TABS as readonly string[]).includes(tab)) {
+            setActiveTab(tab as TabId);
         }
     }, [searchParams]);
 
@@ -407,7 +410,7 @@ export default function SourcePage() {
 
             {/* Content area */}
             <div className="flex-1 overflow-y-auto min-h-0">
-                {activeTab === 'studio' ? <StudioInterface sourceId={source.id} /> : (
+                {(activeTab === 'studio') ? <StudioInterface sourceId={source.id} /> : (
                     <div className="flex flex-col lg:flex-row gap-6">
                         <div className="flex-1 space-y-6">
                             {activeTab === 'transcript' && (

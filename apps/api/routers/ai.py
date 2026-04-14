@@ -60,6 +60,29 @@ def background_generate_podcast_audio(artifact_id: str, script_data: dict, api_k
 
 
 
+def _tutorial_scope(content_len: int, source_count: int = 1) -> tuple[int, int]:
+    """
+    Return (num_modules, chapters_per_module) scaled to content volume.
+    Single source: driven by content length.
+    Multi-source:  driven by source count, with content length as a floor.
+    """
+    # effective "depth units": each source roughly adds 2000 chars of unique substance
+    depth = max(content_len, source_count * 2000)
+
+    if depth < 3000:
+        return 2, 2          # 4 chapters total  — shallow single page
+    elif depth < 6000:
+        return 2, 3          # 6 chapters total  — one short source
+    elif depth < 10000:
+        return 3, 2          # 6 chapters total  — medium source / 2-3 sources
+    elif depth < 18000:
+        return 3, 3          # 9 chapters total  — long source / 4-5 sources
+    elif depth < 30000:
+        return 4, 3          # 12 chapters total — 6-8 sources
+    else:
+        return 5, 3          # 15 chapters total — very large corpus
+
+
 def _get_ai_params(request: Request, task: str = "chat") -> dict:
     """
     Extract AI provider/model/key from request headers.
@@ -342,6 +365,836 @@ async def get_category_chat_history(category_id: str, db: Session = Depends(get_
             "created_at": msg.created_at.isoformat() if msg.created_at else None
         } for msg in messages
     ]
+
+
+@router.post("/tutorial/{source_id}")
+async def generate_tutorial(
+    source_id: str,
+    request: Request,
+    force: bool = False,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_user),
+):
+    """Generate a structured JSON tutorial for a source, cached as an Artifact."""
+    source = db.query(models.Source).filter(models.Source.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+
+    # Return cached artifact unless force=true
+    if not force:
+        existing = (
+            db.query(models.Artifact)
+            .filter(
+                models.Artifact.source_id == source_id,
+                models.Artifact.type == "tutorial",
+            )
+            .first()
+        )
+        if existing and existing.content:
+            return existing.content
+
+    ai_params = _get_ai_params(request, "tutorial")
+
+    title   = (source.title or "Untitled")
+    content = (source.content_text or "")[:12000]
+    summary = (source.summary or "")[:2000]
+
+    # Pre-compute optional summary line (no backslash inside f-string on Python ≤ 3.11)
+    summary_block = ("Summary:\n" + summary + "\n") if summary else ""
+
+    # ── PASS 1: Generate outline ──────────────────────────────────────────
+    num_modules, chapters_per_module = _tutorial_scope(len(content))
+    outline_prompt = f"""You are building a tutorial outline. Return ONLY valid JSON, no markdown.
+
+Topic: "{title}"
+{summary_block}
+Source material (first 8000 chars):
+{content[:8000]}
+
+Generate a tutorial outline with this structure (use EXACTLY {num_modules} modules, each with EXACTLY {chapters_per_module} chapter titles):
+{{
+  "title": "Clear descriptive title for this tutorial",
+  "topicType": "Technical",
+  "theme": "AI-Native",
+  "centralMentalModel": {{
+    "name": "The 4-6 word unifying concept",
+    "tagline": "One sentence framing the whole topic",
+    "description": "3-4 sentences: what the mental model is, why it fits, what it unlocks"
+  }},
+  "modules": [
+    {{
+      "id": "m1",
+      "title": "Module title",
+      "emoji": "🧠",
+      "description": "2-3 sentences on what this module covers",
+      "chapterTitles": {json.dumps([f"Chapter {i+1} title" for i in range(chapters_per_module)])},
+      "keyTerms": ["exact term from source", "exact term from source", "exact term from source"]
+    }}
+    ... repeat for all {num_modules} modules with ids m1 through m{num_modules}
+  ]
+}}
+
+Rules:
+- topicType: one of Technical, Mathematical, Scientific, Philosophical, Historical, Creative
+- theme: one of AI-Native, Science, Philosophy, Math, History, General
+- Output EXACTLY {num_modules} modules (no more, no fewer)
+- Each module must have EXACTLY {chapters_per_module} chapter titles (no more, no fewer)
+- keyTerms: 3 exact technical terms, APIs, functions, or named concepts ACTUALLY PRESENT in the source — not generic words
+- Use real terminology from the source material, not invented terms
+- Return ONLY the JSON object
+"""
+    try:
+        outline_raw = AIService.generate_json(outline_prompt, max_tokens=3500, temperature=0.3, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Outline generation failed: {e}")
+
+    try:
+        outline_cleaned = outline_raw.strip()
+        if outline_cleaned.startswith("```"):
+            lines = outline_cleaned.split("\n")
+            outline_cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+        outline = json.loads(outline_cleaned)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse outline JSON: {e}")
+
+    topic_type = outline.get("topicType", "Technical")
+    code_note = "tutorialStep.code: Required — real, runnable, commented code or precise formula." if topic_type in ("Technical", "Mathematical") else "tutorialStep.code: Include if relevant to this topic."
+
+    # ── PASS 2: Generate each chapter's content individually ─────────────
+    filled_modules = []
+    chapter_system_prompt = (
+        "You are a world-class technical author writing for senior practitioners. "
+        "Every sentence must add information the reader could not infer themselves. "
+        "Write with the density and specificity of an O'Reilly book chapter, not a blog summary. "
+        "Ground every claim in the source material provided. Return only valid JSON."
+    )
+
+    for mod in outline.get("modules", []):
+        filled_chapters = []
+        key_terms = mod.get("keyTerms", [])
+        key_terms_hint = (f"\nKey terms from source to address in this module: {', '.join(key_terms)}" if key_terms else "")
+        for ci, chapter_title in enumerate(mod.get("chapterTitles", [])):
+            chapter_id = f"{mod['id']}c{ci + 1}"
+            chapter_prompt = f"""You are writing one chapter of a premium tutorial. Return ONLY valid JSON, no markdown.
+
+Topic: "{title}"
+Module: "{mod['title']}"
+Chapter: "{chapter_title}"{key_terms_hint}
+
+Full source material (use specific details, APIs, examples, and terminology from this):
+{content}
+
+Write the complete chapter content as this exact JSON:
+{{
+  "id": "{chapter_id}",
+  "title": "{chapter_title}",
+  "duration": "12 min",
+  "concepts": [
+    {{
+      "name": "exact technical term PRESENT IN THE SOURCE ABOVE",
+      "explanation": "WRITE AT LEAST 120 WORDS HERE. Explain: (1) the internal mechanism — how it actually works step by step, (2) why this concept exists — what problem it uniquely solves, (3) an analogy to something the learner already knows, (4) the real-world implications — what this makes possible. Do NOT just define the word. Do NOT write a generic introduction.",
+      "example": "WRITE AT LEAST 70 WORDS HERE. Give a specific, concrete scenario using actual names, numbers, API calls, or code snippets FROM THE SOURCE MATERIAL above. Show clear cause and effect. No filler text like 'for example, imagine a scenario where'."
+    }},
+    {{"name": "second term from source", "explanation": "120+ words — mechanism, problem solved, analogy, implications", "example": "70+ words — concrete scenario with specifics from source"}},
+    {{"name": "third term from source", "explanation": "120+ words", "example": "70+ words"}},
+    {{"name": "fourth term from source", "explanation": "120+ words", "example": "70+ words"}}
+  ],
+  "tutorialSteps": [
+    {{
+      "step": 1,
+      "title": "Action-oriented step title (verb first)",
+      "body": "WRITE AT LEAST 140 WORDS HERE. Cover: (1) exactly what you are doing at this step and the precise reason why this order matters, (2) the internal mechanism that makes this step work — not just what to type, but why it works, (3) what you should observe or measure to confirm the step succeeded, (4) specific early warning signs that something went wrong here — error messages, unexpected output, or silent failures.",
+      "code": "WRITE REAL, RUNNABLE CODE HERE — multi-line, with inline comments on each non-obvious line. Include imports and context. No placeholders like 'your_value_here' without explanation."
+    }},
+    {{"step": 2, "title": "Step 2 action title", "body": "140+ words covering what/why/mechanism/how-to-verify/warning-signs", "code": "real runnable code with comments"}},
+    {{"step": 3, "title": "Step 3 action title", "body": "140+ words", "code": "real runnable code with comments"}}
+  ],
+  "workedExample": {{
+    "title": "Specific descriptive title for this worked example",
+    "problem": "WRITE AT LEAST 80 WORDS HERE. A self-contained problem the learner should genuinely attempt before reading the solution. Include all context, constraints, starting values, and any relevant numbers or parameters drawn from the source material.",
+    "solution": "WRITE AT LEAST 250 WORDS HERE. Walk through every step labeled Step 1:, Step 2:, etc. Show all intermediate values and every decision point. Explain why you made each choice over the alternatives. Nothing skipped — treat the reader as someone genuinely stuck who needs to understand not just the answer but the reasoning.",
+    "verify": "WRITE AT LEAST 60 WORDS HERE. Give 2-3 specific, checkable verification steps with expected outputs or invariants. Not 'check your work' — give the exact command to run, output to expect, or invariant to assert."
+  }},
+  "pitfalls": [
+    {{
+      "name": "A memorable, specific name for this pitfall (e.g. 'The Silent Cache Staleness Trap')",
+      "description": "WRITE AT LEAST 110 WORDS HERE. Tell the full story: what the learner tried to do (it seemed reasonable), the exact moment things went wrong, why it looked correct at first glance, and what the failure looks like in practice — exact error message, wrong output value, or silent bug that surfaces later.",
+      "fix": "WRITE AT LEAST 90 WORDS HERE. Give the step-by-step correction with specific code or configuration changes. Explain why the fix works mechanically. Show how to verify the fix worked — the exact check or output that confirms it."
+    }},
+    {{
+      "name": "A second, distinct memorable pitfall name",
+      "description": "WRITE AT LEAST 110 WORDS HERE. A different failure mode — full story as above.",
+      "fix": "WRITE AT LEAST 90 WORDS HERE. Step-by-step correction with verification."
+    }}
+  ],
+  "proTip": {{
+    "title": "Expert insight title — specific, not generic",
+    "insight": "WRITE AT LEAST 160 WORDS HERE. This must be genuine expert-level knowledge that intermediate practitioners don't know. Include: (1) a counterintuitive observation or non-obvious behavior that surprises people who think they understand this, (2) the deeper mental model or abstraction that experts hold that makes everything click, (3) a specific, costly failure mode or performance trap this insight prevents — describe a real scenario where missing this insight caused a serious problem, (4) how this connects to the broader landscape of the field or unlocks adjacent capabilities."
+  }}
+}}
+
+{code_note}
+- Use exactly 4 concepts and 3 tutorialSteps in the arrays
+- Every string value MUST meet the minimum word count — violating this is a failure
+- Concept names and examples MUST reference actual terminology, APIs, or patterns from the source above
+- Return ONLY the JSON object for this chapter — no preamble, no explanation
+"""
+            try:
+                chapter_raw = AIService.generate_json(chapter_prompt, max_tokens=5000, temperature=0.4, system_prompt=chapter_system_prompt, **ai_params)
+                chapter_cleaned = chapter_raw.strip()
+                if chapter_cleaned.startswith("```"):
+                    lines = chapter_cleaned.split("\n")
+                    chapter_cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+                chapter_data = json.loads(chapter_cleaned)
+                filled_chapters.append(chapter_data)
+            except Exception as e:
+                print(f"[Tutorial] Chapter {chapter_id} generation failed: {e}")
+                # Insert a placeholder so the tutorial still loads
+                filled_chapters.append({
+                    "id": chapter_id,
+                    "title": chapter_title,
+                    "duration": "10 min",
+                    "concepts": [],
+                    "tutorialSteps": [],
+                    "workedExample": {"title": "", "problem": "", "solution": "", "verify": ""},
+                    "pitfalls": [],
+                    "proTip": {"title": "", "insight": ""},
+                })
+
+        filled_modules.append({
+            "id": mod["id"],
+            "title": mod["title"],
+            "emoji": mod.get("emoji", "📖"),
+            "description": mod.get("description", ""),
+            "chapters": filled_chapters,
+        })
+
+    total_chapters = sum(len(m["chapters"]) for m in filled_modules)
+    total_concepts = sum(len(c.get("concepts", [])) for m in filled_modules for c in m["chapters"])
+
+    tutorial_data = {
+        "title": outline.get("title", title),
+        "topicType": outline.get("topicType", "Technical"),
+        "theme": outline.get("theme", "General"),
+        "centralMentalModel": outline.get("centralMentalModel", {
+            "name": title, "tagline": "", "description": ""
+        }),
+        "stats": {
+            "modules": len(filled_modules),
+            "chapters": total_chapters,
+            "concepts": total_concepts,
+            "estimatedMinutes": total_chapters * 12,
+        },
+        "modules": filled_modules,
+    }
+
+    # Cache as an Artifact
+    existing = (
+        db.query(models.Artifact)
+        .filter(
+            models.Artifact.source_id == source_id,
+            models.Artifact.type == "tutorial",
+        )
+        .first()
+    )
+    if existing:
+        existing.content = tutorial_data
+    else:
+        new_artifact = models.Artifact(
+            project_id=source.project_id,
+            source_id=source_id,
+            type="tutorial",
+            title=f"Tutorial: {title}",
+            content=tutorial_data,
+        )
+        db.add(new_artifact)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+    return tutorial_data
+
+
+@router.get("/tutorial/project/{project_id}")
+async def get_project_tutorial(
+    project_id: str,
+    db: Session = Depends(get_db),
+):
+    """Return cached path-level tutorial for a project, or null if not yet generated."""
+    existing = (
+        db.query(models.Artifact)
+        .filter(
+            models.Artifact.project_id == project_id,
+            models.Artifact.source_id == None,
+            models.Artifact.type == "tutorial",
+        )
+        .first()
+    )
+    if existing and existing.content:
+        return existing.content
+    return None
+
+
+@router.post("/tutorial/project/{project_id}")
+async def generate_project_tutorial(
+    project_id: str,
+    request: Request,
+    force: bool = False,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_user),
+):
+    """Generate a path-level tutorial that synthesises ALL ingested sources in a project."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Collect ingested sources (those with extracted text)
+    ingested = [s for s in project.sources if s.content_text and s.content_text.strip()]
+    if not ingested:
+        raise HTTPException(
+            status_code=400,
+            detail="No ingested content yet. Add and process at least one URL first."
+        )
+
+    # Return cached artifact unless force=true
+    if not force:
+        existing = (
+            db.query(models.Artifact)
+            .filter(
+                models.Artifact.project_id == project_id,
+                models.Artifact.source_id == None,
+                models.Artifact.type == "tutorial",
+            )
+            .first()
+        )
+        if existing and existing.content:
+            return existing.content
+
+    ai_params = _get_ai_params(request, "tutorial")
+
+    path_title = project.title or "Learning Path"
+
+    # Build a combined content block — each source gets a labelled section
+    # Cap total at 16 000 chars spread proportionally across sources
+    PER_SOURCE_CAP = max(2000, 16000 // len(ingested))
+    content_parts = []
+    for s in ingested:
+        snippet = (s.content_text or "").strip()[:PER_SOURCE_CAP]
+        label = (s.title or s.url or "Source").strip()
+        content_parts.append(f"=== SOURCE: {label} ===\n{snippet}")
+    combined_content = "\n\n".join(content_parts)
+
+    # Summaries block (if any)
+    summary_parts = [
+        f"- {(s.title or 'Source').strip()}: {(s.summary or '').strip()[:400]}"
+        for s in ingested if s.summary
+    ]
+    summary_block = ("Source summaries:\n" + "\n".join(summary_parts) + "\n") if summary_parts else ""
+
+    # ── PASS 1: Outline ──────────────────────────────────────────────────
+    num_modules, chapters_per_module = _tutorial_scope(len(combined_content), len(ingested))
+    outline_prompt = f"""You are building a tutorial outline. Return ONLY valid JSON, no markdown.
+
+Learning Path: "{path_title}"
+Number of sources: {len(ingested)}
+{summary_block}
+Combined source material (first 12000 chars):
+{combined_content[:12000]}
+
+Generate a tutorial outline that synthesises ALL sources into a coherent learning journey (use EXACTLY {num_modules} modules, each with EXACTLY {chapters_per_module} chapter titles):
+{{
+  "title": "Clear descriptive title for this path-level tutorial",
+  "topicType": "Technical",
+  "theme": "AI-Native",
+  "centralMentalModel": {{
+    "name": "The 4-6 word unifying concept across all sources",
+    "tagline": "One sentence framing the whole learning path",
+    "description": "3-4 sentences: what the mental model is, why it fits, what it unlocks"
+  }},
+  "modules": [
+    {{"id": "m1", "title": "Module title", "emoji": "🧠", "description": "2-3 sentences", "chapterTitles": {json.dumps([f"Chapter {i+1} title" for i in range(chapters_per_module)])}, "keyTerms": ["exact term from sources", "exact term from sources", "exact term from sources"]}}
+    ... repeat for all {num_modules} modules with ids m1 through m{num_modules}
+  ]
+}}
+
+Rules:
+- topicType: one of Technical, Mathematical, Scientific, Philosophical, Historical, Creative
+- theme: one of AI-Native, Science, Philosophy, Math, History, General
+- Output EXACTLY {num_modules} modules (no more, no fewer)
+- Each module must have EXACTLY {chapters_per_module} chapter titles (no more, no fewer)
+- keyTerms: 3 exact technical terms, APIs, functions, or named concepts ACTUALLY PRESENT in the sources above — not generic words
+- Draw on the real concepts and terminology across ALL sources
+- Return ONLY the JSON object
+"""
+    try:
+        outline_raw = AIService.generate_json(outline_prompt, max_tokens=3500, temperature=0.3, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Outline generation failed: {e}")
+
+    try:
+        outline_cleaned = outline_raw.strip()
+        if outline_cleaned.startswith("```"):
+            lines = outline_cleaned.split("\n")
+            outline_cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+        outline = json.loads(outline_cleaned)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse outline JSON: {e}")
+
+    topic_type = outline.get("topicType", "Technical")
+    code_note = (
+        "tutorialStep.code: Required — real, runnable, commented code or precise formula."
+        if topic_type in ("Technical", "Mathematical")
+        else "tutorialStep.code: Include if relevant to this topic."
+    )
+
+    # ── PASS 2: Per-chapter content ──────────────────────────────────────
+    proj_chapter_system_prompt = (
+        "You are a world-class technical author writing for senior practitioners. "
+        "Every sentence must add information the reader could not infer themselves. "
+        "Write with the density and specificity of an O'Reilly book chapter, not a blog summary. "
+        "Ground every claim in the source material provided. Return only valid JSON."
+    )
+
+    filled_modules = []
+    for mod in outline.get("modules", []):
+        filled_chapters = []
+        key_terms = mod.get("keyTerms", [])
+        key_terms_hint = (f"\nKey terms from sources to address in this module: {', '.join(key_terms)}" if key_terms else "")
+        for ci, chapter_title in enumerate(mod.get("chapterTitles", [])):
+            chapter_id = f"{mod['id']}c{ci + 1}"
+            chapter_prompt = f"""You are writing one chapter of a premium tutorial. Return ONLY valid JSON, no markdown.
+
+Learning Path: "{path_title}"
+Module: "{mod['title']}"
+Chapter: "{chapter_title}"{key_terms_hint}
+
+All source material for this learning path (use specific details, APIs, examples, and terminology from these):
+{combined_content}
+
+Write the complete chapter content as this exact JSON:
+{{
+  "id": "{chapter_id}",
+  "title": "{chapter_title}",
+  "duration": "12 min",
+  "concepts": [
+    {{
+      "name": "exact technical term PRESENT IN THE SOURCES ABOVE",
+      "explanation": "WRITE AT LEAST 120 WORDS HERE. Explain: (1) the internal mechanism — how it actually works step by step, (2) why this concept exists — what problem it uniquely solves, (3) an analogy to something the learner already knows, (4) the real-world implications — what this makes possible. Do NOT just define the word. Do NOT write a generic introduction.",
+      "example": "WRITE AT LEAST 70 WORDS HERE. Give a specific, concrete scenario using actual names, numbers, API calls, or code snippets FROM THE SOURCES above. Show clear cause and effect. No filler text."
+    }},
+    {{"name": "second term from sources", "explanation": "120+ words — mechanism, problem solved, analogy, implications", "example": "70+ words — concrete scenario with specifics from sources"}},
+    {{"name": "third term from sources", "explanation": "120+ words", "example": "70+ words"}},
+    {{"name": "fourth term from sources", "explanation": "120+ words", "example": "70+ words"}}
+  ],
+  "tutorialSteps": [
+    {{
+      "step": 1,
+      "title": "Action-oriented step title (verb first)",
+      "body": "WRITE AT LEAST 140 WORDS HERE. Cover: (1) exactly what you are doing at this step and the precise reason why this order matters, (2) the internal mechanism that makes this step work, (3) what you should observe or measure to confirm success, (4) specific early warning signs that something went wrong here.",
+      "code": "WRITE REAL, RUNNABLE CODE HERE — multi-line, with inline comments on each non-obvious line. No placeholders."
+    }},
+    {{"step": 2, "title": "Step 2 action title", "body": "140+ words covering what/why/mechanism/verification/warnings", "code": "real runnable code with comments"}},
+    {{"step": 3, "title": "Step 3 action title", "body": "140+ words", "code": "real runnable code with comments"}}
+  ],
+  "workedExample": {{
+    "title": "Specific descriptive title for this worked example",
+    "problem": "WRITE AT LEAST 80 WORDS HERE. A self-contained problem the learner should genuinely attempt. Include all context, constraints, starting values, and relevant parameters from the sources.",
+    "solution": "WRITE AT LEAST 250 WORDS HERE. Walk through every step labeled Step 1:, Step 2:, etc. Show all intermediate values and every decision. Explain why you made each choice over the alternatives.",
+    "verify": "WRITE AT LEAST 60 WORDS HERE. Give 2-3 specific, checkable verification steps with expected outputs or invariants — not just 'check your work'."
+  }},
+  "pitfalls": [
+    {{
+      "name": "A memorable, specific name for this pitfall (e.g. 'The Index Rebuild Trap')",
+      "description": "WRITE AT LEAST 110 WORDS HERE. Tell the full story: what the learner tried to do, the exact moment things went wrong, why it looked correct at first, what the failure looks like in practice.",
+      "fix": "WRITE AT LEAST 90 WORDS HERE. Give the step-by-step correction with specific code or configuration changes, and explain how to verify the fix worked."
+    }},
+    {{
+      "name": "A second distinct memorable pitfall name",
+      "description": "WRITE AT LEAST 110 WORDS HERE. Different failure mode — full story as above.",
+      "fix": "WRITE AT LEAST 90 WORDS HERE. Step-by-step correction with verification."
+    }}
+  ],
+  "proTip": {{
+    "title": "Expert insight title — specific, not generic",
+    "insight": "WRITE AT LEAST 160 WORDS HERE. Genuine expert-level knowledge intermediate practitioners don't know. Include: (1) a counterintuitive observation that surprises people who think they understand this, (2) the deeper mental model experts hold that makes everything click, (3) a specific costly failure mode or performance trap this insight prevents, (4) how this connects to the broader landscape of the field."
+  }}
+}}
+
+{code_note}
+- Use exactly 4 concepts and 3 tutorialSteps in the arrays
+- Every string value MUST meet the minimum word count — violating this is a failure
+- Concept names and examples MUST reference actual terminology, APIs, or patterns from the sources above
+- Return ONLY the JSON object for this chapter — no preamble, no explanation
+"""
+            try:
+                chapter_raw = AIService.generate_json(chapter_prompt, max_tokens=5000, temperature=0.4, system_prompt=proj_chapter_system_prompt, **ai_params)
+                chapter_cleaned = chapter_raw.strip()
+                if chapter_cleaned.startswith("```"):
+                    lines = chapter_cleaned.split("\n")
+                    chapter_cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+                chapter_data = json.loads(chapter_cleaned)
+                filled_chapters.append(chapter_data)
+            except Exception as e:
+                print(f"[PathTutorial] Chapter {chapter_id} failed: {e}")
+                filled_chapters.append({
+                    "id": chapter_id,
+                    "title": chapter_title,
+                    "duration": "10 min",
+                    "concepts": [],
+                    "tutorialSteps": [],
+                    "workedExample": {"title": "", "problem": "", "solution": "", "verify": ""},
+                    "pitfalls": [],
+                    "proTip": {"title": "", "insight": ""},
+                })
+
+        filled_modules.append({
+            "id": mod["id"],
+            "title": mod["title"],
+            "emoji": mod.get("emoji", "📖"),
+            "description": mod.get("description", ""),
+            "chapters": filled_chapters,
+        })
+
+    total_chapters = sum(len(m["chapters"]) for m in filled_modules)
+    total_concepts = sum(len(c.get("concepts", [])) for m in filled_modules for c in m["chapters"])
+
+    tutorial_data = {
+        "title": outline.get("title", path_title),
+        "topicType": outline.get("topicType", "Technical"),
+        "theme": outline.get("theme", "General"),
+        "centralMentalModel": outline.get("centralMentalModel", {
+            "name": path_title, "tagline": "", "description": ""
+        }),
+        "stats": {
+            "modules": len(filled_modules),
+            "chapters": total_chapters,
+            "concepts": total_concepts,
+            "estimatedMinutes": total_chapters * 12,
+            "sourceCount": len(ingested),
+        },
+        "modules": filled_modules,
+        "sourceCount": len(ingested),
+    }
+
+    # Cache as Artifact at project level (no source_id)
+    existing = (
+        db.query(models.Artifact)
+        .filter(
+            models.Artifact.project_id == project_id,
+            models.Artifact.source_id == None,
+            models.Artifact.type == "tutorial",
+        )
+        .first()
+    )
+    if existing:
+        existing.content = tutorial_data
+    else:
+        new_artifact = models.Artifact(
+            project_id=project_id,
+            source_id=None,
+            type="tutorial",
+            title=f"Tutorial: {path_title}",
+            content=tutorial_data,
+        )
+        db.add(new_artifact)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+    return tutorial_data
+
+
+# ── Category-level tutorial (synthesises ALL sources across ALL projects in a category) ──
+
+@router.get("/tutorial/category/{category_id}")
+async def get_category_tutorial(
+    category_id: str,
+    db: Session = Depends(get_db),
+):
+    """Return cached category-level tutorial, or null if not yet generated."""
+    existing = (
+        db.query(models.Artifact)
+        .filter(
+            models.Artifact.project_id == None,
+            models.Artifact.source_id == None,
+            models.Artifact.type == "tutorial",
+            models.Artifact.title == f"cat:{category_id}",
+        )
+        .first()
+    )
+    if existing and existing.content:
+        return existing.content
+    return None
+
+
+@router.post("/tutorial/category/{category_id}")
+async def generate_category_tutorial(
+    category_id: str,
+    request: Request,
+    force: bool = False,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_user),
+):
+    """Generate a category-level tutorial that synthesises ALL ingested sources across ALL projects in this category."""
+    category = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    # Collect all projects in this category
+    cat_projects = db.query(models.Project).filter(models.Project.category_id == category_id).all()
+    if not cat_projects:
+        raise HTTPException(status_code=400, detail="No projects found in this category.")
+
+    # Aggregate all ingested sources across all projects
+    ingested = []
+    for proj in cat_projects:
+        ingested.extend([s for s in proj.sources if s.content_text and s.content_text.strip()])
+
+    if not ingested:
+        raise HTTPException(
+            status_code=400,
+            detail="No ingested content yet. Add and process at least one URL first."
+        )
+
+    # Return cached artifact unless force=true
+    cache_title = f"cat:{category_id}"
+    if not force:
+        existing = (
+            db.query(models.Artifact)
+            .filter(
+                models.Artifact.project_id == None,
+                models.Artifact.source_id == None,
+                models.Artifact.type == "tutorial",
+                models.Artifact.title == cache_title,
+            )
+            .first()
+        )
+        if existing and existing.content:
+            return existing.content
+
+    ai_params = _get_ai_params(request, "tutorial")
+
+    path_title = category.name or "Learning Path"
+
+    # Build combined content block — each source gets a labelled section
+    PER_SOURCE_CAP = max(2000, 16000 // len(ingested))
+    content_parts = []
+    for s in ingested:
+        snippet = (s.content_text or "").strip()[:PER_SOURCE_CAP]
+        label = (s.title or s.url or "Source").strip()
+        content_parts.append(f"=== SOURCE: {label} ===\n{snippet}")
+    combined_content = "\n\n".join(content_parts)
+
+    summary_parts = [
+        f"- {(s.title or 'Source').strip()}: {(s.summary or '').strip()[:400]}"
+        for s in ingested if s.summary
+    ]
+    summary_block = ("Source summaries:\n" + "\n".join(summary_parts) + "\n") if summary_parts else ""
+
+    # ── PASS 1: Outline ──────────────────────────────────────────────────
+    num_modules, chapters_per_module = _tutorial_scope(len(combined_content), len(ingested))
+    outline_prompt = f"""You are building a tutorial outline. Return ONLY valid JSON, no markdown.
+
+Learning Path: "{path_title}"
+Number of sources: {len(ingested)}
+{summary_block}
+Combined source material (first 12000 chars):
+{combined_content[:12000]}
+
+Generate a tutorial outline that synthesises ALL sources into a coherent learning journey (use EXACTLY {num_modules} modules, each with EXACTLY {chapters_per_module} chapter titles):
+{{
+  "title": "Clear descriptive title for this path-level tutorial",
+  "topicType": "Technical",
+  "theme": "AI-Native",
+  "centralMentalModel": {{
+    "name": "The 4-6 word unifying concept across all sources",
+    "tagline": "One sentence framing the whole learning path",
+    "description": "3-4 sentences: what the mental model is, why it fits, what it unlocks"
+  }},
+  "modules": [
+    {{"id": "m1", "title": "Module title", "emoji": "🧠", "description": "2-3 sentences", "chapterTitles": {json.dumps([f"Chapter {i+1} title" for i in range(chapters_per_module)])}, "keyTerms": ["exact term from sources", "exact term from sources", "exact term from sources"]}}
+    ... repeat for all {num_modules} modules with ids m1 through m{num_modules}
+  ]
+}}
+
+Rules:
+- topicType: one of Technical, Mathematical, Scientific, Philosophical, Historical, Creative
+- theme: one of AI-Native, Science, Philosophy, Math, History, General
+- Output EXACTLY {num_modules} modules (no more, no fewer)
+- Each module must have EXACTLY {chapters_per_module} chapter titles (no more, no fewer)
+- keyTerms: 3 exact technical terms, APIs, functions, or named concepts ACTUALLY PRESENT in the sources above — not generic words
+- Draw on the real concepts and terminology across ALL sources
+- Return ONLY the JSON object
+"""
+    try:
+        outline_raw = AIService.generate_json(outline_prompt, max_tokens=3500, temperature=0.3, **ai_params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Outline generation failed: {e}")
+
+    try:
+        outline_cleaned = outline_raw.strip()
+        if outline_cleaned.startswith("```"):
+            lines = outline_cleaned.split("\n")
+            outline_cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+        outline = json.loads(outline_cleaned)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse outline JSON: {e}")
+
+    topic_type = outline.get("topicType", "Technical")
+    code_note = (
+        "tutorialStep.code: Required — real, runnable, commented code or precise formula."
+        if topic_type in ("Technical", "Mathematical")
+        else "tutorialStep.code: Include if relevant to this topic."
+    )
+
+    # ── PASS 2: Per-chapter content ──────────────────────────────────────
+    cat_chapter_system_prompt = (
+        "You are a world-class technical author writing for senior practitioners. "
+        "Every sentence must add information the reader could not infer themselves. "
+        "Write with the density and specificity of an O'Reilly book chapter, not a blog summary. "
+        "Ground every claim in the source material provided. Return only valid JSON."
+    )
+
+    filled_modules = []
+    for mod in outline.get("modules", []):
+        filled_chapters = []
+        key_terms = mod.get("keyTerms", [])
+        key_terms_hint = (f"\nKey terms from sources to address in this module: {', '.join(key_terms)}" if key_terms else "")
+        for ci, chapter_title in enumerate(mod.get("chapterTitles", [])):
+            chapter_id = f"{mod['id']}c{ci + 1}"
+            chapter_prompt = f"""You are writing one chapter of a premium tutorial. Return ONLY valid JSON, no markdown.
+
+Learning Path: "{path_title}"
+Module: "{mod['title']}"
+Chapter: "{chapter_title}"{key_terms_hint}
+
+All source material for this learning path (use specific details, APIs, examples, and terminology from these):
+{combined_content}
+
+Write the complete chapter content as this exact JSON:
+{{
+  "id": "{chapter_id}",
+  "title": "{chapter_title}",
+  "duration": "12 min",
+  "concepts": [
+    {{
+      "name": "exact technical term PRESENT IN THE SOURCES ABOVE",
+      "explanation": "WRITE AT LEAST 120 WORDS HERE. Explain: (1) the internal mechanism — how it actually works step by step, (2) why this concept exists — what problem it uniquely solves, (3) an analogy to something the learner already knows, (4) the real-world implications — what this makes possible. Do NOT just define the word. Do NOT write a generic introduction.",
+      "example": "WRITE AT LEAST 70 WORDS HERE. Give a specific, concrete scenario using actual names, numbers, API calls, or code snippets FROM THE SOURCES above. Show clear cause and effect. No filler text."
+    }},
+    {{"name": "second term from sources", "explanation": "120+ words — mechanism, problem solved, analogy, implications", "example": "70+ words — concrete scenario with specifics from sources"}},
+    {{"name": "third term from sources", "explanation": "120+ words", "example": "70+ words"}},
+    {{"name": "fourth term from sources", "explanation": "120+ words", "example": "70+ words"}}
+  ],
+  "tutorialSteps": [
+    {{
+      "step": 1,
+      "title": "Action-oriented step title (verb first)",
+      "body": "WRITE AT LEAST 140 WORDS HERE. Cover: (1) exactly what you are doing at this step and the precise reason why this order matters, (2) the internal mechanism that makes this step work, (3) what you should observe or measure to confirm success, (4) specific early warning signs that something went wrong here.",
+      "code": "WRITE REAL, RUNNABLE CODE HERE — multi-line, with inline comments on each non-obvious line. No placeholders."
+    }},
+    {{"step": 2, "title": "Step 2 action title", "body": "140+ words covering what/why/mechanism/verification/warnings", "code": "real runnable code with comments"}},
+    {{"step": 3, "title": "Step 3 action title", "body": "140+ words", "code": "real runnable code with comments"}}
+  ],
+  "workedExample": {{
+    "title": "Specific descriptive title for this worked example",
+    "problem": "WRITE AT LEAST 80 WORDS HERE. A self-contained problem the learner should genuinely attempt. Include all context, constraints, starting values, and relevant parameters from the sources.",
+    "solution": "WRITE AT LEAST 250 WORDS HERE. Walk through every step labeled Step 1:, Step 2:, etc. Show all intermediate values and every decision. Explain why you made each choice over the alternatives.",
+    "verify": "WRITE AT LEAST 60 WORDS HERE. Give 2-3 specific, checkable verification steps with expected outputs or invariants — not just 'check your work'."
+  }},
+  "pitfalls": [
+    {{
+      "name": "A memorable, specific name for this pitfall (e.g. 'The Index Rebuild Trap')",
+      "description": "WRITE AT LEAST 110 WORDS HERE. Tell the full story: what the learner tried to do, the exact moment things went wrong, why it looked correct at first, what the failure looks like in practice.",
+      "fix": "WRITE AT LEAST 90 WORDS HERE. Give the step-by-step correction with specific code or configuration changes, and explain how to verify the fix worked."
+    }},
+    {{
+      "name": "A second distinct memorable pitfall name",
+      "description": "WRITE AT LEAST 110 WORDS HERE. Different failure mode — full story as above.",
+      "fix": "WRITE AT LEAST 90 WORDS HERE. Step-by-step correction with verification."
+    }}
+  ],
+  "proTip": {{
+    "title": "Expert insight title — specific, not generic",
+    "insight": "WRITE AT LEAST 160 WORDS HERE. Genuine expert-level knowledge intermediate practitioners don't know. Include: (1) a counterintuitive observation that surprises people who think they understand this, (2) the deeper mental model experts hold that makes everything click, (3) a specific costly failure mode or performance trap this insight prevents, (4) how this connects to the broader landscape of the field."
+  }}
+}}
+
+{code_note}
+- Use exactly 4 concepts and 3 tutorialSteps in the arrays
+- Every string value MUST meet the minimum word count — violating this is a failure
+- Concept names and examples MUST reference actual terminology, APIs, or patterns from the sources above
+- Return ONLY the JSON object for this chapter — no preamble, no explanation
+"""
+            try:
+                chapter_raw = AIService.generate_json(chapter_prompt, max_tokens=5000, temperature=0.4, system_prompt=cat_chapter_system_prompt, **ai_params)
+                chapter_cleaned = chapter_raw.strip()
+                if chapter_cleaned.startswith("```"):
+                    lines = chapter_cleaned.split("\n")
+                    chapter_cleaned = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+                chapter_data = json.loads(chapter_cleaned)
+            except Exception:
+                chapter_data = {"id": chapter_id, "title": chapter_title, "duration": "12 min", "concepts": [], "tutorialSteps": [], "workedExample": {"title": "", "problem": "", "solution": "", "verify": ""}, "pitfalls": [], "proTip": {"title": "", "insight": ""}}
+            filled_chapters.append(chapter_data)
+        filled_modules.append({
+            "id": mod.get("id"),
+            "title": mod.get("title"),
+            "emoji": mod.get("emoji", "📚"),
+            "description": mod.get("description", ""),
+            "chapters": filled_chapters,
+        })
+
+    total_chapters = sum(len(m["chapters"]) for m in filled_modules)
+    total_concepts = sum(len(c.get("concepts", [])) for m in filled_modules for c in m["chapters"])
+
+    tutorial_data = {
+        "title": outline.get("title", path_title),
+        "topicType": outline.get("topicType", "Technical"),
+        "theme": outline.get("theme", "General"),
+        "centralMentalModel": outline.get("centralMentalModel", {
+            "name": path_title, "tagline": "", "description": ""
+        }),
+        "stats": {
+            "modules": len(filled_modules),
+            "chapters": total_chapters,
+            "concepts": total_concepts,
+            "estimatedMinutes": total_chapters * 12,
+            "sourceCount": len(ingested),
+        },
+        "modules": filled_modules,
+        "sourceCount": len(ingested),
+    }
+
+    # Cache as Artifact with no project_id — title is the unique key
+    existing = (
+        db.query(models.Artifact)
+        .filter(
+            models.Artifact.project_id == None,
+            models.Artifact.source_id == None,
+            models.Artifact.type == "tutorial",
+            models.Artifact.title == cache_title,
+        )
+        .first()
+    )
+    if existing:
+        existing.content = tutorial_data
+    else:
+        new_artifact = models.Artifact(
+            project_id=None,
+            source_id=None,
+            type="tutorial",
+            title=cache_title,
+            content=tutorial_data,
+        )
+        db.add(new_artifact)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+    return tutorial_data
 
 
 @router.post("/summarize/{source_id}")
@@ -968,9 +1821,17 @@ async def get_mission_details(mission_id: str, db: Session = Depends(get_db), cu
 async def scout_node(node_id: str, db: Session = Depends(get_db)):
     """Trigger the Scout Agent to hunt for resources for a specific node."""
     from services.scout import ScoutService
-    resources = await ScoutService.scout_for_node(node_id, db_session=db)
+    try:
+        resources = await ScoutService.scout_for_node(node_id, db_session=db)
+    except ValueError as e:
+        # Configuration errors (e.g. missing TAVILY_API_KEY) — surface clearly
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Scout error: {str(e)}")
     if resources is None:
-        raise HTTPException(status_code=500, detail="Scout failed to find resources")
+        raise HTTPException(status_code=500, detail="Scout failed — check server logs for details")
+    if not resources:
+        raise HTTPException(status_code=422, detail="Scout ran but found no matching resources. Check TAVILY_API_KEY and try again.")
     return {"status": "success", "resources": resources}
 
 @router.get("/curriculum/node/{node_id}")

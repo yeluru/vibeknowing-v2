@@ -73,10 +73,8 @@ Return ONLY a JSON array of query strings. No explanation, no markdown:
 
     @staticmethod
     async def perform_agentic_research(queries: List[str], project_id: str) -> List[Dict[str, Any]]:
-        """Use LangChain + Tavily to find a Dual-Mastery syllabus (YouTube + Web)."""
-        if not settings.TAVILY_API_KEY:
-            logger.warning("Vanguard: TAVILY_API_KEY not configured. Skipping research.")
-            return []
+        """Use Tavily to find a Dual-Mastery syllabus (YouTube + Web)."""
+        # Caller is responsible for checking TAVILY_API_KEY before calling this
 
         # Get existing URLs in this project to avoid duplicates
         db = SessionLocal()
@@ -218,74 +216,91 @@ Candidate Resources:
             db.close()
 
     @staticmethod
+    def _save_artifact(source_id: str, project_id: Optional[str], content: dict):
+        """Upsert a recommendation artifact for source_id."""
+        db = SessionLocal()
+        try:
+            existing = db.query(Artifact).filter(
+                Artifact.source_id == source_id,
+                Artifact.type == "recommendation"
+            ).order_by(Artifact.created_at.desc()).first()
+            if existing:
+                existing.content = content
+            else:
+                db.add(Artifact(
+                    project_id=project_id,
+                    source_id=source_id,
+                    type="recommendation",
+                    title="Vanguard Mastery Briefing",
+                    content=content,
+                ))
+            db.commit()
+        except Exception as e:
+            logger.error(f"Vanguard: Failed to save artifact for {source_id}: {e}")
+            db.rollback()
+        finally:
+            db.close()
+
+    @staticmethod
     async def research_and_recommend(source_id: str):
         """Full Agentic Loop for a single source."""
         logger.info(f"Vibe-Vanguard: Starting research loop for {source_id}")
-        
+
+        # Resolve project_id early so we can always save an artifact (even on error)
+        db = SessionLocal()
+        source = db.query(Source).filter(Source.id == source_id).first()
+        project_id = source.project_id if source else None
+        db.close()
+
+        def _save_error(message: str):
+            logger.warning(f"Vanguard error for {source_id}: {message}")
+            VanguardService._save_artifact(source_id, project_id, {
+                "status": "error",
+                "error": message,
+                "recommendations": [],
+                "agent_commentary": "",
+            })
+
         try:
+            # ── Guard: Tavily key required ────────────────────────────────────
+            if not settings.TAVILY_API_KEY:
+                _save_error("TAVILY_API_KEY is not configured on this server. Ask your admin to add it.")
+                return
+
+            if not project_id:
+                _save_error("Source has no associated project. Please add it to a learning path first.")
+                return
+
             # 1. Identify Gaps
             queries = await VanguardService.identify_knowledge_gaps(source_id)
             if not queries:
-                logger.info(f"Vanguard: No queries generated for {source_id}")
-                return
-            
-            # 2. Agentic Research
-            db = SessionLocal()
-            source = db.query(Source).filter(Source.id == source_id).first()
-            project_id = source.project_id if source else None
-            db.close()
-            
-            if not project_id:
-                logger.warning(f"Vanguard: Project ID not found for {source_id}")
+                _save_error("Could not extract knowledge-gap queries from this source. The content may be too short or unstructured.")
                 return
 
+            # 2. Agentic Research
             logger.info(f"Vanguard: Starting research for {len(queries)} queries on {source_id}")
             research_data = await VanguardService.perform_agentic_research(queries, project_id)
             logger.info(f"Vanguard: Found {len(research_data)} candidates for {source_id}")
-            
-            # 3. Synthesize
-            recommendations = await VanguardService.synthesize_recommendations(source_id, research_data)
-            
-            if not recommendations:
-                logger.warning(f"Vanguard: No recommendations generated after synthesis for {source_id}")
+
+            if not research_data:
+                _save_error("Tavily search returned no results. The API key may be invalid or the search quota exhausted.")
                 return
 
-            # 4. Save as Artifact
-            db = SessionLocal()
-            try:
-                # Check for existing artifact to avoid duplicate creation
-                existing = db.query(Artifact).filter(
-                    Artifact.source_id == source_id,
-                    Artifact.type == "recommendation"
-                ).order_by(Artifact.created_at.desc()).first()
+            # 3. Synthesize
+            recommendations = await VanguardService.synthesize_recommendations(source_id, research_data)
 
-                if existing:
-                    logger.info(f"Vanguard: Updating existing artifact {existing.id} for {source_id}")
-                    existing.content = {
-                        "recommendations": recommendations,
-                        "status": "ready",
-                        "agent_commentary": "I've deepened our study path. These resources will accelerate your mastery of this specific technical frontier."
-                    }
-                else:
-                    artifact = Artifact(
-                        project_id=project_id,
-                        source_id=source_id,
-                        type="recommendation",
-                        title="Vanguard Mastery Briefing",
-                        content={
-                            "recommendations": recommendations,
-                            "status": "ready",
-                            "agent_commentary": "I've analyzed your source and identified these three technical frontiers that will accelerate your mastery."
-                        }
-                    )
-                    db.add(artifact)
-                
-                db.commit()
-                logger.info(f"Vibe-Vanguard: Research complete and SAVED for {source_id}.")
-            except Exception as e:
-                logger.error(f"Vanguard: Failed to save or update artifact: {e}")
-                db.rollback()
-            finally:
-                db.close()
+            if not recommendations:
+                _save_error("The AI could not synthesise recommendations from the search results. Try again or regenerate.")
+                return
+
+            # 4. Save success artifact
+            VanguardService._save_artifact(source_id, project_id, {
+                "recommendations": recommendations,
+                "status": "ready",
+                "agent_commentary": "I've analyzed your source and identified these technical frontiers that will accelerate your mastery.",
+            })
+            logger.info(f"Vibe-Vanguard: Research complete and SAVED for {source_id}.")
+
         except Exception as e:
-            logger.error(f"Vanguard: Global research loop error: {e}")
+            logger.error(f"Vanguard: Global research loop error for {source_id}: {e}")
+            _save_error(f"Unexpected error during research: {str(e)}")
