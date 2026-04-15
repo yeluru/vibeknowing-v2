@@ -19,7 +19,7 @@ function MasteryContent() {
     }
 
     return (
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="w-full">
             <PathMasteryView missionId={missionId} isMission={true} />
         </div>
     );

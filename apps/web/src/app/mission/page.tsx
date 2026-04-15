@@ -84,7 +84,7 @@ export default function MissionControlPage() {
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
             </div>
             
-            <div className="mx-auto px-6 lg:px-12 py-4 lg:py-6 space-y-6 lg:space-y-8 relative z-10 w-full">
+            <div className="py-4 lg:py-6 space-y-6 lg:space-y-8 relative z-10 w-full">
                 <div className="space-y-4">
                     <motion.div 
                         initial={{ opacity: 0, x: -20 }}
@@ -112,7 +112,7 @@ export default function MissionControlPage() {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8 }}
-                    className="relative w-full border border-slate-200/60 dark:border-white/[0.08] bg-white/40 dark:bg-slate-900/30 backdrop-blur-3xl shadow-xl p-6 lg:p-10 rounded-[3rem] overflow-hidden"
+                    className="relative w-full border border-slate-200/60 dark:border-white/[0.08] bg-white/40 dark:bg-slate-900/30 backdrop-blur-3xl shadow-xl p-4 sm:p-6 lg:p-10 rounded-[2rem] sm:rounded-[3rem] overflow-hidden"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] to-emerald-500/[0.03] pointer-events-none" />
                     
@@ -123,7 +123,7 @@ export default function MissionControlPage() {
                                     value={blueprintInput}
                                     onChange={(e) => setBlueprintInput(e.target.value)}
                                     placeholder="DESCRIBE YOUR VISION OR PASTE A ROLE SPEC..."
-                                    className="relative w-full h-32 lg:h-36 px-6 lg:px-8 py-6 lg:py-8 bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-[1.25rem] lg:rounded-[1.5rem] text-[12px] lg:text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-widest focus:outline-none focus:border-indigo-500/40 dark:focus:border-indigo-500/60 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700 resize-none shadow-inner"
+                                    className="relative w-full h-32 lg:h-36 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-[1rem] sm:rounded-[1.25rem] lg:rounded-[1.5rem] text-[12px] lg:text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-widest focus:outline-none focus:border-indigo-500/40 dark:focus:border-indigo-500/60 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700 resize-none shadow-inner"
                                 />
                                 <div className="absolute bottom-6 right-6 pointer-events-none opacity-10 lg:opacity-20">
                                     <Sparkles className="h-6 w-6 lg:h-8 lg:w-8 text-indigo-500" />
@@ -190,7 +190,7 @@ export default function MissionControlPage() {
                                         transition={{ delay: idx * 0.1 }}
                                     >
                                         <Link href={`/mastery?missionId=${m.id}`}>
-                                            <div className="group relative p-8 lg:p-10 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-[2.5rem] lg:rounded-[3.5rem] hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-500 cursor-pointer overflow-hidden h-full flex flex-col justify-between items-start gap-10 lg:gap-12">
+                                            <div className="group relative p-5 sm:p-8 lg:p-10 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-[2rem] sm:rounded-[2.5rem] lg:rounded-[3.5rem] hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-500 cursor-pointer overflow-hidden h-full flex flex-col justify-between items-start gap-6 sm:gap-10 lg:gap-12">
                                                 <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/5 blur-[80px] rounded-full -mr-20 -mt-20 group-hover:bg-indigo-500/10 transition-all duration-700" />
                                                 
                                                 <div className="flex items-center justify-between w-full">

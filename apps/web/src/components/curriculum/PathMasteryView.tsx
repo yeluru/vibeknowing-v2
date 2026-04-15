@@ -419,9 +419,9 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                     "bg-[var(--secondary)]"
                                 )} />
 
-                                <div className="flex items-center gap-4 sm:gap-7 p-4 pl-6 sm:p-7 sm:pl-9">
+                                <div className="flex items-start gap-4 sm:gap-7 p-4 pl-6 sm:p-7 sm:pl-9">
                                     {/* Step number */}
-                                    <div className="flex-none flex flex-col items-center gap-2.5">
+                                    <div className="flex-none flex flex-col items-center gap-2.5 self-start">
                                         <div className={cn(
                                             "w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 text-white",
                                             node.status === 'locked' ? "bg-slate-400 dark:bg-slate-700" :
@@ -640,7 +640,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                             >
                                                 {selectedNode.lesson_content?.deployment_lab ? (
                                                     <div className="space-y-10">
-                                                        <div className="p-8 rounded-[2.5rem] bg-indigo-500 text-white shadow-2xl shadow-indigo-500/30">
+                                                        <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-indigo-500 text-white shadow-2xl shadow-indigo-500/30">
                                                             <Rocket className="h-8 w-8 mb-6" />
                                                             <h4 className="text-2xl font-black uppercase tracking-tighter leading-none mb-4">Practice Mission</h4>
                                                             <p className="text-sm font-medium leading-relaxed opacity-90">{selectedNode.lesson_content.deployment_lab.mission}</p>
@@ -648,7 +648,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
 
                                                         <div className="space-y-6">
                                                             {selectedNode.lesson_content.deployment_lab.milestones.map((m: any, i: number) => (
-                                                                <div key={i} className="group p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[0.01] hover:bg-white dark:hover:bg-white/[0.03] hover:border-indigo-500/30 transition-all">
+                                                                <div key={i} className="group p-4 sm:p-8 rounded-xl sm:rounded-[2rem] border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[0.01] hover:bg-white dark:hover:bg-white/[0.03] hover:border-indigo-500/30 transition-all">
                                                                     <div className="flex items-center gap-6 mb-4">
                                                                         <div className="h-10 w-10 shrink-0 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-[10px] font-black">0{i+1}</div>
                                                                         <h5 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{m.title}</h5>
@@ -663,7 +663,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                                         </div>
 
                                                         {selectedNode.lesson_content.deployment_lab.expert_context && (
-                                                            <div className="p-8 rounded-[2rem] border border-slate-900 dark:border-white/20 bg-slate-900 dark:bg-black text-white relative overflow-hidden">
+                                                            <div className="p-4 sm:p-8 rounded-xl sm:rounded-[2rem] border border-slate-900 dark:border-white/20 bg-slate-900 dark:bg-black text-white relative overflow-hidden">
                                                                 <div className="absolute top-0 right-0 p-8 opacity-10"><GraduationCap className="h-24 w-24" /></div>
                                                                 <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-4">EXPERT MASTERY</h5>
                                                                 <p className="text-sm font-medium leading-relaxed relative z-10">{selectedNode.lesson_content.deployment_lab.expert_context}</p>
@@ -688,7 +688,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                                 className="space-y-8"
                                             >
                                                 {/* Scout + Vanguard Action Bar */}
-                                                <div className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
+                                                <div className="flex items-center justify-between p-4 sm:p-6 rounded-2xl sm:rounded-3xl gap-3 flex-wrap bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
                                                     <div className="flex items-center gap-4">
                                                         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 text-indigo-500 flex items-center justify-center">
                                                             <Telescope className="h-5 w-5" />
@@ -738,7 +738,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                                                 key={idx}
                                                                 onClick={() => setActiveResourceId(res.url)}
                                                                 className={cn(
-                                                                    "text-left p-6 rounded-[2rem] border transition-all group shadow-sm hover:shadow-xl",
+                                                                    "text-left p-4 sm:p-6 rounded-xl sm:rounded-[2rem] border transition-all group shadow-sm hover:shadow-xl",
                                                                     res.layer === "vanguard"
                                                                         ? "bg-violet-50/50 dark:bg-violet-500/5 border-violet-200 dark:border-violet-500/20 hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10"
                                                                         : "bg-slate-50 dark:bg-white/[0.01] border-slate-100 dark:border-white/5 hover:border-indigo-500 hover:bg-white dark:hover:bg-white/[0.05]"

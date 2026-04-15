@@ -245,7 +245,7 @@ function WorkedExamplePanel({ example }: { example?: WorkedExample }) {
   return (
     <div className="space-y-3">
       <div className="bg-[var(--card)] border border-[var(--surface-border)] rounded-2xl overflow-hidden">
-        <div className="flex items-center gap-3 px-5 py-3.5 bg-[var(--background)]/60 border-b border-[var(--surface-border)]">
+        <div className="flex items-center gap-3 px-3 sm:px-5 py-3.5 bg-[var(--background)]/60 border-b border-[var(--surface-border)]">
           <div className="h-7 w-7 rounded-lg bg-amber-500/15 flex items-center justify-center">
             <FlaskConical className="h-3.5 w-3.5 text-amber-500" />
           </div>
@@ -254,7 +254,7 @@ function WorkedExamplePanel({ example }: { example?: WorkedExample }) {
             <div className="text-sm font-bold text-[var(--foreground)]">{example.title}</div>
           </div>
         </div>
-        <div className="p-5">
+        <div className="p-3 sm:p-5">
           <RichText text={example.problem} />
           {!showSolution && (
             <button
@@ -269,15 +269,15 @@ function WorkedExamplePanel({ example }: { example?: WorkedExample }) {
       {showSolution && (
         <>
           <div className="bg-[var(--card)] border border-[var(--surface-border)] rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3.5 bg-[var(--secondary-light)]/20 border-b border-[var(--secondary)]/15">
+            <div className="flex items-center justify-between px-3 sm:px-5 py-3.5 bg-[var(--secondary-light)]/20 border-b border-[var(--secondary)]/15">
               <div className="flex items-center gap-2.5">
                 <div className="h-2 w-2 rounded-full bg-[var(--secondary)] animate-pulse" />
                 <span className="text-xs font-bold uppercase tracking-widest text-[var(--secondary)]">Solution Walkthrough</span>
               </div>
             </div>
-            <div className="p-5"><RichText text={example.solution} /></div>
+            <div className="p-3 sm:p-5"><RichText text={example.solution} /></div>
           </div>
-          <div className="flex gap-3.5 bg-[var(--primary-light)] border border-[var(--primary)]/20 rounded-2xl p-5">
+          <div className="flex gap-3.5 bg-[var(--primary-light)] border border-[var(--primary)]/20 rounded-2xl p-3 sm:p-5">
             <CheckCircle2 className="h-5 w-5 text-[var(--primary)] flex-shrink-0 mt-0.5" />
             <div>
               <div className="text-xs font-bold text-[var(--primary)] uppercase tracking-wider mb-2">Verify Your Work</div>
@@ -297,7 +297,7 @@ function PitfallCard({ pitfall, idx }: { pitfall: Pitfall; idx: number }) {
     <div className="rounded-2xl border border-amber-500/20 overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left bg-amber-500/5 hover:bg-amber-500/8 transition-colors"
+        className="w-full flex items-center gap-3 px-3 py-3 sm:px-5 sm:py-4 text-left bg-amber-500/5 hover:bg-amber-500/8 transition-colors"
       >
         <div className="h-8 w-8 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
           <ShieldAlert className="h-4 w-4 text-amber-500" />
@@ -309,7 +309,7 @@ function PitfallCard({ pitfall, idx }: { pitfall: Pitfall; idx: number }) {
         <ChevronDown className={cn("h-4 w-4 text-[var(--muted-foreground)] flex-shrink-0 transition-transform duration-200", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="bg-[var(--card)] p-5 space-y-4">
+        <div className="bg-[var(--card)] p-3 sm:p-5 space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-2.5">
               <div className="h-1.5 w-1.5 rounded-full bg-red-400" />

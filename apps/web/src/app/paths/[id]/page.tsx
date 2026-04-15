@@ -50,7 +50,7 @@ export default function LearningPathDetailPage() {
     if (!path) return <div className="p-20 text-center">Path not found.</div>;
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 pb-20 px-6 animate-in fade-in duration-700">
+        <div className="space-y-6 pb-20 animate-in fade-in duration-700">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md">

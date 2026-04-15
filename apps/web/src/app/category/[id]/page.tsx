@@ -79,7 +79,7 @@ export default function CategoryDetailPage() {
     const totalSourceCount = allSources.length;
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 pb-20 px-6 animate-in fade-in duration-700">
+        <div className="space-y-6 pb-20 animate-in fade-in duration-700">
             {/* Minimal header */}
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3">
