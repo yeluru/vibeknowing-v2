@@ -177,7 +177,7 @@ function ConceptCard({ concept, idx, typeColor }: { concept: Concept; idx: numbe
       <button
         onClick={() => setOpen(o => !o)}
         className={cn(
-          "w-full flex items-center gap-4 px-5 py-4 text-left transition-colors",
+          "w-full flex items-center gap-3 px-3 py-3 sm:px-5 sm:py-4 text-left transition-colors",
           open ? "bg-[var(--secondary-light)]/25" : "bg-[var(--card)] hover:bg-[var(--card-hover)]"
         )}
       >
@@ -194,7 +194,7 @@ function ConceptCard({ concept, idx, typeColor }: { concept: Concept; idx: numbe
         <ChevronDown className={cn("h-4 w-4 flex-shrink-0 text-[var(--muted-foreground)] transition-transform duration-200", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="px-5 pb-5 pt-1 bg-[var(--card)] space-y-4">
+        <div className="px-3 pb-4 pt-1 sm:px-5 sm:pb-5 bg-[var(--card)] space-y-4">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-2.5">Explanation</div>
             <RichText text={concept.explanation} />
@@ -220,7 +220,7 @@ function StepCard({ step, isLast }: { step: TutorialStep; isLast: boolean }) {
         {!isLast && <div className="w-0.5 flex-1 bg-gradient-to-b from-[var(--secondary)]/30 to-transparent mt-2" />}
       </div>
       <div className={cn("flex-1 min-w-0", !isLast && "pb-8")}>
-        <div className="bg-[var(--card)] border border-[var(--surface-border)] rounded-2xl p-5 hover:border-[var(--surface-border-strong)] transition-colors">
+        <div className="bg-[var(--card)] border border-[var(--surface-border)] rounded-2xl p-3 sm:p-5 hover:border-[var(--surface-border-strong)] transition-colors">
           <h4 className="font-extrabold text-[var(--foreground)] text-sm mb-3 tracking-tight">{step.title}</h4>
           <RichText text={step.body} />
           {step.code && <CodeBlock code={step.code} />}
@@ -859,10 +859,10 @@ export function PathTutorialInterface({
         <div ref={interviewSectionRef} className="border border-[var(--surface-border)] rounded-2xl overflow-hidden scroll-mt-4">
           <button
             onClick={() => setShowInterviewPrep(o => !o)}
-            className="w-full flex items-center justify-between px-5 py-4 bg-[var(--card)] hover:bg-[var(--card-hover)] transition-colors"
+            className="w-full flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 bg-[var(--card)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-[var(--secondary-light)]/30 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-xl bg-[var(--secondary-light)]/30 flex items-center justify-center flex-shrink-0">
                 <Briefcase className="h-4 w-4 text-[var(--secondary)]" />
               </div>
               <div className="text-left">
@@ -870,10 +870,10 @@ export function PathTutorialInterface({
                 <div className="text-xs text-[var(--muted-foreground)]">Deep technical questions — expand answers when ready</div>
               </div>
             </div>
-            <ChevronDown className={cn("h-4 w-4 text-[var(--muted-foreground)] transition-transform duration-200", showInterviewPrep && "rotate-180")} />
+            <ChevronDown className={cn("h-4 w-4 text-[var(--muted-foreground)] transition-transform duration-200 flex-shrink-0", showInterviewPrep && "rotate-180")} />
           </button>
           {showInterviewPrep && (
-            <div className="px-5 py-5 bg-[var(--card)] border-t border-[var(--surface-border)]">
+            <div className="px-3 sm:px-5 py-4 sm:py-5 bg-[var(--card)] border-t border-[var(--surface-border)]">
               <InterviewPrepPanel
                 entityType={(categoryId ? "category" : "project") as InterviewEntityType}
                 entityId={entityId}
@@ -900,7 +900,7 @@ export function PathTutorialInterface({
         />
 
         {/* Sticky breadcrumb + action bar */}
-        <div className="sticky top-0 z-30 bg-[var(--background)]/95 backdrop-blur-sm border-b border-[var(--surface-border)] px-4 py-2.5 flex items-center justify-between gap-3">
+        <div className="sticky top-0 z-30 bg-[var(--background)]/95 backdrop-blur-sm border-b border-[var(--surface-border)] px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2 sm:gap-3">
           {/* Left: breadcrumb */}
           <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
             <button

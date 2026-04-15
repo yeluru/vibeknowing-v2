@@ -70,7 +70,7 @@ function QuestionCard({ q, idx }: { q: InterviewQuestion; idx: number }) {
       <button
         onClick={() => setOpen(o => !o)}
         className={cn(
-          "w-full flex items-start gap-4 px-5 py-4 text-left transition-colors",
+          "w-full flex items-start gap-3 px-3 py-3 sm:px-5 sm:py-4 text-left transition-colors",
           open ? "bg-[var(--card-hover)]" : "bg-[var(--card)] hover:bg-[var(--card-hover)]"
         )}
       >
@@ -95,7 +95,7 @@ function QuestionCard({ q, idx }: { q: InterviewQuestion; idx: number }) {
       </button>
 
       {open && (
-        <div className="px-5 py-4 bg-[var(--card)] border-t border-[var(--surface-border)]">
+        <div className="px-3 py-3 sm:px-5 sm:py-4 bg-[var(--card)] border-t border-[var(--surface-border)]">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="h-3.5 w-3.5 text-[var(--secondary)]" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
@@ -139,7 +139,7 @@ function QuestionSet({ questions, setNumber, isLatest }: {
     )}>
       {/* Set header */}
       <div className={cn(
-        "flex items-center justify-between px-5 py-3 border-b",
+        "flex items-center justify-between px-3 py-3 sm:px-5 border-b",
         isLatest
           ? "bg-[var(--secondary-light)]/15 border-[var(--secondary)]/20"
           : "bg-[var(--background)] border-[var(--surface-border)]"
@@ -173,7 +173,7 @@ function QuestionSet({ questions, setNumber, isLatest }: {
       </div>
 
       {/* Questions */}
-      <div className="p-4 space-y-3 bg-[var(--card)]">
+      <div className="p-3 sm:p-4 space-y-3 bg-[var(--card)]">
         {questions.map((q, i) => (
           <QuestionCard key={i} q={q} idx={i} />
         ))}

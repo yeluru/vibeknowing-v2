@@ -137,7 +137,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     title={title}
                     subtitle={subtitle}
                 />
-                <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-8 bg-transparent pb-24 md:pb-6">
+                <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-6 sm:py-6 lg:px-10 lg:py-8 bg-transparent pb-24 md:pb-6">
                     <div className="max-w-7xl mx-auto w-full">
                         {children}
                     </div>

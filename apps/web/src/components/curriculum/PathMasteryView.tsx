@@ -62,10 +62,10 @@ function InterviewPrepAccordion({ entityType, entityId }: { entityType: Intervie
         <div className="border border-[var(--surface-border)] rounded-2xl overflow-hidden mt-4">
             <button
                 onClick={() => setOpen(o => !o)}
-                className="w-full flex items-center justify-between px-5 py-4 bg-[var(--card)] hover:bg-[var(--card-hover)] transition-colors"
+                className="w-full flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 bg-[var(--card)] hover:bg-[var(--card-hover)] transition-colors"
             >
                 <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-xl bg-[var(--secondary-light)]/30 flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-xl bg-[var(--secondary-light)]/30 flex items-center justify-center flex-shrink-0">
                         <Briefcase className="h-4 w-4 text-[var(--secondary)]" />
                     </div>
                     <div className="text-left">
@@ -73,10 +73,10 @@ function InterviewPrepAccordion({ entityType, entityId }: { entityType: Intervie
                         <div className="text-xs text-[var(--muted-foreground)]">5 questions · 2 easy · 2 medium · 1 hard</div>
                     </div>
                 </div>
-                <ChevronDown className={cn("h-4 w-4 text-[var(--muted-foreground)] transition-transform duration-200", open && "rotate-180")} />
+                <ChevronDown className={cn("h-4 w-4 text-[var(--muted-foreground)] transition-transform duration-200 flex-shrink-0", open && "rotate-180")} />
             </button>
             {open && (
-                <div className="px-5 py-5 bg-[var(--card)] border-t border-[var(--surface-border)]">
+                <div className="px-3 sm:px-5 py-4 sm:py-5 bg-[var(--card)] border-t border-[var(--surface-border)]">
                     <InterviewPrepPanel entityType={entityType} entityId={entityId} />
                 </div>
             )}
@@ -367,8 +367,8 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
     return (
         <div className="pt-2 pb-10 relative">
             {/* MISSION GRID - The Roadmap Map */}
-            <div className="container mx-auto px-6 py-8 relative z-10">
-                <div className="flex flex-col gap-6 mb-16">
+            <div className="w-full py-4 sm:py-8 relative z-10">
+                <div className="flex flex-col gap-4 sm:gap-6 mb-8 sm:mb-16">
                     <Link 
                         href="/mission" 
                         className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-indigo-500 uppercase tracking-[0.3em] transition-all w-fit group"
@@ -390,7 +390,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                             Interview Prep
                         </button>
                     </div>
-                    <h2 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none max-w-4xl">
+                    <h2 className="text-2xl sm:text-4xl lg:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none max-w-4xl">
                         {curriculum.goal || "Mission Nodes"}
                     </h2>
                 </div>
@@ -419,11 +419,11 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                     "bg-[var(--secondary)]"
                                 )} />
 
-                                <div className="flex items-center gap-7 p-7 pl-9">
+                                <div className="flex items-center gap-4 sm:gap-7 p-4 pl-6 sm:p-7 sm:pl-9">
                                     {/* Step number */}
                                     <div className="flex-none flex flex-col items-center gap-2.5">
                                         <div className={cn(
-                                            "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 text-white",
+                                            "w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 text-white",
                                             node.status === 'locked' ? "bg-slate-400 dark:bg-slate-700" :
                                             node.status === 'mastered' ? "bg-emerald-500 shadow-emerald-500/30" :
                                             "bg-slate-900 dark:bg-slate-800 group-hover:bg-[var(--secondary)] group-hover:shadow-[var(--secondary)]/30"
@@ -515,7 +515,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
             </div>
 
             {/* Interview Prep */}
-            <div ref={interviewSectionRef} className="container mx-auto px-6 pb-16 scroll-mt-4">
+            <div ref={interviewSectionRef} className="w-full pb-16 scroll-mt-4">
                 <InterviewPrepAccordion
                     entityType={isMission ? "mission" : (categoryId ? "category" : "mission")}
                     entityId={(isMission ? missionId : categoryId) ?? ""}
@@ -540,7 +540,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
                             className="relative w-full max-w-[90vw] md:max-w-4xl lg:max-w-5xl h-full bg-white dark:bg-[var(--background)] shadow-2xl flex flex-col overflow-hidden"
                         >
-                            <div className="flex-none px-8 py-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[var(--background)] z-20">
+                            <div className="flex-none px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[var(--background)] z-20">
                                 <div className="flex items-center gap-6">
                                     <button 
                                         onClick={() => setSelectedNodeId(null)}
@@ -576,18 +576,18 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex-none px-8 py-2 bg-slate-50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 overflow-x-auto">
-                                <div className="flex items-center gap-2">
+                            <div className="flex-none px-3 sm:px-8 py-2 bg-slate-50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 overflow-x-auto">
+                                <div className="flex items-center gap-1 sm:gap-2">
                                     {[
                                         { id: "learn", label: "Neural Masterclass", icon: <Brain className="h-4 w-4" /> },
                                         { id: "lab", label: "Practice Exercises", icon: <Rocket className="h-4 w-4" /> },
                                         { id: "resources", label: "External Catalysts", icon: <Globe className="h-4 w-4" /> }
                                     ].map((tab) => (
-                                        <button 
+                                        <button
                                             key={tab.id}
                                             onClick={() => setActiveTab(tab.id as any)}
                                             className={cn(
-                                                "px-6 py-4 flex items-center gap-3 rounded-t-2xl text-[10px] font-black uppercase tracking-widest transition-all border-b-2",
+                                                "px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-3 rounded-t-2xl text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap",
                                                 activeTab === tab.id 
                                                     ? "bg-white dark:bg-white/5 border-indigo-500 text-indigo-500 shadow-sm"
                                                     : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -601,7 +601,7 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                             </div>
 
                             <div className="flex-1 overflow-y-auto bg-white dark:bg-[var(--background)]" ref={contentRef}>
-                                <div className="max-w-4xl mx-auto p-8 lg:p-12 pb-32">
+                                <div className="max-w-4xl mx-auto p-4 sm:p-8 lg:p-12 pb-32">
                                     <AnimatePresence mode="wait">
                                         {activeTab === 'learn' && (
                                             <motion.div 
