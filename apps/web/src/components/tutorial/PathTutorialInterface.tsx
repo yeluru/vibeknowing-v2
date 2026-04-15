@@ -7,12 +7,13 @@ import {
   Code2, Play, GraduationCap, Layers, RotateCcw, Home,
   Clock, CheckCircle2, Circle,
   Terminal, Quote, BookMarked, FlaskConical, ShieldAlert,
-  Youtube, Globe, Lock, Trash2, ArrowRight,
+  Youtube, Globe, Lock, Trash2, ArrowRight, Briefcase,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { API_BASE } from "@/lib/api";
 import { toast } from "sonner";
+import { InterviewPrepPanel, type InterviewEntityType } from "./InterviewPrepPanel";
 
 /* ── Types ──────────────────────────────────────────────────────────── */
 interface SourceInfo { id: string; title: string; type?: string; has_content?: boolean }
@@ -402,8 +403,17 @@ export function PathTutorialInterface({
   const [activeTab, setActiveTab] = useState<TabType>("concepts");
   const [scrollPct, setScrollPct] = useState(0);
   const [completedChapters, setCompletedChapters] = useState<Set<string>>(new Set());
+  const [showInterviewPrep, setShowInterviewPrep] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const interviewSectionRef = useRef<HTMLDivElement>(null);
+
+  const scrollToInterview = () => {
+    setShowInterviewPrep(true);
+    setTimeout(() => {
+      interviewSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  };
 
   /* ── Scroll page to top whenever the active chapter changes ── */
   useEffect(() => {
@@ -735,12 +745,20 @@ export function PathTutorialInterface({
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => generateTutorial(true)}
-                className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] bg-[var(--background)] hover:bg-[var(--surface-border)]/40 border border-[var(--surface-border)] px-3 py-1.5 rounded-xl transition-all"
-              >
-                <RotateCcw className="h-3 w-3" /> Regenerate
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={scrollToInterview}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[var(--secondary)] bg-[var(--secondary-light)]/20 hover:bg-[var(--secondary-light)]/40 border border-[var(--secondary)]/25 px-3 py-1.5 rounded-xl transition-all"
+                >
+                  <Briefcase className="h-3 w-3" /> Interview Prep
+                </button>
+                <button
+                  onClick={() => generateTutorial(true)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] bg-[var(--background)] hover:bg-[var(--surface-border)]/40 border border-[var(--surface-border)] px-3 py-1.5 rounded-xl transition-all"
+                >
+                  <RotateCcw className="h-3 w-3" /> Regenerate
+                </button>
+              </div>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2 leading-tight"
               style={{ background: "linear-gradient(135deg, var(--foreground) 0%, var(--secondary) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
@@ -835,6 +853,33 @@ export function PathTutorialInterface({
               );
             })}
           </div>
+        </div>
+
+        {/* Interview Prep section */}
+        <div ref={interviewSectionRef} className="border border-[var(--surface-border)] rounded-2xl overflow-hidden scroll-mt-4">
+          <button
+            onClick={() => setShowInterviewPrep(o => !o)}
+            className="w-full flex items-center justify-between px-5 py-4 bg-[var(--card)] hover:bg-[var(--card-hover)] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-[var(--secondary-light)]/30 flex items-center justify-center">
+                <Briefcase className="h-4 w-4 text-[var(--secondary)]" />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-extrabold text-[var(--foreground)] tracking-tight">Interview Prep</div>
+                <div className="text-xs text-[var(--muted-foreground)]">Deep technical questions — expand answers when ready</div>
+              </div>
+            </div>
+            <ChevronDown className={cn("h-4 w-4 text-[var(--muted-foreground)] transition-transform duration-200", showInterviewPrep && "rotate-180")} />
+          </button>
+          {showInterviewPrep && (
+            <div className="px-5 py-5 bg-[var(--card)] border-t border-[var(--surface-border)]">
+              <InterviewPrepPanel
+                entityType={(categoryId ? "category" : "project") as InterviewEntityType}
+                entityId={entityId}
+              />
+            </div>
+          )}
         </div>
       </div>
     );

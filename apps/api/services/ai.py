@@ -810,3 +810,102 @@ Include 5 to 8 deep_dive_sections."""
     def generate_json(prompt: str, **kwargs) -> str:
         """Expose the _generate_json logic to other services."""
         return _generate_json(prompt=prompt, **kwargs)
+
+    @staticmethod
+    def generate_interview_questions(topic: str, content: str = "", batch: int = 0, provider: str = "openai", model: str = None, api_key: str = None):
+        """Generate 2 easy, 2 medium, 1 hard interview questions for a given topic/content.
+
+        batch=0 → foundational set. batch>0 → progressively deeper/more advanced questions
+        so repeated calls produce distinct, escalating content.
+        """
+        content_section = f"\n\nSource material (draw specific terminology, APIs, and patterns from here):\n{content[:12000]}" if content.strip() else ""
+
+        batch_instruction = ""
+        if batch == 1:
+            batch_instruction = """
+IMPORTANT — BATCH 2 (Advanced): This is the second set of questions. Go DEEPER than the first batch.
+- Easy: Focus on internal mechanics, edge cases, and common misconceptions — not surface definitions.
+- Medium: Target production debugging, failure modes, and architecture decisions under real constraints.
+- Hard: Demand deep system design knowledge, performance reasoning at scale, and trade-off analysis.
+Do NOT repeat question themes from the first batch. Explore different sub-domains of the topic."""
+        elif batch == 2:
+            batch_instruction = """
+IMPORTANT — BATCH 3 (Expert): This is the third set. Assume the candidate has answered all prior questions correctly.
+- Easy: These should feel like medium questions to a typical engineer. Ask about non-obvious interactions between components.
+- Medium: Real-world war stories — latency spikes, consistency anomalies, rollback strategies, observability under load.
+- Hard: Staff/principal-level questions. Think: "design X for 10M users", "how would you evolve this architecture 2 years from now", "what breaks at scale that doesn't show in testing".
+Do NOT repeat question themes from earlier batches. Push into areas most engineers have never thought about."""
+        elif batch >= 3:
+            batch_instruction = f"""
+IMPORTANT — BATCH {batch + 1} (Frontier): Assume the candidate is an expert. Go to the absolute frontier of this topic.
+- Questions should challenge even principal engineers and distinguished architects.
+- Easy: Known gotchas that even experienced engineers often get wrong.
+- Medium: Questions about internal implementation details of tools/frameworks, not just their API.
+- Hard: Open research problems, cutting-edge architectural patterns, or questions about building the tools that others use.
+Be creative and specific — reference real systems (Redis, Kafka, PostgreSQL internals, Linux kernel, etc.) where applicable."""
+
+        prompt = f"""You are a principal engineer and senior technical interviewer at a top-tier tech company. You are running a deep technical interview loop for a senior/staff engineer role on the topic: "{topic}".
+{batch_instruction}
+Generate exactly 5 interview questions: 2 easy, 2 medium, 1 hard.{content_section}
+
+Difficulty standards (these are HIGH bars — this is a senior/staff loop):
+- Easy: A strong mid-level engineer answers this in 60 seconds. Tests precise understanding of a specific mechanism, not just awareness.
+  Bad easy question: "What is a database index?"
+  Good easy question: "A query on a composite index (a, b) is filtering only on column b. Will the index be used? Why or why not?"
+- Medium: Requires the engineer to reason through a problem, not recall a fact. Tests debugging instinct, trade-off awareness, and design intuition.
+  Bad medium: "What are the pros and cons of microservices?"
+  Good medium: "You have a service that makes 5 downstream calls in parallel. P50 latency is 30ms but P99 is 800ms. Walk me through how you'd diagnose and fix this."
+- Hard: No one answer is 'correct'. Evaluates system design depth, handling of ambiguity, and the ability to reason about trade-offs at scale with incomplete information.
+  Bad hard: "Design Twitter."
+  Good hard: "You're designing the fanout layer for a social feed where 0.01% of users have 50M+ followers. How do you handle write amplification without blowing up storage costs or read latency? What does your data model look like and how does it change under different consistency requirements?"
+
+Answer quality standards:
+- Easy answers: 4–6 sentences. Be precise — name the exact mechanism, not a vague description. Include the "why" not just the "what".
+- Medium answers: 2–3 tight paragraphs. Walk through the reasoning as a senior engineer would explain it to a peer. Include what a weak answer would miss.
+- Hard answers: 3–4 paragraphs. Show multiple valid approaches, their real trade-offs, and what a GREAT answer includes that a good answer doesn't. Name real systems or tools where relevant.
+
+Return ONLY a valid JSON object with this exact structure:
+{{
+  "topic": "{topic}",
+  "questions": [
+    {{
+      "difficulty": "easy",
+      "question": "Specific, precise easy question?",
+      "answer": "Full model answer — precise, mechanism-level, includes the why."
+    }},
+    {{
+      "difficulty": "easy",
+      "question": "Second easy question — different sub-domain?",
+      "answer": "Full model answer."
+    }},
+    {{
+      "difficulty": "medium",
+      "question": "Scenario-based medium question?",
+      "answer": "Full model answer — walks through reasoning, names what a weak answer misses."
+    }},
+    {{
+      "difficulty": "medium",
+      "question": "Second medium — different failure mode or design axis?",
+      "answer": "Full model answer."
+    }},
+    {{
+      "difficulty": "hard",
+      "question": "Open-ended hard question with real constraints?",
+      "answer": "Full model answer — multiple approaches, trade-offs, what makes a great answer vs a good one."
+    }}
+  ]
+}}
+
+Non-negotiable rules:
+- Every question must be specific and technical — no generic "explain X" questions unless X is a nuanced mechanism.
+- Every answer must be a real model answer an expert would give — not a textbook definition.
+- {f"Draw specific terminology, system names, and patterns from the source material above." if content.strip() else "Draw on real systems, tools, and production scenarios relevant to the topic."}
+- Do NOT repeat question themes already covered in earlier batches if batch > 0.
+- Return ONLY the JSON object — no markdown, no backticks, no preamble.
+"""
+        return _generate_json(
+            prompt=prompt,
+            provider=provider, model=model, api_key=api_key,
+            system_prompt="You are a principal engineer running a senior/staff-level technical interview. Return only valid JSON. No markdown, no backticks, no commentary.",
+            max_tokens=5000, temperature=0.7, task="interview",
+        )

@@ -8,6 +8,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { curriculumApi } from "@/lib/api";
+import { InterviewPrepPanel, type InterviewEntityType } from "@/components/tutorial/InterviewPrepPanel";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { 
@@ -46,10 +47,42 @@ import {
     Check,
     GitBranch,
     BookMarked,
-    Telescope
+    Telescope,
+    Briefcase,
+    ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+/* ── Interview Prep accordion (local wrapper) ─────────────────────── */
+function InterviewPrepAccordion({ entityType, entityId }: { entityType: InterviewEntityType; entityId: string }) {
+    const [open, setOpen] = React.useState(false);
+    if (!entityId) return null;
+    return (
+        <div className="border border-[var(--surface-border)] rounded-2xl overflow-hidden mt-4">
+            <button
+                onClick={() => setOpen(o => !o)}
+                className="w-full flex items-center justify-between px-5 py-4 bg-[var(--card)] hover:bg-[var(--card-hover)] transition-colors"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-xl bg-[var(--secondary-light)]/30 flex items-center justify-center">
+                        <Briefcase className="h-4 w-4 text-[var(--secondary)]" />
+                    </div>
+                    <div className="text-left">
+                        <div className="text-sm font-extrabold text-[var(--foreground)] tracking-tight">Interview Prep</div>
+                        <div className="text-xs text-[var(--muted-foreground)]">5 questions · 2 easy · 2 medium · 1 hard</div>
+                    </div>
+                </div>
+                <ChevronDown className={cn("h-4 w-4 text-[var(--muted-foreground)] transition-transform duration-200", open && "rotate-180")} />
+            </button>
+            {open && (
+                <div className="px-5 py-5 bg-[var(--card)] border-t border-[var(--surface-border)]">
+                    <InterviewPrepPanel entityType={entityType} entityId={entityId} />
+                </div>
+            )}
+        </div>
+    );
+}
 
 interface PathMasteryViewProps {
     categoryId?: string;
@@ -60,19 +93,27 @@ interface PathMasteryViewProps {
     onStatsUpdate?: (stats: { mastery: number }) => void;
 }
 
-export const PathMasteryView: React.FC<PathMasteryViewProps> = ({ 
-    categoryId, 
-    categoryName, 
+export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
+    categoryId,
+    categoryName,
     missionId,
     isMission,
-    hasSources, 
-    onStatsUpdate 
+    hasSources,
+    onStatsUpdate
 }) => {
     const [curriculum, setCurriculum] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [activeSectionIdx, setActiveSectionIdx] = useState(0);
+    const interviewSectionRef = React.useRef<HTMLDivElement>(null);
+
+    const scrollToInterview = () => {
+        // Open accordion then scroll
+        setTimeout(() => {
+            interviewSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+    };
 
     const [activeResourceId, setActiveResourceId] = useState<string | null>(null);
     const [scouting, setScouting] = useState(false);
@@ -336,9 +377,18 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                         Abort to Mission Control
                     </Link>
 
-                    <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-indigo-500/5 border border-indigo-500/10 w-fit">
-                        <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                        <span className="text-[9px] font-black text-indigo-500 uppercase tracking-[0.3em]">Neural Mastery Map</span>
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-indigo-500/5 border border-indigo-500/10 w-fit">
+                            <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                            <span className="text-[9px] font-black text-indigo-500 uppercase tracking-[0.3em]">Neural Mastery Map</span>
+                        </div>
+                        <button
+                            onClick={scrollToInterview}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-[var(--secondary)] bg-[var(--secondary-light)]/20 hover:bg-[var(--secondary-light)]/40 border border-[var(--secondary)]/25 transition-all"
+                        >
+                            <Briefcase className="h-3.5 w-3.5" />
+                            Interview Prep
+                        </button>
                     </div>
                     <h2 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none max-w-4xl">
                         {curriculum.goal || "Mission Nodes"}
@@ -462,6 +512,14 @@ export const PathMasteryView: React.FC<PathMasteryViewProps> = ({
                         </React.Fragment>
                     ))}
                 </div>
+            </div>
+
+            {/* Interview Prep */}
+            <div ref={interviewSectionRef} className="container mx-auto px-6 pb-16 scroll-mt-4">
+                <InterviewPrepAccordion
+                    entityType={isMission ? "mission" : (categoryId ? "category" : "mission")}
+                    entityId={(isMission ? missionId : categoryId) ?? ""}
+                />
             </div>
 
             {/* HIGH-FIDELITY SIDE DRAWER */}

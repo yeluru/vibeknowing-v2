@@ -1882,11 +1882,11 @@ async def master_node(node_id: str, db: Session = Depends(get_db)):
     node = db.query(models.CurriculumNode).filter(models.CurriculumNode.id == node_id).first()
     if not node:
         raise HTTPException(status_code=404, detail="Node not found")
-    
+
     node.status = "mastered"
     node.mastery_score = 100
-    
-    # 1. Ensure all nodes BEFORE this one are at least "unlocked" 
+
+    # 1. Ensure all nodes BEFORE this one are at least "unlocked"
     # (Fixes the 'jump ahead' locking issue)
     db.query(models.CurriculumNode)\
         .filter(models.CurriculumNode.curriculum_id == node.curriculum_id)\
@@ -1900,10 +1900,181 @@ async def master_node(node_id: str, db: Session = Depends(get_db)):
         .filter(models.CurriculumNode.sequence_order > node.sequence_order)\
         .order_by(models.CurriculumNode.sequence_order)\
         .first()
-        
+
     if next_node and next_node.status == "locked":
         next_node.status = "unlocked"
-        
+
     db.commit()
     return {"status": "success", "node": node}
+
+
+# ── Interview Questions ──────────────────────────────────────────────────────
+
+def _upsert_interview_artifact(db, artifact_filter: dict, data: dict):
+    """Helper: upsert interview questions artifact."""
+    existing = db.query(models.Artifact).filter_by(**artifact_filter).first()
+    if existing:
+        existing.content = data
+    else:
+        db.add(models.Artifact(**artifact_filter, type="interview_questions", content=data))
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+@router.get("/interview/project/{project_id}")
+async def get_project_interview_questions(project_id: str, db: Session = Depends(get_db)):
+    """Return cached interview questions for a project, or null if not yet generated."""
+    existing = db.query(models.Artifact).filter(
+        models.Artifact.project_id == project_id,
+        models.Artifact.source_id == None,
+        models.Artifact.type == "interview_questions",
+    ).first()
+    if existing and existing.content:
+        return existing.content
+    return None
+
+
+@router.post("/interview/project/{project_id}")
+async def generate_project_interview_questions(
+    project_id: str, request: Request, force: bool = False, batch: int = 0, db: Session = Depends(get_db)
+):
+    """Generate interview questions for a project (2 easy, 2 medium, 1 hard). batch>0 = deeper/different set."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not force and batch == 0:
+        existing = db.query(models.Artifact).filter(
+            models.Artifact.project_id == project_id,
+            models.Artifact.source_id == None,
+            models.Artifact.type == "interview_questions",
+        ).first()
+        if existing and existing.content:
+            return existing.content
+
+    ingested = [s for s in project.sources if s.content_text and s.content_text.strip()]
+    combined = "\n\n---\n\n".join(s.content_text[:4000] for s in ingested[:5])
+    topic = project.name or "the learning path"
+
+    ai_params = _get_ai_params(request, "interview")
+    raw = AIService.generate_interview_questions(topic=topic, content=combined, batch=batch, **ai_params)
+    try:
+        data = json.loads(raw.strip().lstrip("```json").lstrip("```").rstrip("```"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse interview questions: {e}")
+
+    # Only overwrite DB cache for batch 0 (the canonical set)
+    if batch == 0:
+        _upsert_interview_artifact(db, {"project_id": project_id, "source_id": None, "title": f"interview:{project_id}"}, data)
+    return data
+
+
+@router.get("/interview/category/{category_id}")
+async def get_category_interview_questions(category_id: str, db: Session = Depends(get_db)):
+    """Return cached interview questions for a category, or null if not yet generated."""
+    existing = db.query(models.Artifact).filter(
+        models.Artifact.project_id == None,
+        models.Artifact.source_id == None,
+        models.Artifact.type == "interview_questions",
+        models.Artifact.title == f"interview:cat:{category_id}",
+    ).first()
+    if existing and existing.content:
+        return existing.content
+    return None
+
+
+@router.post("/interview/category/{category_id}")
+async def generate_category_interview_questions(
+    category_id: str, request: Request, force: bool = False, batch: int = 0, db: Session = Depends(get_db)
+):
+    """Generate interview questions for a category (2 easy, 2 medium, 1 hard). batch>0 = deeper/different set."""
+    category = db.query(models.Category).filter(models.Category.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    cache_title = f"interview:cat:{category_id}"
+    if not force and batch == 0:
+        existing = db.query(models.Artifact).filter(
+            models.Artifact.project_id == None,
+            models.Artifact.source_id == None,
+            models.Artifact.type == "interview_questions",
+            models.Artifact.title == cache_title,
+        ).first()
+        if existing and existing.content:
+            return existing.content
+
+    cat_projects = db.query(models.Project).filter(models.Project.category_id == category_id).all()
+    ingested = []
+    for proj in cat_projects:
+        ingested.extend([s for s in proj.sources if s.content_text and s.content_text.strip()])
+
+    combined = "\n\n---\n\n".join(s.content_text[:3000] for s in ingested[:6])
+    topic = category.name or "the learning path"
+
+    ai_params = _get_ai_params(request, "interview")
+    raw = AIService.generate_interview_questions(topic=topic, content=combined, batch=batch, **ai_params)
+    try:
+        data = json.loads(raw.strip().lstrip("```json").lstrip("```").rstrip("```"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse interview questions: {e}")
+
+    if batch == 0:
+        _upsert_interview_artifact(db, {"project_id": None, "source_id": None, "title": cache_title}, data)
+    return data
+
+
+@router.get("/interview/mission/{mission_id}")
+async def get_mission_interview_questions(mission_id: str, db: Session = Depends(get_db)):
+    """Return cached interview questions for a mission, or null if not yet generated."""
+    existing = db.query(models.Artifact).filter(
+        models.Artifact.project_id == None,
+        models.Artifact.source_id == None,
+        models.Artifact.type == "interview_questions",
+        models.Artifact.title == f"interview:mission:{mission_id}",
+    ).first()
+    if existing and existing.content:
+        return existing.content
+    return None
+
+
+@router.post("/interview/mission/{mission_id}")
+async def generate_mission_interview_questions(
+    mission_id: str, request: Request, force: bool = False, batch: int = 0, db: Session = Depends(get_db)
+):
+    """Generate interview questions for a mission (2 easy, 2 medium, 1 hard). batch>0 = deeper/different set."""
+    curriculum = db.query(models.Curriculum).filter(models.Curriculum.id == mission_id).first()
+    if not curriculum:
+        raise HTTPException(status_code=404, detail="Mission not found")
+
+    cache_title = f"interview:mission:{mission_id}"
+    if not force and batch == 0:
+        existing = db.query(models.Artifact).filter(
+            models.Artifact.project_id == None,
+            models.Artifact.source_id == None,
+            models.Artifact.type == "interview_questions",
+            models.Artifact.title == cache_title,
+        ).first()
+        if existing and existing.content:
+            return existing.content
+
+    nodes = db.query(models.CurriculumNode).filter(
+        models.CurriculumNode.curriculum_id == mission_id
+    ).order_by(models.CurriculumNode.sequence_order).all()
+    node_content = "\n".join(
+        f"- {n.title}: {n.description or ''}" for n in nodes[:20]
+    )
+    topic = curriculum.goal or "the mission"
+
+    ai_params = _get_ai_params(request, "interview")
+    raw = AIService.generate_interview_questions(topic=topic, content=node_content, batch=batch, **ai_params)
+    try:
+        data = json.loads(raw.strip().lstrip("```json").lstrip("```").rstrip("```"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse interview questions: {e}")
+
+    if batch == 0:
+        _upsert_interview_artifact(db, {"project_id": None, "source_id": None, "title": cache_title}, data)
+    return data
 
