@@ -40,12 +40,12 @@ type TabType = "concepts" | "tutorial" | "example" | "pitfalls" | "protip";
 
 /* ── Tab config per topic type ──────────────────────────────────────── */
 const TAB_CONFIG: Record<string, Record<TabType, { label: string; icon: string }>> = {
-  Technical:     { concepts: { label: "Core Concepts", icon: "brain" },    tutorial: { label: "Tutorial Steps", icon: "play" },   example: { label: "Code Pattern",    icon: "code" },  pitfalls: { label: "Pitfalls",          icon: "shield" }, protip: { label: "Pro Tip",  icon: "lightbulb" } },
-  Mathematical:  { concepts: { label: "Core Concepts", icon: "brain" },    tutorial: { label: "Step-by-Step",   icon: "play" },   example: { label: "Worked Example",  icon: "flask" }, pitfalls: { label: "Common Mistakes",   icon: "shield" }, protip: { label: "Insight", icon: "lightbulb" } },
-  Scientific:    { concepts: { label: "Core Concepts", icon: "brain" },    tutorial: { label: "Method",         icon: "play" },   example: { label: "Case Study",      icon: "flask" }, pitfalls: { label: "Watch Out",         icon: "shield" }, protip: { label: "Pro Tip",  icon: "lightbulb" } },
-  Philosophical: { concepts: { label: "Core Ideas",    icon: "brain" },    tutorial: { label: "Argument",       icon: "play" },   example: { label: "Full Argument",   icon: "quote" }, pitfalls: { label: "Counter-Arguments", icon: "shield" }, protip: { label: "Reframe", icon: "lightbulb" } },
-  Historical:    { concepts: { label: "Key Events",    icon: "bookmark" }, tutorial: { label: "Narrative",      icon: "play" },   example: { label: "Case Study",      icon: "flask" }, pitfalls: { label: "Misconceptions",    icon: "shield" }, protip: { label: "Insight", icon: "lightbulb" } },
-  Creative:      { concepts: { label: "Core Elements", icon: "brain" },    tutorial: { label: "Process",        icon: "play" },   example: { label: "Example",         icon: "flask" }, pitfalls: { label: "Pitfalls",          icon: "shield" }, protip: { label: "Pro Tip",  icon: "lightbulb" } },
+  Technical:     { concepts: { label: "Core Concepts", icon: "brain" },    tutorial: { label: "Hands-On",  icon: "play" },   example: { label: "Code Pattern",    icon: "code" },  pitfalls: { label: "Pitfalls",          icon: "shield" }, protip: { label: "Pro Tip",  icon: "lightbulb" } },
+  Mathematical:  { concepts: { label: "Core Concepts", icon: "brain" },    tutorial: { label: "Hands-On",  icon: "play" },   example: { label: "Worked Example",  icon: "flask" }, pitfalls: { label: "Common Mistakes",   icon: "shield" }, protip: { label: "Insight", icon: "lightbulb" } },
+  Scientific:    { concepts: { label: "Core Concepts", icon: "brain" },    tutorial: { label: "Hands-On",  icon: "play" },   example: { label: "Case Study",      icon: "flask" }, pitfalls: { label: "Watch Out",         icon: "shield" }, protip: { label: "Pro Tip",  icon: "lightbulb" } },
+  Philosophical: { concepts: { label: "Core Ideas",    icon: "brain" },    tutorial: { label: "Hands-On",  icon: "play" },   example: { label: "Full Argument",   icon: "quote" }, pitfalls: { label: "Counter-Arguments", icon: "shield" }, protip: { label: "Reframe", icon: "lightbulb" } },
+  Historical:    { concepts: { label: "Key Events",    icon: "bookmark" }, tutorial: { label: "Hands-On",  icon: "play" },   example: { label: "Case Study",      icon: "flask" }, pitfalls: { label: "Misconceptions",    icon: "shield" }, protip: { label: "Insight", icon: "lightbulb" } },
+  Creative:      { concepts: { label: "Core Elements", icon: "brain" },    tutorial: { label: "Hands-On",  icon: "play" },   example: { label: "Example",         icon: "flask" }, pitfalls: { label: "Pitfalls",          icon: "shield" }, protip: { label: "Pro Tip",  icon: "lightbulb" } },
 };
 
 const TOPIC_COLORS: Record<string, string> = {
@@ -480,11 +480,24 @@ export function PathTutorialInterface({
         return;
       } catch { localStorage.removeItem(`path-tutorial-${entityId}`); }
     }
+    // No localStorage cache — check if the backend has a saved tutorial (e.g. after logout/login)
     const generatingFlag = sessionStorage.getItem(`path-tutorial-${entityId}-generating`);
     if (generatingFlag) {
       generateTutorial(generatingFlag === "force");
+      return;
     }
-  }, [entityId, generateTutorial]);
+    // Fetch from DB
+    fetch(tutorialApiUrl, { headers: buildAIHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then((data: TutorialData | null) => {
+        if (data && data.modules) {
+          localStorage.setItem(`path-tutorial-${entityId}`, JSON.stringify(data));
+          setTutorialData(data);
+          setStatus("ready");
+        }
+      })
+      .catch(() => {/* silently ignore — user will see idle state */});
+  }, [entityId, generateTutorial, tutorialApiUrl]);
 
   /* ── Scroll progress ── */
   useEffect(() => {

@@ -1,5 +1,5 @@
 # VibeKnowing V2 — Project Memory
-> Last updated: 2026-04-08 (Pass 2 prompt engineering complete)
+> Last updated: 2026-04-14 (Tutorial redesign, sidebar nav, Vanguard/Scout fixes, AI prompt overhaul)
 > Keep this file updated after every session. Use it as the primary context source.
 
 ---
@@ -17,6 +17,7 @@
 ## Design System (DO NOT deviate from these)
 - **CSS tokens**: `var(--secondary)`, `var(--secondary-light)`, `var(--surface-border)`, `var(--surface-border-strong)`, `var(--card)`, `var(--card-hover)`, `var(--muted-foreground)`, `var(--surface-input)`, `var(--background-elevated)`
 - **Utility classes**: `vk-card`, `vk-btn`, `vk-btn-primary`, `vk-btn-secondary`, `vk-input` — defined in `ui.v2.css`
+- **Max-width pattern**: `max-w-7xl mx-auto` at layout level (AppShell `<main>`). Pages use `w-full` or repeat `max-w-7xl mx-auto px-6`. Do NOT add inner `max-w-3xl` constraints inside components.
 - **AVOID**: `glass-panel` class (causes transparency bugs, overrides background colors)
 - **AVOID**: hardcoded `indigo-*` colors — use design tokens instead
 
@@ -55,17 +56,13 @@ _httpx.Client.__init__ = _patched_client_init
 | `apps/web/src/app/source/[id]/page.tsx` | Source detail page with Studio tabs |
 | `apps/web/src/app/studio/page.tsx` | Content Repo page (renamed from Studio) |
 | `apps/web/src/app/mastery/page.tsx` | Mastery roadmap page |
-| `apps/web/src/components/layout/Sidebar.tsx` | Desktop sidebar nav |
+| `apps/web/src/app/paths/[id]/page.tsx` | Project/path tutorial page (no Back button, capitalize title) |
+| `apps/web/src/app/category/[id]/page.tsx` | **NEW** Category-level tutorial page |
+| `apps/web/src/components/layout/Sidebar.tsx` | Desktop sidebar nav — heavily reworked (see below) |
 | `apps/web/src/components/layout/MobileNav.tsx` | Mobile bottom nav |
-| `apps/web/src/components/layout/AppShell.tsx` | App shell with page titles |
-| `apps/web/src/components/studio/StudioInterface.tsx` | Studio tab switcher |
-| `apps/web/src/components/studio/ArticleEditor.tsx` | Article generation + editor |
-| `apps/web/src/components/studio/DiagramViewer.tsx` | Diagram tab |
-| `apps/web/src/components/studio/SocialMediaGenerator.tsx` | Social media tab |
-| `apps/web/src/components/quiz/QuizInterface.tsx` | Quiz tab |
-| `apps/web/src/components/flashcards/ReviewSession.tsx` | Flashcards tab |
-| `apps/web/src/components/curriculum/PathMasteryView.tsx` | Mastery roadmap component |
-| `apps/web/src/components/vanguard/VanguardPanel.tsx` | Vanguard agent panel |
+| `apps/web/src/components/layout/AppShell.tsx` | App shell — main scroll container is `<main className="flex-1 overflow-y-auto ...">` |
+| `apps/web/src/components/tutorial/PathTutorialInterface.tsx` | **Major rewrite** — see below |
+| `apps/web/src/components/vanguard/VanguardPanel.tsx` | Vanguard agent panel — error state + timeout added |
 | `apps/web/src/lib/api.ts` | `buildAIHeaders()`, `API_BASE` |
 
 ### Backend
@@ -74,19 +71,128 @@ _httpx.Client.__init__ = _patched_client_init
 | `apps/api/main.py` | FastAPI app entry — httpx patch lives here |
 | `apps/api/config.py` | Settings — `DEFAULT_PROVIDER`, API keys |
 | `apps/api/services/ai.py` | All AI generation methods (multi-provider) |
-| `apps/api/services/architect.py` | Curriculum/syllabus generation |
-| `apps/api/services/scout.py` | Web search + resource synthesis |
-| `apps/api/services/vanguard.py` | Vanguard agent — knowledge gap + recommendations |
-| `apps/api/routers/ai.py` | API routes for all AI features |
-| `apps/api/routers/ingest.py` | Source ingestion + transcription |
-| `apps/api/services/social.py` | Legacy social media service |
-| `apps/api/services/ytdlp.py` | YouTube download + transcription |
+| `apps/api/services/scout.py` | Web search — raises `ValueError` if TAVILY_API_KEY missing (was silent return) |
+| `apps/api/services/vanguard.py` | Vanguard agent — all silent failures now save error artifacts |
+| `apps/api/routers/ai.py` | API routes — tutorial endpoints heavily updated |
 
 ---
 
 ## Completed Work (Chronological)
 
-### UI/UX Fixes — Source Page (`/source/<id>`)
+### Earlier Sessions (pre 2026-04-14)
+*(See earlier entries in Completed Work section below — UI/UX fixes, prompt engineering, etc.)*
+
+---
+
+### Sidebar Navigation Rework (`apps/web/src/components/layout/Sidebar.tsx`)
+- **Category click**: navigates to `/category/${cat.id}` AND toggles expand to show source sub-items
+- **Source sub-items**: flat list under each category (no intermediate project row)
+- **Global Inbox**: flattened — sources shown directly, no expand submenu
+- **Three-dot menu** on every source item: dropdown to move source to any mastery path or back to inbox
+- `handleMoveSourceToPath()`: moves whole project (`updateCategory`) if only 1 source, otherwise moves source to new project
+- Fixed-position dropdowns to escape `overflow:hidden` on sidebar
+- `PathRow` now navigates to `/source/${first_source_id}` (not tutorial page)
+
+### Category Tutorial Page (`apps/web/src/app/category/[id]/page.tsx`) — NEW FILE
+- Loads category name + all projects, aggregates ALL sources across all projects
+- No Back button; title uses `capitalize` CSS
+- Passes `categoryId` to `PathTutorialInterface` (not `projectId`)
+
+### PathTutorialInterface — Major Redesign (`apps/web/src/components/tutorial/PathTutorialInterface.tsx`)
+
+#### Reading View (chapter view)
+- **Removed** the 256px sidebar entirely (`SidebarContent`, `<aside>`, mobile overlay)
+- **Removed** `sidebarOpen`, `sidebarSearch`, `expandedModules` state
+- **Added** sticky breadcrumb bar at top: `← Home › Module Name › Ch X/Y | duration | Mark done`
+- **Full-width** content area — no `max-w-3xl` constraint; uses `w-full`
+- **Prev/Next** buttons: card-style with module-crossing indicators ("Next · ⚡ Module 2")
+- **Scroll to top** on every chapter/home navigation via `useEffect` on `activeChapter` — walks up DOM to find `overflow-y: auto` ancestor (the AppShell `<main>`)
+
+#### Tutorial Homepage (ready + no activeChapter)
+- **Regenerate button** moved to top-right of hero card (was buried in "All Modules" row)
+- Rendered as pill button alongside topic/theme/source badges
+
+#### Tab Labels
+- All topic types: "Tutorial Steps" → **"Hands-On"**
+
+#### Dual-mode (project vs category)
+- `categoryId?: string` prop added
+- `entityId = categoryId ?? projectId` — all localStorage/sessionStorage keys use this
+- `tutorialApiUrl` switches between `/ai/tutorial/project/${projectId}` and `/ai/tutorial/category/${categoryId}`
+
+#### WorkedExamplePanel crash fix
+- `workedExample` prop made optional; null guard added with "No worked example" empty state
+- `proTip` also made optional; falls back to `(chapter as any).proTips?.[0]`
+- All array fields use `?? []` null coalescing
+
+### Vanguard & Scout Error Handling
+
+#### `apps/api/services/vanguard.py`
+- Added `_save_artifact()` helper (upserts artifact)
+- Added `_save_error()` helper — saves `{status:"error", error:"message", recommendations:[], agent_commentary:""}` artifact
+- Every silent `return` path now calls `_save_error()` so frontend never gets stuck in infinite spinner
+- Failure paths covered: no Tavily key, no project_id, no queries, no search results, no synthesis, global exception
+
+#### `apps/api/services/scout.py`
+- Missing `TAVILY_API_KEY` now raises `ValueError` instead of returning `[]`
+
+#### `apps/web/src/components/vanguard/VanguardPanel.tsx`
+- Added `error?` field to `VanguardData` interface
+- Added `scanStartRef` + `SCAN_TIMEOUT_MS = 120_000` (2-minute scan cap)
+- Polling stops on terminal states (`ready`, `error`, timeout)
+- Red error state rendered with message + "Try Again" button
+
+### Tutorial Backend Endpoints (`apps/api/routers/ai.py`)
+
+#### New Category Endpoint
+- `GET /ai/tutorial/category/{category_id}` — returns cached tutorial (by `title="cat:{category_id}"`)
+- `POST /ai/tutorial/category/{category_id}` — generates category-level tutorial across all sources in all projects
+- Stored as `Artifact(project_id=None, source_id=None, type="tutorial", title="cat:{category_id}")`
+
+#### Schema Fix (category endpoint)
+- Was using `stepNumber`/`instruction` — fixed to `step`/`body` matching frontend `TutorialStep` interface
+- Added `workedExample` field (was missing entirely)
+- Fixed `pitfalls` schema: `title`/`description` → `name`/`description`/`fix`
+- Fixed `proTips[]` → `proTip{}` with `title`/`insight`
+
+#### Dynamic Module/Chapter Count — `_tutorial_scope(content_len, source_count)`
+```python
+def _tutorial_scope(content_len: int, source_count: int = 1) -> tuple[int, int]:
+    depth = max(content_len, source_count * 2000)
+    if depth < 3000:   return 2, 2   # 4 chapters
+    elif depth < 6000: return 2, 3   # 6 chapters
+    elif depth < 10000: return 3, 2  # 6 chapters
+    elif depth < 18000: return 3, 3  # 9 chapters
+    elif depth < 30000: return 4, 3  # 12 chapters
+    else:               return 5, 3  # 15 chapters
+```
+- All three outline prompts (single-source, project, category) now call `_tutorial_scope()` and inject counts
+- No longer hardcoded to 4 modules × 2 chapters
+
+#### AI Prompt Improvements (all 3 tutorial endpoints)
+- **Outline prompts**: source content budget raised (3000→8000 single, 4000→12000 multi); outline now extracts `keyTerms` (3 exact terms from source per module)
+- **Chapter prompts**: `keyTerms` injected as hint; strong `system_prompt` added ("O'Reilly book chapter density, not blog summary"); `max_tokens` raised 4000→5000; word count minimums enforced with explicit failure condition
+- **outline `max_tokens`**: raised 2000→3500
+
+---
+
+## Tutorial Data Schema (frontend TypeScript)
+```typescript
+interface TutorialStep { step: number; title: string; body: string; code?: string }
+interface WorkedExample { title: string; problem: string; solution: string; verify: string }
+interface Pitfall { name: string; description: string; fix: string }
+interface ProTip { title: string; insight: string }
+interface Chapter {
+  id: string; title: string; duration: string;
+  concepts: Concept[]; tutorialSteps: TutorialStep[];
+  workedExample?: WorkedExample; pitfalls: Pitfall[]; proTip?: ProTip;
+}
+```
+**CRITICAL**: Backend must use `step`/`body` (NOT `stepNumber`/`instruction`). `workedExample` and `proTip` are optional on frontend.
+
+---
+
+## UI/UX Fixes — Source Page (`/source/<id>`)
 - Fixed non-standard border: `border border-[var(--surface-border-strong)]`
 - Fixed width misalignment: removed `p-5` from the flex wrapper div
 - Fixed content cards to use `vk-card p-6`
@@ -98,90 +204,39 @@ _httpx.Client.__init__ = _patched_client_init
 - Changed from 2-column grid to vertical roadmap (`flex flex-col items-center`)
 - Cards: `w-full rounded-2xl border-2 p-7`, left accent stripe `w-1.5 bg-[var(--secondary)]`
 - Step number turns to `CheckCircle2` when mastered
-- Arrow connectors between nodes: vertical line → circle with `ArrowDown` → vertical line
 
 ### Content Repo Page (`/studio`)
-- File: `apps/web/src/app/studio/page.tsx` (full rewrite)
 - Renamed from "Content Studio" to "Content Repo" everywhere (Sidebar, MobileNav, AppShell)
-- Full-width layout with collection dropdown (AnimatePresence, click-outside detection)
-- Removed sidebar, replaced with top toolbar
+- Full-width layout with collection dropdown
 
-### Studio Tab Fixes
-- Removed duplicate titles in DiagramViewer, ReviewSession, QuizInterface
-- Fixed Social submenu click handling
-- Added platform picker (Twitter / LinkedIn / Instagram) to SocialMediaGenerator
-- Replaced all hardcoded `indigo-*` in SocialMediaGenerator with design tokens
-
-### Vanguard Panel Fixes
-- Fixed invisible text (was caused by `glass-panel` class on the init card)
-- Fixed wrong API endpoint: `/sources/projects/${projectId}/title` → `/sources/projects/${projectId}`
-- Removed confusing "Name this project" card
-- Added `isScanning` state for persistent processing UI:
-  - State 1: `loading && !data` → simple spinner
-  - State 2: `isScanning || status === 'processing'` → full processing UI
-  - State 3: empty/ready → "Find Resources" button (spins while loading)
-- "Find Resources" button keeps spinning until results actually arrive
-
-### Article Editor Fix
-- File: `apps/web/src/components/studio/ArticleEditor.tsx`
-- Fixed confirm dialog firing on first draft (now only shows when content exists)
-- Added visible error banner (red `AlertCircle` box) for API failures
-- Button shows "Drafting..." while generating
-
-### AI Prompt Engineering (all backend)
-- **`apps/api/services/architect.py`**: All 3 prompts rewritten with explicit JSON schemas, specific node titles, progressive sequencing rules
-- **`apps/api/services/vanguard.py`**: Both prompts rewritten with concrete good/bad examples, explicit JSON array output, selection criteria priority order
-- **`apps/api/services/scout.py`**: Synthesis prompt rewritten with phase-level context, URL integrity rules, 10-15 word description guidance
-- **`apps/api/services/ai.py`** (prompt pass 1 — 2026-04-08):
-  - **Prompt writing standards applied across all methods**: no em-dashes, humanized voice, LaTeX for math, ASCII diagrams where visual, concrete examples
-  - `generate_summary` (article style): rewritten as "sharp friend explaining over coffee", added LaTeX math + ASCII diagram instructions
-  - `generate_summary` (concise): tightened, "60-second briefing" framing
-  - `generate_summary` (eli5): added math-with-words-first rule, no em-dashes
-  - `generate_quiz`: added math question requirement, better explanation rules with good/bad example
-  - `generate_flashcards`: added LaTeX for math cards, better card type variety guidance
-  - `generate_social_media`: no em-dashes rule explicit, replaced facebook with instagram
-  - `generate_diagram`: added edge label requirements, depth-over-breadth rule
-  - `generate_article`: full style guides rewritten, LaTeX math instruction, no em-dashes, active voice rules
-  - `chat_with_context`: LaTeX formula instruction added, no em-dashes
-  - `generate_podcast_script`: humanized, no em-dashes, banned filler phrases list
-  - `generate_node_lesson`: LaTeX + ASCII diagram explicit, specific youtube_search examples, "senior engineer to junior" framing
-- **All background services** now use `settings.DEFAULT_PROVIDER` instead of hardcoded `"openai"`
-
-### AI Prompt Engineering — Pass 2 (`apps/api/services/ai.py`, 2026-04-08)
-Core philosophy applied: **intuition before definition** — every concept opens with the problem it solves before introducing the term.
-
-- **`generate_summary` (article style)**:
-  - Added "build intuition first" as step 1 of the 4-step concept treatment (problem → term → reasoning → analogy → misconception)
-  - Diagrams now proactive: "whenever a relationship, process, or architecture is described, draw it. Do not wait for a diagram to appear in the source."
-  - Code rule tightened: "grounded in the source material" (not "never invent")
-- **`generate_flashcards`**: Added memory hook instruction on card backs — one-sentence analogy or contrast that makes the concept stick
-- **`generate_social_media` (platform_guides)**: Fixed all remaining em-dashes
-  - twitter: "One punchy sentence. Pick the most surprising..." (was "sentence — the most")
-  - linkedin: "Not a question, not a greeting." (was "fact — not a question")
-  - instagram: "Hook in the first line. Make someone stop scrolling." (was "first line — make someone")
-- **`generate_article` (technical style)**: Added "build intuition before showing the formula" + Markdown comparison tables rule
-- **`chat_with_context`**: Added "chain of cause and effect" rule — when asked WHY, walk through X → Y → Z, not just the conclusion
-- **`generate_node_lesson`**: Added "build intuition before formal definition" as explicit step 1; diagrams required for every section that describes a flow/pipeline/structure
-
-### Error Handling in AI Routes (`apps/api/routers/ai.py`)
-- All studio endpoints (article, quiz, flashcards, social, diagram) now:
-  - Catch AI exceptions and surface real error message to frontend
-  - Check for empty/malformed AI response
-  - Return meaningful HTTP error details
-- **REMOVED** the `if not api_key` guard — breaks env var fallback for incognito users
+### AI Prompt Engineering (all backend, 2026-04-08)
+- **`apps/api/services/architect.py`**: explicit JSON schemas, progressive sequencing rules
+- **`apps/api/services/vanguard.py`**: concrete examples, explicit JSON output
+- **`apps/api/services/scout.py`**: phase-level context, URL integrity rules
+- **`apps/api/services/ai.py`**: no em-dashes, humanized voice, LaTeX for math, "intuition before definition" philosophy applied across all methods
 
 ---
 
 ## Known Patterns & Gotchas
 
 ### `glass-panel` CSS class
-Causes semi-transparent white overlay that makes text invisible and overrides background colors. Never use it for colored panels.
+Causes semi-transparent white overlay that makes text invisible. Never use for colored panels.
+
+### Tutorial localStorage keys
+Pattern: `path-tutorial-${entityId}` where `entityId = categoryId ?? projectId`. Keys:
+- `path-tutorial-${entityId}` — cached TutorialData JSON
+- `path-tutorial-${entityId}-tab` — active tab
+- `path-tutorial-${entityId}-chapter` — active chapter id
+- `path-tutorial-${entityId}-completed` — JSON array of completed chapter ids
+
+### Tutorial scroll-to-top
+`useEffect` on `activeChapter` walks up DOM from `mainRef` to find `overflow-y: auto` ancestor (AppShell `<main>`) and calls `scrollTo({ top: 0, behavior: "instant" })`.
+
+### Tutorial API caching
+Category tutorials cached as `Artifact(project_id=None, source_id=None, type="tutorial", title="cat:{category_id}")`. Project tutorials cached as `Artifact(project_id=pid, source_id=None, type="tutorial")`.
 
 ### `isScanning` pattern (Vanguard)
-Independent of `loading` flag. Set `true` on scan start, set `false` only when `recommendations.length > 0`. Prevents the wizard from reappearing during the 10-30s background processing window.
-
-### Studio tool switching
-Source page dispatches `studio-tool-change` custom event to switch active tool from external components.
+Independent of `loading` flag. Set `true` on scan start, set `false` only when terminal state reached. Prevents wizard reappearing during 10-30s background processing.
 
 ### `buildAIHeaders()` (frontend)
 Reads from `localStorage`:
@@ -208,3 +263,6 @@ Installed: `anthropic>=0.19.0`. Does NOT support `http_client=` parameter proper
 4. **Don't pass `http_client=httpx.Client()`** to Anthropic client — old SDK breaks
 5. **Don't add title props** to StudioInterface sub-components — causes duplicate headers
 6. **Don't use `confirm(...)` dialog** as a gate for first-time generation — it blocks users
+7. **Don't add `max-w-3xl` or similar inner constraints** inside tutorial/page components — breaks full-width layout
+8. **Don't hardcode 4 modules × 2 chapters** in tutorial outline prompts — use `_tutorial_scope()` helper
+9. **Don't use `stepNumber`/`instruction`** in tutorial step JSON — frontend expects `step`/`body`
